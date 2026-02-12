@@ -4,8 +4,9 @@ export default function SubscriberDetailsModal({ isOpen, onClose, subscriber }) 
   if (!isOpen || !subscriber) return null;
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+    <div className="fixed inset-0 bg-blue-50/60 backdrop-blur-[2px] flex items-center justify-center z-50 p-4">
       <div className="bg-white rounded-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+        
         {/* Header */}
         <div className="p-6 border-b">
           <div className="flex justify-between items-center">
@@ -22,7 +23,7 @@ export default function SubscriberDetailsModal({ isOpen, onClose, subscriber }) 
         {/* Content */}
         <div className="p-6">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {/* Personal Information */}
+            
             <div className="space-y-4">
               <h3 className="text-lg font-semibold text-gray-700 pb-2 border-b">Personal Information</h3>
               <div>
@@ -47,7 +48,6 @@ export default function SubscriberDetailsModal({ isOpen, onClose, subscriber }) 
               </div>
             </div>
 
-            {/* Subscription Information */}
             <div className="space-y-4">
               <h3 className="text-lg font-semibold text-gray-700 pb-2 border-b">Subscription Details</h3>
               <div>
@@ -90,13 +90,13 @@ export default function SubscriberDetailsModal({ isOpen, onClose, subscriber }) 
               </div>
             </div>
 
-            {/* Notes Section */}
             <div className="md:col-span-2 space-y-4">
               <h3 className="text-lg font-semibold text-gray-700 pb-2 border-b">Notes</h3>
               <div className="bg-gray-50 rounded-xl p-4">
                 <p className="text-gray-700">{subscriber.notes}</p>
               </div>
             </div>
+
           </div>
         </div>
 
@@ -110,7 +110,6 @@ export default function SubscriberDetailsModal({ isOpen, onClose, subscriber }) 
           </button>
           <button
             onClick={() => {
-              // Add action for editing subscriber
               console.log("Edit subscriber:", subscriber.id);
             }}
             className="px-6 py-2 bg-[#2133ff] text-white rounded-xl hover:bg-blue-700 transition-colors duration-200"
@@ -118,6 +117,7 @@ export default function SubscriberDetailsModal({ isOpen, onClose, subscriber }) 
             Edit Subscriber
           </button>
         </div>
+
       </div>
     </div>
   );

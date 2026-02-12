@@ -13,7 +13,6 @@ export default function Subscribers() {
   const [isNotificationModalOpen, setIsNotificationModalOpen] = useState(false);
   const itemsPerPage = 10;
 
-  // Mock data - replace with API call
   useEffect(() => {
     const mockData = [
       {
@@ -29,7 +28,7 @@ export default function Subscribers() {
         status: "Active",
         paymentMethod: "Credit Card",
         lastPayment: "2025-12-14",
-        notes: "Regular customer, always pays on time"
+        notes: "Regular customer, always pays on time",
       },
       {
         id: 2,
@@ -44,7 +43,7 @@ export default function Subscribers() {
         status: "Inactive",
         paymentMethod: "PayPal",
         lastPayment: "2025-12-02",
-        notes: "Payment overdue, contacted on Dec 5"
+        notes: "Payment overdue, contacted on Dec 5",
       },
       {
         id: 3,
@@ -59,7 +58,7 @@ export default function Subscribers() {
         status: "Active",
         paymentMethod: "Bank Transfer",
         lastPayment: "2025-12-15",
-        notes: "New subscriber, very satisfied"
+        notes: "New subscriber, very satisfied",
       },
       {
         id: 4,
@@ -74,7 +73,7 @@ export default function Subscribers() {
         status: "Active",
         paymentMethod: "Credit Card",
         lastPayment: "2025-12-01",
-        notes: "Enterprise plan, multiple clinics"
+        notes: "Enterprise plan, multiple clinics",
       },
       {
         id: 5,
@@ -89,9 +88,8 @@ export default function Subscribers() {
         status: "Active",
         paymentMethod: "Credit Card",
         lastPayment: "2025-12-20",
-        notes: "Specializes in pediatric care"
+        notes: "Specializes in pediatric care",
       },
-      // Add more mock data for pagination testing
       {
         id: 6,
         name: "Sarah Johnson",
@@ -105,7 +103,7 @@ export default function Subscribers() {
         status: "Active",
         paymentMethod: "Credit Card",
         lastPayment: "2025-12-10",
-        notes: "Regular checkups, satisfied customer"
+        notes: "Regular checkups, satisfied customer",
       },
       {
         id: 7,
@@ -120,7 +118,7 @@ export default function Subscribers() {
         status: "Active",
         paymentMethod: "Bank Transfer",
         lastPayment: "2025-12-15",
-        notes: "Multiple locations, corporate account"
+        notes: "Multiple locations, corporate account",
       },
       {
         id: 8,
@@ -135,7 +133,7 @@ export default function Subscribers() {
         status: "Inactive",
         paymentMethod: "PayPal",
         lastPayment: "2025-10-20",
-        notes: "Subscription expired, not renewed"
+        notes: "Subscription expired, not renewed",
       },
       {
         id: 9,
@@ -150,7 +148,7 @@ export default function Subscribers() {
         status: "Active",
         paymentMethod: "Credit Card",
         lastPayment: "2025-12-25",
-        notes: "Long-term customer, loyal"
+        notes: "Long-term customer, loyal",
       },
       {
         id: 10,
@@ -165,7 +163,7 @@ export default function Subscribers() {
         status: "Active",
         paymentMethod: "Bank Transfer",
         lastPayment: "2025-12-28",
-        notes: "Enterprise client with special requirements"
+        notes: "Enterprise client with special requirements",
       },
       {
         id: 11,
@@ -180,7 +178,7 @@ export default function Subscribers() {
         status: "Active",
         paymentMethod: "Credit Card",
         lastPayment: "2025-12-15",
-        notes: "New premium subscriber"
+        notes: "New premium subscriber",
       },
       {
         id: 12,
@@ -195,41 +193,43 @@ export default function Subscribers() {
         status: "Active",
         paymentMethod: "Credit Card",
         lastPayment: "2025-12-01",
-        notes: "Recently upgraded to basic plan"
-      }
+        notes: "Recently upgraded to basic plan",
+      },
     ];
     setSubscribers(mockData);
   }, []);
 
-  // Filter subscribers based on search and status
-  const filteredSubscribers = subscribers.filter(subscriber => {
-    const matchesSearch = 
+  const filteredSubscribers = subscribers.filter((subscriber) => {
+    const matchesSearch =
       subscriber.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       subscriber.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
       subscriber.clinicName.toLowerCase().includes(searchTerm.toLowerCase());
-    
-    const matchesStatus = statusFilter === "all" || subscriber.status === statusFilter;
-    
+
+    const matchesStatus =
+      statusFilter === "all" || subscriber.status === statusFilter;
+
     return matchesSearch && matchesStatus;
   });
 
-  // Calculate pagination
   const totalPages = Math.ceil(filteredSubscribers.length / itemsPerPage);
   const startIndex = (currentPage - 1) * itemsPerPage;
-  const paginatedSubscribers = filteredSubscribers.slice(startIndex, startIndex + itemsPerPage);
+  const paginatedSubscribers = filteredSubscribers.slice(
+    startIndex,
+    startIndex + itemsPerPage
+  );
 
   const handleSelectAll = (e) => {
     if (e.target.checked) {
-      setSelectedSubscribers(paginatedSubscribers.map(s => s.id));
+      setSelectedSubscribers(paginatedSubscribers.map((s) => s.id));
     } else {
       setSelectedSubscribers([]);
     }
   };
 
   const handleSelectSubscriber = (id) => {
-    setSelectedSubscribers(prev =>
+    setSelectedSubscribers((prev) =>
       prev.includes(id)
-        ? prev.filter(subId => subId !== id)
+        ? prev.filter((subId) => subId !== id)
         : [...prev, id]
     );
   };
@@ -239,59 +239,101 @@ export default function Subscribers() {
   };
 
   const handleNotificationSent = (message) => {
-    console.log("Notification sent to:", selectedSubscribers, "Message:", message);
-    // Here you would typically make an API call
+    console.log(
+      "Notification sent to:",
+      selectedSubscribers,
+      "Message:",
+      message
+    );
     alert(`Notification sent to ${selectedSubscribers.length} subscriber(s)`);
   };
 
   const goToPreviousPage = () => {
-    setCurrentPage(prev => Math.max(prev - 1, 1));
+    setCurrentPage((prev) => Math.max(prev - 1, 1));
   };
 
   const goToNextPage = () => {
-    setCurrentPage(prev => Math.min(prev + 1, totalPages));
+    setCurrentPage((prev) => Math.min(prev + 1, totalPages));
   };
+
+  // Reset to page 1 when filters change
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm, statusFilter]);
 
   return (
     <AdminLayout>
-      <div className="p-6">
+      <div className="p-3 sm:p-4 md:p-6">
         <Header title="Subscription Management" />
 
         {/* Control Panel */}
-        <div className="mt-6 bg-white rounded-xl shadow-sm p-6 mb-6">
-          <div className="flex flex-col md:flex-row justify-between items-center gap-4 mb-4">
-            <div className="flex items-center gap-4 w-full md:w-auto">
-              <input
-                type="text"
-                placeholder="Search by name, email, or clinic..."
-                className="w-full md:w-80 rounded-xl border border-gray-200 px-4 py-2 focus:outline-none focus:ring-2 focus:ring-[#2133ff] focus:border-transparent"
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-              />
-              
-              <select
-                className="rounded-xl border border-gray-200 px-4 py-2 focus:outline-none focus:ring-2 focus:ring-[#2133ff] focus:border-transparent"
-                value={statusFilter}
-                onChange={(e) => setStatusFilter(e.target.value)}
-              >
-                <option value="all">All Status</option>
-                <option value="Active">Active</option>
-                <option value="Inactive">Inactive</option>
-              </select>
-            </div>
+        <div className="mt-4 sm:mt-6 bg-white rounded-xl shadow-sm p-3 sm:p-4 md:p-6 mb-4 sm:mb-6">
+          <div className="flex flex-col gap-3 sm:gap-4">
+            {/* Filters and Actions */}
+            <div className="flex flex-col sm:flex-row justify-between items-stretch sm:items-center gap-3 sm:gap-4">
+              <div className="flex flex-col xs:flex-row items-stretch xs:items-center gap-3 w-full sm:w-auto">
+                <select
+                  className="rounded-xl border border-gray-200 px-4 py-2 focus:outline-none focus:ring-2 focus:ring-[#2133ff] focus:border-transparent text-sm sm:text-base w-full xs:w-auto"
+                  value={statusFilter}
+                  onChange={(e) => setStatusFilter(e.target.value)}
+                >
+                  <option value="all">All Status</option>
+                  <option value="Active">Active</option>
+                  <option value="Inactive">Inactive</option>
+                </select>
 
-            <div className="flex items-center gap-4 w-full md:w-auto">
-              <button
-                onClick={handleSendNotification}
-                disabled={selectedSubscribers.length === 0}
-                className={`px-6 py-2 rounded-xl font-semibold transition-all duration-200 ${
-                  selectedSubscribers.length === 0
-                    ? "bg-gray-300 text-gray-500 cursor-not-allowed"
-                    : "bg-[#2133ff] text-white hover:bg-blue-700"
-                }`}
-              >
-                Send Notification ({selectedSubscribers.length})
-              </button>
+                {/* Summary badges - visible on all sizes */}
+                <div className="flex items-center gap-2 flex-wrap">
+                  <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-blue-50 text-blue-700">
+                    Total: {filteredSubscribers.length}
+                  </span>
+                  <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-green-50 text-green-700">
+                    Active:{" "}
+                    {
+                      filteredSubscribers.filter(
+                        (s) => s.status === "Active"
+                      ).length
+                    }
+                  </span>
+                  <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-yellow-50 text-yellow-700">
+                    Inactive:{" "}
+                    {
+                      filteredSubscribers.filter(
+                        (s) => s.status === "Inactive"
+                      ).length
+                    }
+                  </span>
+                </div>
+              </div>
+
+              <div className="w-full sm:w-auto">
+                <button
+                  onClick={handleSendNotification}
+                  disabled={selectedSubscribers.length === 0}
+                  className={`w-full sm:w-auto px-4 sm:px-6 py-2 rounded-xl font-semibold transition-all duration-200 text-sm sm:text-base ${
+                    selectedSubscribers.length === 0
+                      ? "bg-gray-300 text-gray-500 cursor-not-allowed"
+                      : "bg-[#2133ff] text-white hover:bg-blue-700 active:bg-blue-800"
+                  }`}
+                >
+                  <span className="flex items-center justify-center gap-2">
+                    <svg
+                      className="w-4 h-4 sm:w-5 sm:h-5"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"
+                      />
+                    </svg>
+                    Send Notification ({selectedSubscribers.length})
+                  </span>
+                </button>
+              </div>
             </div>
           </div>
         </div>
@@ -307,57 +349,125 @@ export default function Subscribers() {
 
           {/* Pagination */}
           {totalPages > 1 && (
-            <div className="flex justify-between items-center p-4 border-t border-gray-200">
-              <div className="text-sm text-gray-600">
-                Showing {startIndex + 1} to {Math.min(startIndex + itemsPerPage, filteredSubscribers.length)} of {filteredSubscribers.length} subscribers
+            <div className="flex flex-col sm:flex-row justify-between items-center gap-3 p-3 sm:p-4 border-t border-gray-200">
+              <div className="text-xs sm:text-sm text-gray-600 order-2 sm:order-1">
+                Showing {startIndex + 1} to{" "}
+                {Math.min(
+                  startIndex + itemsPerPage,
+                  filteredSubscribers.length
+                )}{" "}
+                of {filteredSubscribers.length} subscribers
               </div>
-              
-              <div className="flex items-center gap-4">
+
+              <div className="flex items-center gap-1 sm:gap-2 order-1 sm:order-2">
                 <button
                   onClick={goToPreviousPage}
                   disabled={currentPage === 1}
-                  className={`flex items-center gap-1 px-4 py-2 rounded-lg font-medium ${
+                  className={`flex items-center gap-1 px-2 sm:px-4 py-2 rounded-lg font-medium text-xs sm:text-sm ${
                     currentPage === 1
                       ? "text-gray-400 cursor-not-allowed"
-                      : "text-[#2133ff] hover:bg-gray-100"
+                      : "text-[#2133ff] hover:bg-gray-100 active:bg-gray-200"
                   }`}
                 >
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                  <svg
+                    className="w-4 h-4 sm:w-5 sm:h-5"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M15 19l-7-7 7-7"
+                    />
                   </svg>
-                  Previous
+                  <span className="hidden xs:inline">Previous</span>
                 </button>
-                
+
                 <div className="flex items-center gap-1">
+                  {/* Show first page */}
+                  {currentPage > 3 && (
+                    <>
+                      <button
+                        onClick={() => setCurrentPage(1)}
+                        className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg flex items-center justify-center text-xs sm:text-sm text-gray-600 hover:bg-gray-100"
+                      >
+                        1
+                      </button>
+                      {currentPage > 4 && (
+                        <span className="text-gray-400 px-1">...</span>
+                      )}
+                    </>
+                  )}
+
                   {Array.from({ length: totalPages }, (_, i) => i + 1)
-                    .slice(Math.max(0, currentPage - 3), Math.min(totalPages, currentPage + 2))
-                    .map(page => (
+                    .filter((page) => {
+                      if (totalPages <= 5) return true;
+                      return (
+                        Math.abs(page - currentPage) <= 1 ||
+                        page === 1 ||
+                        page === totalPages
+                      );
+                    })
+                    .filter((page) => {
+                      if (currentPage > 3 && page === 1) return false;
+                      if (currentPage < totalPages - 2 && page === totalPages)
+                        return false;
+                      return true;
+                    })
+                    .map((page) => (
                       <button
                         key={page}
                         onClick={() => setCurrentPage(page)}
-                        className={`w-10 h-10 rounded-lg flex items-center justify-center ${
+                        className={`w-8 h-8 sm:w-10 sm:h-10 rounded-lg flex items-center justify-center text-xs sm:text-sm ${
                           currentPage === page
                             ? "bg-[#2133ff] text-white"
                             : "text-gray-600 hover:bg-gray-100"
                         }`}
                       >
                         {page}
-                    </button>
-                  ))}
+                      </button>
+                    ))}
+
+                  {/* Show last page */}
+                  {currentPage < totalPages - 2 && totalPages > 5 && (
+                    <>
+                      {currentPage < totalPages - 3 && (
+                        <span className="text-gray-400 px-1">...</span>
+                      )}
+                      <button
+                        onClick={() => setCurrentPage(totalPages)}
+                        className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg flex items-center justify-center text-xs sm:text-sm text-gray-600 hover:bg-gray-100"
+                      >
+                        {totalPages}
+                      </button>
+                    </>
+                  )}
                 </div>
-                
+
                 <button
                   onClick={goToNextPage}
                   disabled={currentPage === totalPages}
-                  className={`flex items-center gap-1 px-4 py-2 rounded-lg font-medium ${
+                  className={`flex items-center gap-1 px-2 sm:px-4 py-2 rounded-lg font-medium text-xs sm:text-sm ${
                     currentPage === totalPages
                       ? "text-gray-400 cursor-not-allowed"
-                      : "text-[#2133ff] hover:bg-gray-100"
+                      : "text-[#2133ff] hover:bg-gray-100 active:bg-gray-200"
                   }`}
                 >
-                  Next
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                  <span className="hidden xs:inline">Next</span>
+                  <svg
+                    className="w-4 h-4 sm:w-5 sm:h-5"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M9 5l7 7-7 7"
+                    />
                   </svg>
                 </button>
               </div>

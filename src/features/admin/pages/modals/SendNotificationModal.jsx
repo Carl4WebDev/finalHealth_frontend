@@ -18,7 +18,6 @@ export default function SendNotificationModal({
     }
     onSend(message);
     onClose();
-    // Reset form
     setSubject("");
     setMessage("");
   };
@@ -26,8 +25,9 @@ export default function SendNotificationModal({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+    <div className="fixed inset-0 bg-blue-50/60 backdrop-blur-[2px] flex items-center justify-center z-50 p-4">
       <div className="bg-white rounded-2xl w-full max-w-2xl max-h-[90vh] flex flex-col">
+        
         {/* Header */}
         <div className="p-6 border-b flex-shrink-0">
           <div className="flex justify-between items-center">
@@ -44,10 +44,11 @@ export default function SendNotificationModal({
           </p>
         </div>
 
-        {/* Form - Scrollable Area */}
+        {/* Form */}
         <div className="flex-1 overflow-y-auto p-6">
           <form onSubmit={handleSubmit} className="space-y-6">
             <div className="space-y-4">
+
               {/* Notification Type */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -131,7 +132,7 @@ export default function SendNotificationModal({
                 </div>
               )}
 
-              {/* Template Options */}
+              {/* Templates */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   Quick Templates
@@ -160,11 +161,12 @@ export default function SendNotificationModal({
                   </button>
                 </div>
               </div>
+
             </div>
           </form>
         </div>
 
-        {/* Footer - Fixed at bottom */}
+        {/* Footer */}
         <div className="flex-shrink-0 p-6 border-t">
           <div className="flex justify-end gap-3">
             <button
@@ -185,6 +187,7 @@ export default function SendNotificationModal({
             </button>
           </div>
         </div>
+
       </div>
     </div>
   );
