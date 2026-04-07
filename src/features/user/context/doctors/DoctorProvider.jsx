@@ -23,10 +23,12 @@ export const DoctorProvider = ({ children }) => {
     if (!res.ok) {
       setError(res.message);
       setLoading(false);
-      return;
+      return res;
     }
+
     setApprovedDoctors(res.data || []);
     setLoading(false);
+    return res;
   };
 
   const getAllDoctorsOfUser = async () => {
@@ -40,10 +42,12 @@ export const DoctorProvider = ({ children }) => {
       console.log("inside the error");
       setError(res.message);
       setLoading(false);
-      return;
+      return res;
     }
+
     setDoctors(res.data || []);
     setLoading(false);
+    return res;
   };
 
   const createDoctor = async (doctorData) => {
@@ -57,12 +61,13 @@ export const DoctorProvider = ({ children }) => {
       console.log("inside the error");
       setError(res.message);
       setLoading(false);
-      return;
+      return res;
     }
 
     await getAllDoctorsOfUser();
 
     setLoading(false);
+    return res;
   };
 
   const updateDoctorInfo = async (doctorId, doctorData) => {
@@ -76,12 +81,13 @@ export const DoctorProvider = ({ children }) => {
       console.log("inside the error");
       setError(res.message);
       setLoading(false);
-      return;
+      return res;
     }
 
     await getAllDoctorsOfUser();
 
     setLoading(false);
+    return res;
   };
 
   return (
