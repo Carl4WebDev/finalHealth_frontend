@@ -31,6 +31,7 @@ export const MedicalRecordsProvider = ({ children }) => {
     useState(false);
   const [error, setError] = useState(null);
 
+
   const getPatientOfDoctorInClinic = async (doctorId, clinicId) => {
     setLoading(true);
     setError(null);
@@ -119,41 +120,43 @@ export const MedicalRecordsProvider = ({ children }) => {
     }
   };
 
-  const createMedicalRecord = async (patientId, medicalRecordData) => {
-    setError(null);
+const createMedicalRecord = async (patientId, medicalRecordData) => {
+  setError(null);
 
-    try {
-      const res = await createMedicalRecordApi(patientId, medicalRecordData);
+  try {
+    const res = await createMedicalRecordApi(patientId, medicalRecordData);
 
-      if (!res.ok) {
-        setError(res.message);
-        return null;
-      }
-      console.log(res.data.record.recordId);
-      // ✅ RETURN RESPONSE
-      return res.data.record;
-    } catch (err) {
-      setError("Something went wrong");
-      return null;
-    }
-  };
-  const uploadMedicalRecordDocument = async (recordId, file) => {
-    setError(null);
-
-    try {
-      const res = await uploadMedicalRecordDocumentApi(recordId, file);
-
-      if (!res.ok) {
-        setError(res.message);
-        return null;
-      }
-
+    if (!res.ok) {
+      setError(res.message);
       return res;
-    } catch (err) {
-      setError("Something went wrong");
-      return null;
     }
-  };
+
+    return {
+      ...res,
+      record: res.data.record,
+    };
+  } catch (err) {
+    setError("Something went wrong");
+    return { ok: false, message: "Something went wrong" };
+  }
+};
+const uploadMedicalRecordDocument = async (recordId, file) => {
+  setError(null);
+
+  try {
+    const res = await uploadMedicalRecordDocumentApi(recordId, file);
+
+    if (!res.ok) {
+      setError(res.message);
+      return res;
+    }
+
+    return res;
+  } catch (err) {
+    setError("Something went wrong");
+    return { ok: false, message: "Something went wrong" };
+  }
+};
 
   const clearPatients = () => {
     setPatients([]);

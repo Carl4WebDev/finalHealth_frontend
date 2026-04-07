@@ -59,6 +59,7 @@ export default function AddMedicalRecordModal({ isOpen, onClose, patientId }) {
   } = useMedicalRecords();
 
   const [selectedFiles, setSelectedFiles] = useState([]);
+  const [submitError, setSubmitError] = useState("");
 
   const [form, setForm] = useState({
     record_date: "",
@@ -92,32 +93,46 @@ export default function AddMedicalRecordModal({ isOpen, onClose, patientId }) {
     setForm((prev) => ({ ...prev, [key]: value }));
   };
 
-  const handleSubmit = async () => {
-    if (!form.diagnosis) {
-      alert("Diagnosis is required");
-      return;
-    }
+const handleSubmit = async () => {
+  setSubmitError("");
 
-    const doctorId = localStorage.getItem("selectedDoctorIdPatientPage");
-    const clinicId = localStorage.getItem("selectedClinicIdPatientPage");
+  if (!form.diagnosis) {
+    setSubmitError("Diagnosis is required");
+    return;
+  }
 
-    const payload = {
-      ...form,
-      doctor_id: Number(doctorId),
-      clinic_id: Number(clinicId),
-    };
+  const doctorId = localStorage.getItem("selectedDoctorIdPatientPage");
+  const clinicId = localStorage.getItem("selectedClinicIdPatientPage");
 
-    const record = await createMedicalRecord(patientId, payload);
-    const recordId = record.recordId;
-
-    for (const file of selectedFiles) {
-      await uploadMedicalRecordDocument(recordId, file);
-    }
-
-    await getPatientMedRecord(patientId);
-    onClose();
+  const payload = {
+    ...form,
+    doctor_id: Number(doctorId),
+    clinic_id: Number(clinicId),
   };
 
+  const res = await createMedicalRecord(patientId, payload);
+
+  if (!res?.ok) {
+    setSubmitError(res?.message || "Something went wrong.");
+    return;
+  }
+
+  const recordId = res?.record?.recordId;
+
+  if (recordId && selectedFiles.length > 0) {
+    for (const file of selectedFiles) {
+      const uploadRes = await uploadMedicalRecordDocument(recordId, file);
+
+      if (!uploadRes?.ok) {
+        setSubmitError(uploadRes?.message || "Failed to upload document.");
+        return;
+      }
+    }
+  }
+
+  await getPatientMedRecord(patientId);
+  onClose();
+};
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center px-4">
       <div
@@ -126,6 +141,11 @@ export default function AddMedicalRecordModal({ isOpen, onClose, patientId }) {
       />
 
       <div className="relative bg-white w-full max-w-4xl rounded-2xl border-4 border-blue-600 shadow-xl p-6 space-y-6 overflow-y-auto max-h-[90vh] z-10">
+        {submitError && (
+  <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-600">
+    {submitError}
+  </div>
+)}
         <h3 className="text-xl font-semibold text-blue-700 text-center">
           Add Medical Record
         </h3>
