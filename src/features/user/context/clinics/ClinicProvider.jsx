@@ -180,20 +180,21 @@ export const ClinicProvider = ({ children }) => {
     setLoadingCreateClinicSession(false);
   };
 
-  const createClinic = async (clinicData) => {
-    setLoadingCreateClinic(true);
-    setError(null);
+const createClinic = async (clinicData) => {
+  setLoadingCreateClinic(true);
+  setError(null);
 
-    const res = await createClinicApi(clinicData);
+  const res = await createClinicApi(clinicData);
 
-    if (!res.ok) {
-      setError(res.message);
-      setLoadingCreateClinic(false);
-      return;
-    }
-
+  if (!res.ok) {
+    setError(res.message);
     setLoadingCreateClinic(false);
-  };
+    return res; // return the failed response
+  }
+
+  setLoadingCreateClinic(false);
+  return res; // return the success response too
+};
 
   const updateClinic = async (clinicId, clinicData) => {
     setLoadingCreateClinicSession(true);

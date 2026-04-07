@@ -11,10 +11,18 @@ import AddClinicModal from "./clinic-related/modals/AddClinicModal";
 
 export default function ClinicDoctorMngPage() {
   const { getAllDoctorsOfUser, doctors } = useDoctors();
-  const { getAllClinicsOfUser, allClinics } = useClinics();
+  const { getAllClinicsOfUser, allClinics, error } = useClinics();
 
   const [showAddDoctor, setShowAddDoctor] = useState(false);
   const [showAddClinicModal, setShowAddClinicModal] = useState(false);
+
+    const [showError, setShowError] = useState(false); 
+
+  useEffect(() => {
+    if (error) {
+      setShowError(true);
+    }
+  }, []);
 
   useEffect(() => {
     getAllDoctorsOfUser();
@@ -24,8 +32,32 @@ export default function ClinicDoctorMngPage() {
     getAllClinicsOfUser();
   }, []);
 
+
+
   return (
     <Layout>
+       {/* SIMPLE ERROR MODAL */}
+      {showError && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 backdrop-blur-sm">
+          <div className="bg-white border-4 border-blue-600 rounded-2xl shadow-xl p-8 max-w-md w-full text-center">
+            
+            <h2 className="text-2xl font-bold text-blue-600 mb-4">
+              Action Failed
+            </h2>
+
+            <p className="text-gray-600 mb-6">
+              {error || "Something went wrong."}
+            </p>
+
+            <button
+              onClick={() => setShowError(false)}
+              className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700"
+            >
+              ← Back
+            </button>
+          </div>
+        </div>
+      )}
       <AddDoctorModal
         isOpen={showAddDoctor}
         onClose={() => setShowAddDoctor(false)}
