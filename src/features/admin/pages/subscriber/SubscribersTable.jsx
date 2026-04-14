@@ -26,12 +26,11 @@ export default function SubscribersTable({
                   type="checkbox"
                   className="rounded"
                   onChange={onSelectAll}
+                  // Check if all paginated subscribers are in the selected list
                   checked={
                     subscribers.length > 0 &&
                     subscribers.every((s) =>
-                      selectedSubscribers.includes(
-                        `${s.user_id}-${s.subscription_id}`,
-                      ),
+                      selectedSubscribers.includes(`${s.user_id}-${s.subscription_id}`)
                     )
                   }
                 />
@@ -73,47 +72,32 @@ export default function SubscribersTable({
                   </td>
 
                   <td className="p-4 font-medium">{fullName || "-"}</td>
-
                   <td className="p-4 text-gray-600">{subscriber.email}</td>
-
                   <td className="p-4">
                     {subscriber.plan_name ? (
                       <span className="px-3 py-1 rounded-full text-sm font-semibold bg-blue-100 text-blue-800">
                         {subscriber.plan_name}
                       </span>
-                    ) : (
-                      "-"
-                    )}
+                    ) : "-"}
                   </td>
-
                   <td className="p-4">
                     {subscriber.subscription_status ? (
                       <span
                         className={`px-3 py-1 rounded-full text-sm font-semibold ${
                           subscriber.subscription_status === "active"
                             ? "bg-green-100 text-green-800"
-                            : subscriber.subscription_status === "expired"
-                              ? "bg-yellow-100 text-yellow-800"
-                              : "bg-gray-100 text-gray-800"
+                            : "bg-yellow-100 text-yellow-800"
                         }`}
                       >
                         {subscriber.subscription_status}
                       </span>
-                    ) : (
-                      "-"
-                    )}
+                    ) : "-"}
                   </td>
-
                   <td className="p-4">
-                    {subscriber.start_date
-                      ? new Date(subscriber.start_date).toLocaleDateString()
-                      : "-"}
+                    {subscriber.start_date ? new Date(subscriber.start_date).toLocaleDateString() : "-"}
                   </td>
-
                   <td className="p-4">
-                    {subscriber.end_date
-                      ? new Date(subscriber.end_date).toLocaleDateString()
-                      : "-"}
+                    {subscriber.end_date ? new Date(subscriber.end_date).toLocaleDateString() : "-"}
                   </td>
                 </tr>
               );
@@ -122,13 +106,10 @@ export default function SubscribersTable({
         </table>
 
         {subscribers.length === 0 && (
-          <div className="text-center py-12 text-gray-500">
-            No subscribers found
-          </div>
+          <div className="text-center py-12 text-gray-500">No subscribers found</div>
         )}
       </div>
 
-      {/* Details Modal */}
       {selectedSubscriber && (
         <SubscriberDetailsModal
           isOpen={isDetailsModalOpen}
