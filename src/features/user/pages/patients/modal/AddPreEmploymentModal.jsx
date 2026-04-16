@@ -46,33 +46,38 @@ export default function AddPreEmploymentModal({
 
   const [submitError, setSubmitError] = useState("");
 
-  const [form, setForm] = useState({
-    record_date: "",
-    diagnosis: "For evaluation",
-    treatment: "N/A",
-    medications: "",
-    assessment: "Pre-employment exam",
-    requestingFor: "Pre-Employment",
+const [form, setForm] = useState({
+  record_date: "",
+  diagnosis: "For evaluation",
+  treatment: "N/A",
+  medications: "",
+  assessment: "Pre-employment exam",
+  requestingFor: "Pre-Employment",
 
-    findings: "",
-    recommendation: "",
-    medicalExaminer: "",
-    licenseNumber: "",
+  findings: "",
+  recommendation: "",
+  medicalExaminer: "",
+  licenseNumber: "",
 
-    physicalExam: {
-      bp: "",
-      hr: "",
-      temp: "",
-      rr: "",
-      height: "",
-      weight: "",
-      bmi: "",
-    },
+  consultation_fee: "",
+  medicine_fee: "",
+  lab_fee: "",
+  other_fee: "",
 
-    pastMedicalHistory: [],
-    familyHistory: [],
-    socialHistory: [],
-  });
+  physicalExam: {
+    bp: "",
+    hr: "",
+    temp: "",
+    rr: "",
+    height: "",
+    weight: "",
+    bmi: "",
+  },
+
+  pastMedicalHistory: [],
+  familyHistory: [],
+  socialHistory: [],
+});
 
   if (!isOpen) return null;
 
@@ -120,27 +125,31 @@ export default function AddPreEmploymentModal({
       return;
     }
 
-    const payload = {
-      record_date: form.record_date,
-      diagnosis: form.diagnosis,
-      treatment: form.treatment,
-      medications: form.medications,
-      assessment: form.assessment,
-      doctor_id: Number(doctorId),
-      clinic_id: Number(clinicId),
-      form_type: "pre_employment",
-      pre_employment_data: {
-        requestingFor: form.requestingFor,
-        findings: form.findings,
-        recommendation: form.recommendation,
-        medicalExaminer: form.medicalExaminer,
-        licenseNumber: form.licenseNumber,
-        physicalExam: form.physicalExam,
-        pastMedicalHistory: form.pastMedicalHistory,
-        familyHistory: form.familyHistory,
-        socialHistory: form.socialHistory,
-      },
-    };
+const payload = {
+  record_date: form.record_date,
+  diagnosis: form.diagnosis,
+  treatment: form.treatment,
+  medications: form.medications,
+  assessment: form.assessment,
+  consultation_fee: form.consultation_fee,
+  medicine_fee: form.medicine_fee,
+  lab_fee: form.lab_fee,
+  other_fee: form.other_fee,
+  doctor_id: Number(doctorId),
+  clinic_id: Number(clinicId),
+  form_type: "pre_employment",
+  pre_employment_data: {
+    requestingFor: form.requestingFor,
+    findings: form.findings,
+    recommendation: form.recommendation,
+    medicalExaminer: form.medicalExaminer,
+    licenseNumber: form.licenseNumber,
+    physicalExam: form.physicalExam,
+    pastMedicalHistory: form.pastMedicalHistory,
+    familyHistory: form.familyHistory,
+    socialHistory: form.socialHistory,
+  },
+};
 
     const res = await createMedicalRecord(patientId, payload);
 
@@ -299,6 +308,37 @@ export default function AddPreEmploymentModal({
             onChange={(v) => handleChange("licenseNumber", v)}
           />
         </Section>
+
+<Section title="Fees">
+  <Input
+    label="Consultation Fee"
+    type="number"
+    placeholder="0.00"
+    value={form.consultation_fee}
+    onChange={(v) => handleChange("consultation_fee", v)}
+  />
+  <Input
+    label="Medicine Fee"
+    type="number"
+    placeholder="0.00"
+    value={form.medicine_fee}
+    onChange={(v) => handleChange("medicine_fee", v)}
+  />
+  <Input
+    label="Lab Fee"
+    type="number"
+    placeholder="0.00"
+    value={form.lab_fee}
+    onChange={(v) => handleChange("lab_fee", v)}
+  />
+  <Input
+    label="Other Fee"
+    type="number"
+    placeholder="0.00"
+    value={form.other_fee}
+    onChange={(v) => handleChange("other_fee", v)}
+  />
+</Section>
 
         <div className="flex justify-end gap-3 pt-4">
           <button

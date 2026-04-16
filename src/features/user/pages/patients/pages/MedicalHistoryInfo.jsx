@@ -5,6 +5,16 @@ import { useMedicalRecords } from "../../../context/medical-records/useMedicalRe
 import { resolveImageUrl } from "../../../../../utils/resolveImageUrl";
 
 export default function MedicalHistoryInfo() {
+  function formatCurrency(value) {
+  if (value === null || value === undefined || value === "") {
+    return "₱0.00";
+  }
+
+  return new Intl.NumberFormat("en-PH", {
+    style: "currency",
+    currency: "PHP",
+  }).format(Number(value));
+}
   const { recordId } = useParams();
   const navigate = useNavigate();
 
@@ -172,6 +182,31 @@ export default function MedicalHistoryInfo() {
       label="Assessment"
       value={medicalRecord.assessment}
       wide
+    />
+  </InfoWrap>
+</Section>
+
+<Section title="Fees">
+  <InfoWrap>
+    <Info
+      label="Consultation Fee"
+      value={formatCurrency(medicalRecord.consultation_fee)}
+    />
+    <Info
+      label="Medicine Fee"
+      value={formatCurrency(medicalRecord.medicine_fee)}
+    />
+    <Info
+      label="Lab Fee"
+      value={formatCurrency(medicalRecord.lab_fee)}
+    />
+    <Info
+      label="Other Fee"
+      value={formatCurrency(medicalRecord.other_fee)}
+    />
+    <Info
+      label="Total Amount"
+      value={formatCurrency(medicalRecord.total_amount)}
     />
   </InfoWrap>
 </Section>

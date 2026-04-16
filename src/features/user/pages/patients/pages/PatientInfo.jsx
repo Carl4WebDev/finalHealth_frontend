@@ -10,6 +10,14 @@ import AddMedicalRecordModal from "../modal/AddMedicalRecordModal.jsx";
 import AddPreEmploymentModal from "../modal/AddPreEmploymentModal.jsx";
 
 export default function PatientInfo() {
+  function formatCurrency(value) {
+  if (!value) return "₱0.00";
+
+  return new Intl.NumberFormat("en-PH", {
+    style: "currency",
+    currency: "PHP",
+  }).format(Number(value));
+}
   const { patientId } = useParams();
   const navigate = useNavigate();
 
@@ -140,50 +148,70 @@ export default function PatientInfo() {
         </div>
 
         <div className="bg-white rounded shadow overflow-hidden">
-          <table className="w-full">
-<thead className="bg-blue-600 text-white">
-  <tr>
-    <th className="p-3 text-left">Date</th>
-    <th className="p-3 text-left">Diagnosis</th>
-    <th className="p-3 text-left">Treatment</th>
-    <th className="p-3 text-left">Form Type</th>
-  </tr>
-</thead>
-<tbody>
-  {patientMedRecords.map((r) => (
-    <tr
-      key={r.record_id}
-      className="hover:bg-gray-100 cursor-pointer"
-      onClick={() =>
-        navigate(
-          `/user/patients/${patientId}/records/${r.record_id}`,
-        )
-      }
-    >
-      <td className="p-3">
-        {r.record_date
-          ? new Date(r.record_date).toLocaleDateString("en-US", {
-              year: "numeric",
-              month: "long",
-              day: "numeric",
-            })
-          : ""}
-      </td>
-
-      <td className="p-3">{r.diagnosis}</td>
-      <td className="p-3">{r.treatment}</td>
-
-      <td className="p-3">
-        {r.form_type
-          ? r.form_type
-              .replaceAll("_", " ")
-              .replace(/\b\w/g, (c) => c.toUpperCase())
-          : "-"}
-      </td>
+<table className="w-full">
+  <thead className="bg-blue-600 text-white">
+    <tr>
+      <th className="p-3 text-left">Date</th>
+      <th className="p-3 text-left">Diagnosis</th>
+      <th className="p-3 text-left">Treatment</th>
+      <th className="p-3 text-left">Form Type</th>
+      <th className="p-3 text-left">Total Amount</th>
     </tr>
-  ))}
-</tbody>
-          </table>
+  </thead>
+
+  <tbody>
+    {patientMedRecords.map((r) => (
+      <tr
+        key={r.record_id}
+        className="hover:bg-gray-100 cursor-pointer"
+        onClick={() =>
+          navigate(
+            `/user/patients/${patientId}/records/${r.record_id}`,
+          )
+        }
+      >
+        {/* DATE */}
+        <td className="p-3">
+          {r.record_date
+            ? new Date(r.record_date).toLocaleDateString("en-US", {
+                year: "numeric",
+                month: "long",
+                day: "numeric",
+              })
+            : ""}
+        </td>
+
+        {/* DIAGNOSIS */}
+        <td className="p-3">{r.diagnosis || "-"}</td>
+
+        {/* TREATMENT */}
+        <td className="p-3">{r.treatment || "-"}</td>
+
+        {/* FORM TYPE */}
+        <td className="p-3">
+          <span
+            className={`px-2 py-1 rounded text-xs font-medium ${
+              r.form_type === "pre_employment"
+                ? "bg-green-100 text-green-700"
+                : "bg-blue-100 text-blue-700"
+            }`}
+          >
+            {r.form_type
+              ? r.form_type
+                  .replaceAll("_", " ")
+                  .replace(/\b\w/g, (c) => c.toUpperCase())
+              : "General"}
+          </span>
+        </td>
+
+        {/* TOTAL AMOUNT */}
+        <td className="p-3 font-medium">
+          {formatCurrency(r.total_amount)}
+        </td>
+      </tr>
+    ))}
+  </tbody>
+</table>
         </div>
       </div>
     </Layout>

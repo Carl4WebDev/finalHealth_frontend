@@ -61,31 +61,37 @@ export default function AddMedicalRecordModal({ isOpen, onClose, patientId }) {
   const [selectedFiles, setSelectedFiles] = useState([]);
   const [submitError, setSubmitError] = useState("");
 
-  const [form, setForm] = useState({
-    record_date: "",
-    diagnosis: "",
-    treatment: "",
-    medications: "",
-    assessment: "",
-    blood_pressure: "",
-    heart_rate: "",
-    temperature: "",
-    oxygen_saturation: "",
-    weight: "",
-    medication_name: "",
-    dosage: "",
-    frequency: "",
-    duration: "",
-    test_type: "",
-    result: "",
-    interpretation: "",
-    referred_to: "",
-    reason: "",
-    followup_date: "",
-    notes: "",
-    certificate_type: "",
-    remarks: "",
-  });
+const [form, setForm] = useState({
+  record_date: "",
+  diagnosis: "",
+  treatment: "",
+  medications: "",
+  assessment: "",
+  blood_pressure: "",
+  heart_rate: "",
+  temperature: "",
+  oxygen_saturation: "",
+  weight: "",
+  medication_name: "",
+  dosage: "",
+  frequency: "",
+  duration: "",
+  test_type: "",
+  result: "",
+  interpretation: "",
+  referred_to: "",
+  reason: "",
+  followup_date: "",
+  notes: "",
+  certificate_type: "",
+  remarks: "",
+
+  // ✅ ADD THESE
+  consultation_fee: "",
+  medicine_fee: "",
+  lab_fee: "",
+  other_fee: "",
+});
 
   if (!isOpen) return null;
 
@@ -104,12 +110,18 @@ const handleSubmit = async () => {
   const doctorId = localStorage.getItem("selectedDoctorIdPatientPage");
   const clinicId = localStorage.getItem("selectedClinicIdPatientPage");
 
-  const payload = {
-    ...form,
-    doctor_id: Number(doctorId),
-    clinic_id: Number(clinicId),
-  };
+const payload = {
+  ...form,
 
+  // ✅ ADD THIS
+  consultation_fee: form.consultation_fee,
+  medicine_fee: form.medicine_fee,
+  lab_fee: form.lab_fee,
+  other_fee: form.other_fee,
+
+  doctor_id: Number(doctorId),
+  clinic_id: Number(clinicId),
+};
   const res = await createMedicalRecord(patientId, payload);
 
   if (!res?.ok) {
@@ -255,6 +267,37 @@ const handleSubmit = async () => {
           />
           <Input label="Remarks" onChange={(v) => handleChange("remarks", v)} />
         </Section>
+
+<Section title="Fees">
+  <Input
+    label="Consultation Fee"
+    type="number"
+    placeholder="0.00"
+    value={form.consultation_fee}
+    onChange={(v) => handleChange("consultation_fee", v)}
+  />
+  <Input
+    label="Medicine Fee"
+    type="number"
+    placeholder="0.00"
+    value={form.medicine_fee}
+    onChange={(v) => handleChange("medicine_fee", v)}
+  />
+  <Input
+    label="Lab Fee"
+    type="number"
+    placeholder="0.00"
+    value={form.lab_fee}
+    onChange={(v) => handleChange("lab_fee", v)}
+  />
+  <Input
+    label="Other Fee"
+    type="number"
+    placeholder="0.00"
+    value={form.other_fee}
+    onChange={(v) => handleChange("other_fee", v)}
+  />
+</Section>
 
         <div className="flex justify-end gap-3 pt-4">
           <button
