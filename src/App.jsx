@@ -7,12 +7,15 @@ import ProtectedRoutes from "./features/user/components/ProtectedRoutes.jsx";
 
 import AdminRoutes from "./features/admin/routes.jsx";
 
+
+import SubscriptionExpired from "./components/SubscriptionExpired.jsx";
 import Chatbot from "./Chatbot.jsx";
 export default function App() {
   return (
     <BrowserRouter>
       <Chatbot />
       <Routes>
+        <Route path="/subscription-expired" element={<SubscriptionExpired />} />
         <Route
           path="/*"
           element={

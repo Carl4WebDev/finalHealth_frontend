@@ -24,12 +24,11 @@ export const MedicalRecordsProvider = ({ children }) => {
     documents: [], // 🔥 REQUIRED
   });
 
-  const [loading, setLoading] = useState(false);
-  const [loadingPatientInfo, setLoadingPatientInfo] = useState(false);
-  const [loadingPatientMedRecord, setLoadingPatientMedRecord] = useState(false);
-  const [lodingMedicalRecordsFullDetails, setLoadingMedicalRecordsFullDetails] =
-    useState(false);
-  const [error, setError] = useState(null);
+const [loading, setLoading] = useState(false);
+const [loadingPatientInfo, setLoadingPatientInfo] = useState(false);
+const [loadingPatientMedRecord, setLoadingPatientMedRecord] = useState(false);
+const [loadingMedicalRecordsFullDetails, setLoadingMedicalRecordsFullDetails] = useState(false);
+const [error, setError] = useState(null);
 
 
   const getPatientOfDoctorInClinic = async (doctorId, clinicId) => {
@@ -105,16 +104,34 @@ export const MedicalRecordsProvider = ({ children }) => {
     try {
       const res = await getMedicalRecordsFullDetailsAPi(recordId);
 
-      if (!res.ok) {
-        setError(res.message);
-        return;
-      }
+if (!res.ok) {
+  setError(res.message);
+  return res;
+}
 
       // THIS IS THE OBJECT
-      setMedicalRecordsFullDetails(res.data.patientMedRecDetail);
+      setMedicalRecordsFullDetails({
+  ...res.data.patientMedRecDetail,
+  medicalRecord: {
+    ...res.data.patientMedRecDetail.medicalRecord,
+    pre_employment_data:
+      res.data.patientMedRecDetail.medicalRecord?.pre_employment_data || null,
+    form_type:
+      res.data.patientMedRecDetail.medicalRecord?.form_type || "general",
+  },
+});
     } catch (err) {
       setError("Something went wrong");
-      setMedicalRecordsFullDetails(null);
+      setMedicalRecordsFullDetails({
+  medicalRecord: null,
+  vitalSigns: [],
+  prescriptions: [],
+  labResults: [],
+  referrals: [],
+  followups: [],
+  certificates: [],
+  documents: [],
+});
     } finally {
       setLoadingMedicalRecordsFullDetails(false);
     }

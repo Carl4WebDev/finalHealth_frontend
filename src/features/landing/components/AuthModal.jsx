@@ -105,28 +105,45 @@ const AuthModal = ({ mode, onClose, onSwitchMode }) => {
     setLoading(true);
 
     // ---------- LOGIN ----------
-    if (mode === "login") {
-      const res = await loginUser(formData.email, formData.password);
+if (mode === "login") {
+  const res = await loginUser(formData.email, formData.password);
 
-      if (!res.ok) {
-        if (res.code === "INVALID_CREDENTIALS") {
-          setErrors({ password: "Invalid email or password" });
-        } else {
-          setErrors({ form: res.message });
-        }
+  console.log("LOGIN RESPONSE:", res);
 
-        setLoading(false);
-        return;
-      }
-
-      localStorage.setItem("user_token", res.data.token);
-      localStorage.setItem("user", JSON.stringify(res.data.user));
-
-      setLoading(false);
-      onClose();
-      navigate("/user/dashboard");
+  if (!res.ok) {
+    if (res.code === "INVALID_CREDENTIALS") {
+      setErrors({ password: "Invalid email or password" });
+    } else {
+      setErrors({ form: res.message });
     }
 
+    setLoading(false);
+    return;
+  }
+
+  localStorage.setItem("user_token", res.data.token);
+  localStorage.setItem("user", JSON.stringify(res.data.user));
+
+  // ✅ Redirect expired users immediately after login
+  if (res.data.subscriptionStatus === "expired") {
+    setLoading(false);
+    onClose();
+
+    navigate("/subscription-expired", {
+      state: {
+        message:
+          res.data.subscriptionMessage ||
+          "Your subscription has expired. Please renew to continue.",
+      },
+    });
+
+    return;
+  }
+
+  setLoading(false);
+  onClose();
+  navigate("/user/subscription");
+}
     // ---------- REGISTER ----------
     if (mode === "register") {
       const payload = {

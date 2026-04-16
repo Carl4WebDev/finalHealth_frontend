@@ -1,61 +1,183 @@
+import { useState } from "react";
 import { useQueues } from "../../../context/queues/useQueues";
 
-export default function QueueNormal({ data, loading }) {
+export default function QueueNormal({ data = [], loading }) {
   const { updateQueueStatus } = useQueues();
+  const [showCompleted, setShowCompleted] = useState(false);
 
-  if (loading) return <p>Loading normal queue...</p>;
+  if (loading) {
+    return <p className="text-sm text-gray-500">Loading normal queue...</p>;
+  }
 
-  if (!data.length)
-    return <p className="text-gray-500">No normal patients in queue.</p>;
+  if (!data.length) {
+    return <p className="text-gray-500 text-sm">No normal patients in queue.</p>;
+  }
 
-return (
-  <div className="bg-white rounded-lg shadow p-4">
-    <h3 className="text-blue-700 font-semibold mb-3">Queue – Normal</h3>
+  const waitingQueue = data.filter(
+    (q) => q.status?.toLowerCase() === "waiting"
+  );
 
-    {/* Scroll Container */}
-    <div className="w-full overflow-x-auto overflow-y-auto max-h-[400px]">
-      <table className="min-w-[700px] w-full border text-sm">
-        <thead className="bg-blue-600 text-white sticky top-0">
-          <tr>
-            <th className="p-2 text-left whitespace-nowrap">Patient</th>
-            <th className="p-2 text-left whitespace-nowrap">Arrival Date</th>
-            <th className="p-2 text-left whitespace-nowrap">Arrival Time</th>
-            <th className="p-2 text-left whitespace-nowrap">Status</th>
-            <th className="p-2 text-left whitespace-nowrap">Actions</th>
-          </tr>
-        </thead>
+  const inProgressQueue = data.filter(
+    (q) => q.status?.toLowerCase() === "in-progress"
+  );
 
-        <tbody>
-          {data.map((q) => (
-            <tr key={q.queueEntryId} className="border-t hover:bg-blue-50">
-              <td className="p-2 whitespace-nowrap">{q.patientName}</td>
-              <td className="p-2 whitespace-nowrap">{q.arrivalDate}</td>
-              <td className="p-2 whitespace-nowrap">{q.arrivalTime}</td>
-              <td className="p-2 whitespace-nowrap">{q.status}</td>
-              <td className="p-2 flex gap-2 whitespace-nowrap">
-                <button
-                  className="px-2 py-1 text-xs bg-yellow-100 text-yellow-700 rounded"
-                  onClick={() =>
-                    updateQueueStatus(q.queueEntryId, "in-progress")
-                  }
+  const completedQueue = data.filter(
+    (q) => q.status?.toLowerCase() === "completed"
+  );
+
+  const getStatusBadge = (status) => {
+    const normalizedStatus = status?.toLowerCase();
+
+    if (normalizedStatus === "waiting") {
+      return "bg-gray-100 text-gray-700";
+    }
+
+    if (normalizedStatus === "in-progress") {
+      return "bg-yellow-100 text-yellow-700";
+    }
+
+    if (normalizedStatus === "completed") {
+      return "bg-green-100 text-green-700";
+    }
+
+    return "bg-blue-100 text-blue-700";
+  };
+
+  const renderQueueCards = (queueList, sectionType) => {
+    if (!queueList.length) {
+      return (
+        <div className="rounded-lg border border-dashed border-gray-300 p-4 text-sm text-gray-500">
+          No patients in this section.
+        </div>
+      );
+    }
+
+    return (
+      <div className="space-y-3">
+        {queueList.map((q) => (
+          <div
+            key={q.queueEntryId}
+            className="rounded-lg border border-gray-200 bg-white p-4 shadow-sm"
+          >
+            <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
+              {/* Patient Info */}
+              <div className="min-w-0 flex-1">
+                <h4 className="text-sm font-semibold text-gray-800 break-words">
+                  {q.patientName}
+                </h4>
+
+                <div className="mt-2 flex flex-col gap-1 text-xs text-gray-600 sm:text-sm">
+                  <p>
+                    <span className="font-medium">Arrival Date:</span>{" "}
+                    {q.arrivalDate}
+                  </p>
+                  <p>
+                    <span className="font-medium">Arrival Time:</span>{" "}
+                    {q.arrivalTime}
+                  </p>
+                </div>
+              </div>
+
+              {/* Status + Actions */}
+              <div className="flex w-full flex-col gap-2 md:w-auto md:items-end">
+                <span
+                  className={`inline-block w-fit rounded-full px-3 py-1 text-xs font-medium ${getStatusBadge(
+                    q.status
+                  )}`}
                 >
-                  In Progress
-                </button>
-                <button
-                  className="px-2 py-1 text-xs bg-green-100 text-green-700 rounded"
-                  onClick={() =>
-                    updateQueueStatus(q.queueEntryId, "completed")
-                  }
-                >
-                  Complete
-                </button>
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
+                  {q.status}
+                </span>
+
+                <div className="flex flex-col gap-2 sm:flex-row md:flex-col lg:flex-row">
+                  {sectionType === "waiting" && (
+                    <button
+                      className="rounded bg-yellow-100 px-3 py-2 text-xs font-medium text-yellow-700 transition hover:bg-yellow-200"
+                      onClick={() =>
+                        updateQueueStatus(q.queueEntryId, "in-progress")
+                      }
+                    >
+                      In Progress
+                    </button>
+                  )}
+
+                  {sectionType === "in-progress" && (
+                    <button
+                      className="rounded bg-green-100 px-3 py-2 text-xs font-medium text-green-700 transition hover:bg-green-200"
+                      onClick={() =>
+                        updateQueueStatus(q.queueEntryId, "completed")
+                      }
+                    >
+                      Complete
+                    </button>
+                  )}
+                </div>
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+    );
+  };
+
+  return (
+    <div className="rounded-lg bg-white p-4 shadow">
+      <div className="mb-4 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+        <h3 className="text-base font-semibold text-blue-700 sm:text-lg">
+          Queue – Normal
+        </h3>
+
+        <div className="flex flex-wrap gap-2 text-xs sm:text-sm">
+          <span className="rounded-full bg-gray-100 px-3 py-1 text-gray-700">
+            Waiting: {waitingQueue.length}
+          </span>
+          <span className="rounded-full bg-yellow-100 px-3 py-1 text-yellow-700">
+            In Progress: {inProgressQueue.length}
+          </span>
+          <span className="rounded-full bg-green-100 px-3 py-1 text-green-700">
+            Completed: {completedQueue.length}
+          </span>
+        </div>
+      </div>
+
+      <div className="space-y-6">
+        {/* Waiting */}
+        <section>
+          <div className="mb-3 flex items-center justify-between">
+            <h4 className="text-sm font-semibold text-gray-800 sm:text-base">
+              Waiting
+            </h4>
+          </div>
+          {renderQueueCards(waitingQueue, "waiting")}
+        </section>
+
+        {/* In Progress */}
+        <section>
+          <div className="mb-3 flex items-center justify-between">
+            <h4 className="text-sm font-semibold text-gray-800 sm:text-base">
+              In Progress
+            </h4>
+          </div>
+          {renderQueueCards(inProgressQueue, "in-progress")}
+        </section>
+
+        {/* Completed */}
+        <section>
+          <div className="mb-3 flex items-center justify-between gap-2">
+            <h4 className="text-sm font-semibold text-gray-800 sm:text-base">
+              Completed
+            </h4>
+
+            <button
+              className="rounded bg-blue-50 px-3 py-1 text-xs font-medium text-blue-700 transition hover:bg-blue-100"
+              onClick={() => setShowCompleted((prev) => !prev)}
+            >
+              {showCompleted ? "Hide" : "Show"}
+            </button>
+          </div>
+
+          {showCompleted && renderQueueCards(completedQueue, "completed")}
+        </section>
+      </div>
     </div>
-  </div>
-);
-
+  );
 }

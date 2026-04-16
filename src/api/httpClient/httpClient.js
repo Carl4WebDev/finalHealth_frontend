@@ -18,18 +18,27 @@ export async function apiRequest(url, options = {}) {
       },
     });
 
-    // if (res.status === 401 || res.status === 403) {
-    //   localStorage.removeItem("user_token");
-    //   localStorage.removeItem("admin_token");
-    //   localStorage.removeItem("user");
-    //   localStorage.removeItem("admin");
-    //   window.location.href = "/";
-    //   return;
-    // }
-
     const body = await res.json();
-
+    console.log(body);
     if (!res.ok) {
+      // ✅ Handle expired subscription globally
+      if (
+        res.status === 403 &&
+        body.code === "SUBSCRIPTION_EXPIRED" &&
+        window.location.pathname !== "/subscription-expired"
+      ) {
+        window.location.href = "/subscription-expired";
+        return {
+          ok: false,
+          status: res.status,
+          message:
+            body.message ||
+            "Your subscription has expired. Please renew to continue.",
+          code: body.code,
+          details: body.details || null,
+        };
+      }
+
       return {
         ok: false,
         status: res.status,
