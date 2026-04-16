@@ -7,6 +7,7 @@ import { useMedicalRecords } from "../../../context/medical-records/useMedicalRe
 
 import EditPatientModal from "../modal/EditPatientModal.jsx";
 import AddMedicalRecordModal from "../modal/AddMedicalRecordModal.jsx";
+import AddPreEmploymentModal from "../modal/AddPreEmploymentModal.jsx";
 
 export default function PatientInfo() {
   const { patientId } = useParams();
@@ -14,6 +15,8 @@ export default function PatientInfo() {
 
   const [showEdit, setShowEdit] = useState(false);
   const [showAddMedicalRecords, setShowAddMedicalRecords] = useState(false);
+  
+  const [isPreEmploymentOpen, setIsPreEmploymentOpen] = useState(false);
 
   const {
     patientsInfo,
@@ -45,6 +48,11 @@ export default function PatientInfo() {
 
   return (
     <Layout>
+      <AddPreEmploymentModal
+  isOpen={isPreEmploymentOpen}
+  onClose={() => setIsPreEmploymentOpen(false)}
+  patientId={patientId}
+/>
 <EditPatientModal
   isOpen={showEdit}
   onClose={() => setShowEdit(false)}
@@ -114,48 +122,67 @@ export default function PatientInfo() {
 
         {/* Medical History */}
         <h3 className="font-semibold text-lg">Medical History</h3>
-        <button
-          className="px-4 py-1 text-sm bg-blue-600 text-white rounded"
-          onClick={() => setShowAddMedicalRecords(true)}
-        >
-          Add Medical Record
-        </button>
+        <div className="space-x-3">
+
+                  <button
+                    className="px-4 py-1 text-sm bg-blue-600 text-white rounded"
+                    onClick={() => setShowAddMedicalRecords(true)}
+                  >
+                    Add Medical Record
+                  </button>
+
+                  <button
+            onClick={() => setIsPreEmploymentOpen(true)}
+                    className="px-4 py-1 text-sm bg-blue-600 text-white rounded"
+          >
+            Add Pre-Employment
+          </button>
+        </div>
 
         <div className="bg-white rounded shadow overflow-hidden">
           <table className="w-full">
-            <thead className="bg-blue-600 text-white">
-              <tr>
-                <th className="p-3 text-left">Date</th>
-                <th className="p-3 text-left">Diagnosis</th>
-                <th className="p-3 text-left">Treatment</th>
-              </tr>
-            </thead>
-            <tbody>
-              {patientMedRecords.map((r) => (
-                <tr
-                  key={r.record_id}
-                  className="hover:bg-gray-100 cursor-pointer"
-                  onClick={() =>
-                    navigate(
-                      `/user/patients/${patientId}/records/${r.record_id}`,
-                    )
-                  }
-                >
-                  <td className="p-3">
-                    {r.record_date
-                      ? new Date(r.record_date).toLocaleDateString("en-US", {
-                          year: "numeric",
-                          month: "long",
-                          day: "numeric",
-                        })
-                      : ""}
-                  </td>
+<thead className="bg-blue-600 text-white">
+  <tr>
+    <th className="p-3 text-left">Date</th>
+    <th className="p-3 text-left">Diagnosis</th>
+    <th className="p-3 text-left">Treatment</th>
+    <th className="p-3 text-left">Form Type</th>
+  </tr>
+</thead>
+<tbody>
+  {patientMedRecords.map((r) => (
+    <tr
+      key={r.record_id}
+      className="hover:bg-gray-100 cursor-pointer"
+      onClick={() =>
+        navigate(
+          `/user/patients/${patientId}/records/${r.record_id}`,
+        )
+      }
+    >
+      <td className="p-3">
+        {r.record_date
+          ? new Date(r.record_date).toLocaleDateString("en-US", {
+              year: "numeric",
+              month: "long",
+              day: "numeric",
+            })
+          : ""}
+      </td>
 
-                  <td className="p-3">{r.diagnosis}</td>
-                  <td className="p-3">{r.treatment}</td>
-                </tr>
-              ))}
-            </tbody>
+      <td className="p-3">{r.diagnosis}</td>
+      <td className="p-3">{r.treatment}</td>
+
+      <td className="p-3">
+        {r.form_type
+          ? r.form_type
+              .replaceAll("_", " ")
+              .replace(/\b\w/g, (c) => c.toUpperCase())
+          : "-"}
+      </td>
+    </tr>
+  ))}
+</tbody>
           </table>
         </div>
       </div>

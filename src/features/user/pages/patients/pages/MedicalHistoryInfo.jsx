@@ -151,120 +151,122 @@ export default function MedicalHistoryInfo() {
                 </InfoWrap>
               </Section>
 
-              {!isPreEmployment && (
-                <Section title="Diagnosis">
-                  <InfoWrap>
-                    <Info
-                      label="Diagnosis"
-                      value={medicalRecord.diagnosis}
-                      wide
-                    />
-                    <Info
-                      label="Treatment"
-                      value={medicalRecord.treatment}
-                      wide
-                    />
-                    <Info
-                      label="Medications"
-                      value={medicalRecord.medications}
-                      wide
-                    />
-                  </InfoWrap>
-                </Section>
-              )}
+<Section title={isPreEmployment ? "Medical Details" : "Diagnosis"}>
+  <InfoWrap>
+    <Info
+      label="Diagnosis"
+      value={medicalRecord.diagnosis}
+      wide
+    />
+    <Info
+      label="Treatment"
+      value={medicalRecord.treatment}
+      wide
+    />
+    <Info
+      label="Medications"
+      value={medicalRecord.medications}
+      wide
+    />
+    <Info
+      label="Assessment"
+      value={medicalRecord.assessment}
+      wide
+    />
+  </InfoWrap>
+</Section>
 
-              {isPreEmployment && (
-                <>
-                  <Section title="Pre-Employment Details">
-                    <InfoWrap>
-                      <Info
-                        label="Requesting For"
-                        value={preEmployment.requestingFor}
-                      />
-                      <Info
-                        label="Findings"
-                        value={preEmployment.findings}
-                      />
-                      <Info
-                        label="Recommendation"
-                        value={preEmployment.recommendation}
-                      />
-                      <Info
-                        label="Medical Examiner"
-                        value={preEmployment.medicalExaminer}
-                      />
-                      <Info
-                        label="License Number"
-                        value={preEmployment.licenseNumber}
-                      />
-                    </InfoWrap>
-                  </Section>
+{isPreEmployment && (
+  <>
+    <Section title="Pre-Employment Details">
+      <InfoWrap>
+        <Info
+          label="Requesting For"
+          value={preEmployment.requestingFor}
+        />
+        <Info
+          label="Findings"
+          value={preEmployment.findings}
+        />
+        <Info
+          label="Recommendation"
+          value={preEmployment.recommendation}
+        />
+        <Info
+          label="Medical Examiner"
+          value={preEmployment.medicalExaminer}
+        />
+        <Info
+          label="License Number"
+          value={preEmployment.licenseNumber}
+        />
+      </InfoWrap>
+    </Section>
 
-                  <Section title="Past Medical History">
-                    <InfoWrap>
-                      <Info
-                        label="Items"
-                        value={formatArray(preEmployment.pastMedicalHistory)}
-                        wide
-                      />
-                    </InfoWrap>
-                  </Section>
+    <Section title="Past Medical History">
+      <InfoWrap>
+        <Info
+          label="Items"
+          value={formatArray(preEmployment.pastMedicalHistory)}
+          wide
+        />
+      </InfoWrap>
+    </Section>
 
-                  <Section title="Family History">
-                    <InfoWrap>
-                      <Info
-                        label="Items"
-                        value={formatArray(preEmployment.familyHistory)}
-                        wide
-                      />
-                    </InfoWrap>
-                  </Section>
+    <Section title="Family History">
+      <InfoWrap>
+        <Info
+          label="Items"
+          value={formatArray(preEmployment.familyHistory)}
+          wide
+        />
+      </InfoWrap>
+    </Section>
 
-                  <Section title="Social History">
-                    <InfoWrap>
-                      <Info
-                        label="Items"
-                        value={formatArray(preEmployment.socialHistory)}
-                        wide
-                      />
-                    </InfoWrap>
-                  </Section>
+    <Section title="Social History">
+      <InfoWrap>
+        <Info
+          label="Items"
+          value={formatArray(preEmployment.socialHistory)}
+          wide
+        />
+      </InfoWrap>
+    </Section>
 
-                  <Section title="Physical Exam">
-                    <InfoWrap>
-                      <Info
-                        label="Blood Pressure"
-                        value={preEmployment?.physicalExam?.bp}
-                      />
-                      <Info
-                        label="Heart Rate"
-                        value={preEmployment?.physicalExam?.hr}
-                      />
-                      <Info
-                        label="Temperature"
-                        value={preEmployment?.physicalExam?.temp}
-                      />
-                      <Info
-                        label="Respiratory Rate"
-                        value={preEmployment?.physicalExam?.rr}
-                      />
-                      <Info
-                        label="Height"
-                        value={preEmployment?.physicalExam?.height}
-                      />
-                      <Info
-                        label="Weight"
-                        value={preEmployment?.physicalExam?.weight}
-                      />
-                      <Info
-                        label="BMI"
-                        value={preEmployment?.physicalExam?.bmi}
-                      />
-                    </InfoWrap>
-                  </Section>
-                </>
-              )}
-
+    <Section title="Physical Exam">
+      <InfoWrap>
+        <Info
+          label="Blood Pressure"
+          value={preEmployment?.physicalExam?.bp}
+        />
+        <Info
+          label="Heart Rate"
+          value={preEmployment?.physicalExam?.hr}
+        />
+        <Info
+          label="Temperature"
+          value={preEmployment?.physicalExam?.temp}
+        />
+        <Info
+          label="Respiratory Rate"
+          value={preEmployment?.physicalExam?.rr}
+        />
+        <Info
+          label="Height"
+          value={preEmployment?.physicalExam?.height}
+        />
+        <Info
+          label="Weight"
+          value={preEmployment?.physicalExam?.weight}
+        />
+        <Info
+          label="BMI"
+          value={preEmployment?.physicalExam?.bmi}
+        />
+      </InfoWrap>
+    </Section>
+  </>
+)}
               {vitalSigns.length > 0 && (
                 <Section title="Vital Signs">
                   <RecordList
