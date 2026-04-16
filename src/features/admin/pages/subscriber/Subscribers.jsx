@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useContext } from "react";
+import React, { useState, useEffect } from "react";
 import Header from "../../components/Header";
 import AdminLayout from "../../components/AdminLayout";
 import SubscribersTable from "./SubscribersTable";
@@ -13,15 +13,14 @@ export default function Subscribers() {
   const [currentPage, setCurrentPage] = useState(1);
   const [selectedSubscribers, setSelectedSubscribers] = useState([]);
   const [isNotificationModalOpen, setIsNotificationModalOpen] = useState(false);
+  const [isSending, setIsSending] = useState(false);
 
   const itemsPerPage = 10;
 
-  /* ---------------- FETCH SUBSCRIBERS ---------------- */
   useEffect(() => {
     getAllSubscribers();
   }, []);
 
-  /* ---------------- FILTERING ---------------- */
   const filteredSubscribers = subscribers.filter((subscriber) => {
     const matchesSearch = subscriber.email
       .toLowerCase()
@@ -29,13 +28,11 @@ export default function Subscribers() {
 
     const matchesStatus =
       statusFilter === "all" ||
-      subscriber.subscription.status.toLowerCase() ===
-        statusFilter.toLowerCase();
+      subscriber.subscription_status?.toLowerCase() === statusFilter.toLowerCase();
 
     return matchesSearch && matchesStatus;
   });
 
-  /* ---------------- PAGINATION ---------------- */
   const totalPages = Math.ceil(filteredSubscribers.length / itemsPerPage);
   const startIndex = (currentPage - 1) * itemsPerPage;
   const paginatedSubscribers = filteredSubscribers.slice(
@@ -43,11 +40,10 @@ export default function Subscribers() {
     startIndex + itemsPerPage,
   );
 
-  /* ---------------- SELECTION ---------------- */
   const handleSelectAll = (e) => {
     if (e.target.checked) {
       setSelectedSubscribers(
-        paginatedSubscribers.map((s) => `${s.userId}-${s.subscription.id}`),
+        paginatedSubscribers.map((s) => `${s.user_id}-${s.subscription_id}`),
       );
     } else {
       setSelectedSubscribers([]);
@@ -60,22 +56,52 @@ export default function Subscribers() {
     );
   };
 
-  /* ---------------- NOTIFICATION ---------------- */
   const handleSendNotification = () => {
     setIsNotificationModalOpen(true);
   };
 
-  const handleNotificationSent = (message) => {
-    console.log(
-      "Notification sent to:",
-      selectedSubscribers,
-      "Message:",
-      message,
-    );
-    alert(`Notification sent to ${selectedSubscribers.length} subscriber(s)`);
-  };
+  const handleNotificationSent = async (message, subject) => {
+  setIsSending(true);
+  
+  const targetedSubscribers = subscribers.filter(s => 
+    selectedSubscribers.includes(`${s.user_id}-${s.subscription_id}`)
+  );
 
-  /* ---------------- PAGINATION CONTROLS ---------------- */
+  // --- EMAILJS CONFIG ---
+  const SERVICE_ID = "service_d4wyl2e";
+  const TEMPLATE_ID = "template_ra5y0ek";
+  const PUBLIC_KEY = "ZHn8_FBOZfQ8daVBK";
+
+  try {
+    const requests = targetedSubscribers.map(sub => 
+      fetch("https://api.emailjs.com/api/v1.0/email/send", {
+        method: "POST",
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          service_id: SERVICE_ID,
+          template_id: TEMPLATE_ID,
+          user_id: PUBLIC_KEY,
+          template_params: {
+            user_email: sub.email,    // matches {{user_email}} in template
+            user_name: `${sub.f_name} ${sub.l_name}`, 
+            subject: subject,          // matches {{subject}} in template
+            message: message           // matches {{message}} in template
+          }
+        })
+      })
+    );
+
+    await Promise.all(requests);
+    alert(`Success! Notifications sent via EmailJS to ${targetedSubscribers.length} recipients.`);
+    setSelectedSubscribers([]);
+  } catch (err) {
+    console.error("EmailJS Error:", err);
+    alert("Failed to send emails.");
+  } finally {
+    setIsSending(false);
+  }
+};
+
   const goToPreviousPage = () => {
     setCurrentPage((prev) => Math.max(prev - 1, 1));
   };
@@ -89,20 +115,18 @@ export default function Subscribers() {
       <div className="p-6">
         <Header title="Subscription Management" />
 
-        {/* Control Panel */}
         <div className="mt-6 bg-white rounded-xl shadow-sm p-6 mb-6">
           <div className="flex flex-col md:flex-row justify-between items-center gap-4 mb-4">
             <div className="flex items-center gap-4 w-full md:w-auto">
               <input
                 type="text"
                 placeholder="Search by email..."
-                className="w-full md:w-80 rounded-xl border border-gray-200 px-4 py-2 focus:outline-none focus:ring-2 focus:ring-[#2133ff] focus:border-transparent"
+                className="w-full md:w-80 rounded-xl border border-gray-200 px-4 py-2 focus:outline-none focus:ring-2 focus:ring-[#2133ff]"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
               />
-
               <select
-                className="rounded-xl border border-gray-200 px-4 py-2 focus:outline-none focus:ring-2 focus:ring-[#2133ff] focus:border-transparent"
+                className="rounded-xl border border-gray-200 px-4 py-2 focus:outline-none focus:ring-2 focus:ring-[#2133ff]"
                 value={statusFilter}
                 onChange={(e) => setStatusFilter(e.target.value)}
               >
@@ -115,30 +139,25 @@ export default function Subscribers() {
             <div className="flex items-center gap-4 w-full md:w-auto">
               <button
                 onClick={handleSendNotification}
-                disabled={selectedSubscribers.length === 0}
+                disabled={selectedSubscribers.length === 0 || isSending}
                 className={`px-6 py-2 rounded-xl font-semibold transition-all duration-200 ${
-                  selectedSubscribers.length === 0
+                  selectedSubscribers.length === 0 || isSending
                     ? "bg-gray-300 text-gray-500 cursor-not-allowed"
                     : "bg-[#2133ff] text-white hover:bg-blue-700"
                 }`}
               >
-                Send Notification ({selectedSubscribers.length})
+                {isSending ? "Sending..." : `Send Notification (${selectedSubscribers.length})`}
               </button>
             </div>
           </div>
         </div>
 
-        {/* Table */}
         <div className="bg-white rounded-xl shadow-sm overflow-hidden">
-          {loading && (
-            <div className="p-6 text-center text-gray-500">
-              Loading subscribers...
-            </div>
-          )}
-
-          {error && <div className="p-6 text-center text-red-500">{error}</div>}
-
-          {!loading && !error && (
+          {loading ? (
+            <div className="p-6 text-center text-gray-500">Loading subscribers...</div>
+          ) : error ? (
+            <div className="p-6 text-center text-red-500">{error}</div>
+          ) : (
             <SubscribersTable
               subscribers={paginatedSubscribers}
               selectedSubscribers={selectedSubscribers}
@@ -147,39 +166,23 @@ export default function Subscribers() {
             />
           )}
 
-          {/* Pagination */}
           {totalPages > 1 && (
             <div className="flex justify-between items-center p-4 border-t border-gray-200">
               <div className="text-sm text-gray-600">
-                Showing {startIndex + 1} to{" "}
-                {Math.min(
-                  startIndex + itemsPerPage,
-                  filteredSubscribers.length,
-                )}{" "}
-                of {filteredSubscribers.length} subscribers
+                Showing {startIndex + 1} to {Math.min(startIndex + itemsPerPage, filteredSubscribers.length)} of {filteredSubscribers.length}
               </div>
-
               <div className="flex items-center gap-4">
                 <button
                   onClick={goToPreviousPage}
                   disabled={currentPage === 1}
-                  className={`flex items-center gap-1 px-4 py-2 rounded-lg font-medium ${
-                    currentPage === 1
-                      ? "text-gray-400 cursor-not-allowed"
-                      : "text-[#2133ff] hover:bg-gray-100"
-                  }`}
+                  className={`px-4 py-2 rounded-lg font-medium ${currentPage === 1 ? "text-gray-400" : "text-[#2133ff] hover:bg-gray-100"}`}
                 >
                   Previous
                 </button>
-
                 <button
                   onClick={goToNextPage}
                   disabled={currentPage === totalPages}
-                  className={`flex items-center gap-1 px-4 py-2 rounded-lg font-medium ${
-                    currentPage === totalPages
-                      ? "text-gray-400 cursor-not-allowed"
-                      : "text-[#2133ff] hover:bg-gray-100"
-                  }`}
+                  className={`px-4 py-2 rounded-lg font-medium ${currentPage === totalPages ? "text-gray-400" : "text-[#2133ff] hover:bg-gray-100"}`}
                 >
                   Next
                 </button>
@@ -188,7 +191,6 @@ export default function Subscribers() {
           )}
         </div>
 
-        {/* Notification Modal */}
         <SendNotificationModal
           isOpen={isNotificationModalOpen}
           onClose={() => setIsNotificationModalOpen(false)}
