@@ -26,7 +26,13 @@ export default function AddVitalsModal({
     return (
       patient.fullName ||
       patient.name ||
-      [patient.fName, patient.mName, patient.lName].filter(Boolean).join(" ") ||
+      [
+        patient.patient_f_name || patient.fName,
+        patient.patient_m_name || patient.mName,
+        patient.patient_l_name || patient.lName,
+      ]
+        .filter(Boolean)
+        .join(" ") ||
       "Selected Patient"
     );
   }, [patient]);
@@ -99,7 +105,7 @@ export default function AddVitalsModal({
   const buildPayload = () => {
     return {
       appointmentId: Number(form.appointmentId),
-      patientId: patient?.patientId || patient?.id || null,
+      patientId: patient?.patient_id || patient?.patientId || patient?.id || null,
       vitalSigns: {
         bloodPressure: form.bloodPressure.trim(),
         heartRate: Number(form.heartRate),
@@ -121,12 +127,7 @@ export default function AddVitalsModal({
     }
 
     const payload = buildPayload();
-
-    try {
-      await onSubmit?.(payload);
-    } catch (error) {
-      console.error("Failed to submit vitals:", error);
-    }
+    await onSubmit?.(payload);
   };
 
   return (
@@ -138,7 +139,7 @@ export default function AddVitalsModal({
               Add Vital Signs
             </h2>
             <p className="mt-1 text-sm text-gray-500">
-              Enter the patient&apos;s appointment ID and vital signs.
+              Enter the appointment ID and the patient&apos;s vital signs.
             </p>
           </div>
 
@@ -161,31 +162,18 @@ export default function AddVitalsModal({
 
             <div className="rounded-2xl border border-gray-200 bg-gray-50 p-4">
               <h3 className="mb-4 text-sm font-semibold uppercase tracking-wide text-blue-700">
-                Appointment Details
+                Appointment
               </h3>
 
-              <div className="w-full">
-                <label className="mb-2 block text-sm font-medium text-gray-700">
-                  Appointment ID <span className="text-red-500">*</span>
-                </label>
-                <input
-                  type="number"
-                  name="appointmentId"
-                  value={form.appointmentId}
-                  onChange={handleChange}
-                  placeholder="Enter appointment ID"
-                  className={`w-full rounded-xl border bg-white px-4 py-3 text-sm outline-none transition focus:ring-2 ${
-                    errors.appointmentId
-                      ? "border-red-400 focus:border-red-400 focus:ring-red-100"
-                      : "border-gray-300 focus:border-blue-500 focus:ring-blue-100"
-                  }`}
-                />
-                {errors.appointmentId && (
-                  <p className="mt-1 text-xs text-red-600">
-                    {errors.appointmentId}
-                  </p>
-                )}
-              </div>
+<div className="w-full">
+  <label className="mb-2 block text-sm font-medium text-gray-700">
+    Appointment ID
+  </label>
+
+  <div className="w-full rounded-xl border border-gray-300 bg-gray-100 px-4 py-3 text-sm text-gray-700">
+    {appointmentId || "N/A"}
+  </div>
+</div>
             </div>
 
             <div className="rounded-2xl border border-blue-200 bg-slate-50 p-4">
@@ -265,8 +253,7 @@ export default function AddVitalsModal({
 
                 <div className="w-full md:w-[calc(50%-0.5rem)]">
                   <label className="mb-2 block text-sm font-medium text-gray-700">
-                    Oxygen Saturation (%){" "}
-                    <span className="text-red-500">*</span>
+                    Oxygen Saturation (%) <span className="text-red-500">*</span>
                   </label>
                   <input
                     type="number"
@@ -328,7 +315,7 @@ export default function AddVitalsModal({
               disabled={loading}
               className="rounded-xl bg-blue-600 px-4 py-2.5 text-sm font-medium text-white transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-60"
             >
-              {loading ? "Saving..." : "Save Vital Signs"}
+              {loading ? "Saving..." : "Save and Add to Queue"}
             </button>
           </div>
         </form>

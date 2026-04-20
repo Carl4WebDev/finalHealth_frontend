@@ -7,38 +7,40 @@ import StatusBadge from "./StatusBadge";
 
 import ViewPatientModal from "../modals/ViewPatientModal";
 import CancelAppointmentModal from "../modals/CancelAppointmentModal";
+import AddVitalsModal from "../modals/AddVitalsModal";
 
 export default function TodayAppointments({ data }) {
   const { loading, error, cancelAppointment, getAllAppointments } =
     useAppointments();
 
-  const { addQueue, loading: loadingQueues, error: errorQueues, addQueueError, normalQueues, priorityQueues } = useQueues();
+  const {
+    addQueue,
+    loading: loadingQueues,
+    normalQueues,
+    priorityQueues,
+  } = useQueues();
 
   const [queueSuccessOpen, setQueueSuccessOpen] = useState(false);
   const [queueErrorOpen, setQueueErrorOpen] = useState(false);
-const [queueErrorMessage, setQueueErrorMessage] = useState("");
-
-
+  const [queueErrorMessage, setQueueErrorMessage] = useState("");
 
   const [selectedAppointment, setSelectedAppointment] = useState(null);
+  const [queuedAppointmentForVitals, setQueuedAppointmentForVitals] =
+    useState(null);
+
   const [showView, setShowView] = useState(false);
   const [showCancel, setShowCancel] = useState(false);
+  const [showAddVitals, setShowAddVitals] = useState(false);
 
   const [visibleAppointments, setVisibleAppointments] = useState(data);
 
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 2;
 
- 
- 
   useEffect(() => {
     setVisibleAppointments(data);
-  }, []);
-  
+  }, [data]);
 
-
-
-  
   const refreshAppointments = () => {
     const doctorId = localStorage.getItem("selectedDoctorId");
     const clinicId = localStorage.getItem("selectedClinicId");
@@ -55,6 +57,58 @@ const [queueErrorMessage, setQueueErrorMessage] = useState("");
     setSelectedAppointment(null);
   };
 
+  const handleQueueOnly = async (appointment) => {
+    try {
+      setSelectedAppointment(appointment);
+
+      const queueData = {
+        patientId: appointment.patient_id,
+        doctorId: appointment.doctor_id,
+        clinicId: appointment.clinic_id,
+        priorityId: appointment.priority_id,
+        status: "waiting",
+      };
+
+      const success = await addQueue(queueData);
+
+      if (success) {
+        setQueueSuccessOpen(true);
+        setQueuedAppointmentForVitals(appointment);
+        setShowAddVitals(true);
+
+        setVisibleAppointments((prev) =>
+          prev.filter((a) => a.appointment_id !== appointment.appointment_id)
+        );
+      } else {
+        setQueueErrorMessage("Failed to add patient to queue.");
+        setQueueErrorOpen(true);
+      }
+    } catch (err) {
+      setQueueErrorMessage(
+        err?.message || "Something went wrong while adding patient to queue."
+      );
+      setQueueErrorOpen(true);
+    }
+  };
+
+  const handleVitalsSubmit = async (payload) => {
+    try {
+      console.log("HARDCODED ADD VITALS PAYLOAD:", payload);
+
+      // later replace with separate API call
+      // await addVitals(payload);
+
+      setShowAddVitals(false);
+      setQueuedAppointmentForVitals(null);
+    } catch (err) {
+      console.error("Failed to save vitals:", err);
+    }
+  };
+
+  const closeVitalsModal = () => {
+    setShowAddVitals(false);
+    setQueuedAppointmentForVitals(null);
+  };
 
   if (loading) {
     return (
@@ -63,28 +117,6 @@ const [queueErrorMessage, setQueueErrorMessage] = useState("");
       </div>
     );
   }
-
-const handleAddToQueue = async (payload) => {
-  const queueData = {
-    patientId: payload.patient_id,
-    doctorId: payload.doctor_id,
-    clinicId: payload.clinic_id,
-    priorityId: payload.priority_id,
-    status: "waiting",
-  };
-
-  const success = await addQueue(queueData);
-
-  if (success) {
-    setQueueSuccessOpen(true);
-
-    setVisibleAppointments((prev) =>
-      prev.filter((a) => a.appointment_id !== payload.appointment_id)
-    );
-  }
-
-};
-
 
   if (error) {
     return (
@@ -106,18 +138,16 @@ const handleAddToQueue = async (payload) => {
       </div>
     );
   }
-  
-  const queuedPatientIds = [
-    ...normalQueues,
-    ...priorityQueues,
-  ].map((q) => q.patientId); // or q.patientId (depends on API)
 
-  const filteredAppointments = data.filter(
+  const queuedPatientIds = [...normalQueues, ...priorityQueues].map(
+    (q) => q.patientId
+  );
+
+  const filteredAppointments = visibleAppointments.filter(
     (a) => !queuedPatientIds.includes(a.patient_id)
   );
 
   const totalPages = Math.ceil(filteredAppointments.length / itemsPerPage);
-
   const indexOfLastItem = currentPage * itemsPerPage;
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
 
@@ -132,186 +162,213 @@ const handleAddToQueue = async (payload) => {
     }
   };
 
-return (
-  <div className="bg-white rounded-lg shadow p-4 mb-6">
-    {/* MODALS */}
-    <ViewPatientModal
-      isOpen={showView}
-      appointment={selectedAppointment}
-      onClose={() => {
-        setShowView(false);
-        setSelectedAppointment(null);
-      }}
-    />
+  return (
+    <div className="bg-white rounded-lg shadow p-4 mb-6">
+      <ViewPatientModal
+        isOpen={showView}
+        appointment={selectedAppointment}
+        onClose={() => {
+          setShowView(false);
+          setSelectedAppointment(null);
+        }}
+      />
 
-    <CancelAppointmentModal
-      isOpen={showCancel}
-      appointment={selectedAppointment}
-      onClose={() => {
-        setShowCancel(false);
-        setSelectedAppointment(null);
-      }}
-      onConfirm={handleCancelConfirm}
-    />
+      <CancelAppointmentModal
+        isOpen={showCancel}
+        appointment={selectedAppointment}
+        onClose={() => {
+          setShowCancel(false);
+          setSelectedAppointment(null);
+        }}
+        onConfirm={handleCancelConfirm}
+      />
 
-    {/* Queue Success Modal */}
-{queueSuccessOpen && (
-  <div className="fixed inset-0 z-50 flex items-center justify-center px-4">
-    {/* Backdrop */}
-    <div
-      className="absolute inset-0 bg-blue-50/60 backdrop-blur-sm"
-      onClick={() => setQueueSuccessOpen(false)}
-    />
+      <AddVitalsModal
+        isOpen={showAddVitals}
+        onClose={closeVitalsModal}
+        onSubmit={handleVitalsSubmit}
+        loading={false}
+        patient={queuedAppointmentForVitals}
+        appointmentId={queuedAppointmentForVitals?.appointment_id || ""}
+      />
 
-    {/* Modal */}
-    <div className="relative bg-white w-full max-w-sm rounded-2xl border-4 border-blue-600 shadow-xl p-6 z-10">
-      
-      {/* Close Button */}
-      <button
-        onClick={() => setQueueSuccessOpen(false)}
-        className="absolute top-3 right-3 text-blue-600 hover:text-blue-800 text-xl font-bold"
-      >
-        ×
-      </button>
+      {queueSuccessOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center px-4">
+          <div
+            className="absolute inset-0 bg-blue-50/60 backdrop-blur-sm"
+            onClick={() => setQueueSuccessOpen(false)}
+          />
 
-      <h2 className="text-lg font-semibold text-blue-700 text-center mb-3">
-        Successfully Added
-      </h2>
-
-      <p className="text-sm text-gray-600 text-center mb-6">
-        The appointment has been successfully added to the queue.
-      </p>
-
-      <div className="flex justify-center">
-        <button
-          onClick={() => setQueueSuccessOpen(false)}
-          className="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition"
-        >
-          ← Back
-        </button>
-      </div>
-    </div>
-  </div>
-)}
-
-
-    <h3 className="text-blue-700 font-semibold mb-3">
-      Today’s Appointments
-    </h3>
-
-    {/* Scrollable Table */}
-    <div className="w-full overflow-x-auto overflow-y-auto max-h-[500px]">
-      <table className="min-w-[1100px] w-full border text-sm">
-        <thead className="bg-blue-600 text-white sticky top-0 z-10">
-          <tr>
-            <th className="p-2 text-left whitespace-nowrap">Patient</th>
-            <th className="p-2 text-left whitespace-nowrap">Date</th>
-            <th className="p-2 text-left whitespace-nowrap">Type</th>
-            <th className="p-2 text-left whitespace-nowrap">Priority</th>
-            <th className="p-2 text-left whitespace-nowrap">Status</th>
-            <th className="p-2 text-left whitespace-nowrap">Actions</th>
-          </tr>
-        </thead>
-
-        <tbody>
-          {currentItems.map((a) => (
-            <tr
-              key={a.appointment_id}
-              className="border-t hover:bg-blue-50"
-            >
-              <td className="p-2 whitespace-nowrap">
-                {`${a.patient_f_name} ${a.patient_m_name || ""} ${
-                  a.patient_l_name
-                }`}
-              </td>
-
-              <td className="p-2 whitespace-nowrap">
-                {a.appointment_date}
-              </td>
-
-              <td className="p-2 whitespace-nowrap">
-                {a.appointment_type}
-              </td>
-
-              <td className="p-2 whitespace-nowrap">
-                {a.priority_type}
-              </td>
-
-              <td className="p-2 whitespace-nowrap">
-                <StatusBadge status={a.status} />
-              </td>
-
-              <td className="p-2 whitespace-nowrap">
-                <div className="flex gap-2">
-                  <button
-                    className="px-2 py-1 text-xs bg-blue-600 text-white rounded hover:bg-blue-700 transition"
-                    onClick={() => handleAddToQueue(a)}
-                  >
-                    Add to Queue
-                  </button>
-
-                  <button
-                    className="px-2 py-1 text-xs bg-blue-100 text-blue-700 rounded hover:bg-blue-200"
-                    onClick={() => {
-                      setSelectedAppointment(a);
-                      setShowView(true);
-                    }}
-                  >
-                    View
-                  </button>
-
-                  <button
-                    className="px-2 py-1 text-xs bg-red-100 text-red-700 rounded hover:bg-red-200"
-                    onClick={() => {
-                      setSelectedAppointment(a);
-                      setShowCancel(true);
-                    }}
-                  >
-                    Cancel
-                  </button>
-                </div>
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
-      {/* PAGINATION */}
-      <div className="flex justify-between items-center mt-4 text-sm">
-        <button
-          onClick={() => goToPage(currentPage - 1)}
-          disabled={currentPage === 1}
-          className="px-3 py-1 rounded border border-blue-600 text-blue-600 disabled:opacity-40 disabled:cursor-not-allowed hover:bg-blue-50"
-        >
-          Previous
-        </button>
-
-        <div className="flex gap-2">
-          {Array.from({ length: totalPages }, (_, i) => (
+          <div className="relative bg-white w-full max-w-sm rounded-2xl border-4 border-blue-600 shadow-xl p-6 z-10">
             <button
-              key={i}
-              onClick={() => goToPage(i + 1)}
-              className={`px-3 py-1 rounded border ${
-                currentPage === i + 1
-                  ? "bg-blue-600 text-white border-blue-600"
-                  : "border-blue-600 text-blue-600 hover:bg-blue-50"
-              }`}
+              onClick={() => setQueueSuccessOpen(false)}
+              className="absolute top-3 right-3 text-blue-600 hover:text-blue-800 text-xl font-bold"
             >
-              {i + 1}
+              ×
             </button>
-          ))}
+
+            <h2 className="text-lg font-semibold text-blue-700 text-center mb-3">
+              Successfully Added
+            </h2>
+
+            <p className="text-sm text-gray-600 text-center mb-6">
+              The appointment has been successfully added to the queue.
+            </p>
+
+            <div className="flex justify-center">
+              <button
+                onClick={() => setQueueSuccessOpen(false)}
+                className="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition"
+              >
+                Back
+              </button>
+            </div>
+          </div>
         </div>
+      )}
 
-        <button
-          onClick={() => goToPage(currentPage + 1)}
-          disabled={currentPage === totalPages}
-          className="px-3 py-1 rounded border border-blue-600 text-blue-600 disabled:opacity-40 disabled:cursor-not-allowed hover:bg-blue-50"
-        >
-          Next
-        </button>
+      {queueErrorOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center px-4">
+          <div
+            className="absolute inset-0 bg-red-50/60 backdrop-blur-sm"
+            onClick={() => setQueueErrorOpen(false)}
+          />
+
+          <div className="relative bg-white w-full max-w-sm rounded-2xl border-4 border-red-500 shadow-xl p-6 z-10">
+            <button
+              onClick={() => setQueueErrorOpen(false)}
+              className="absolute top-3 right-3 text-red-500 hover:text-red-700 text-xl font-bold"
+            >
+              ×
+            </button>
+
+            <h2 className="text-lg font-semibold text-red-600 text-center mb-3">
+              Queue Error
+            </h2>
+
+            <p className="text-sm text-gray-600 text-center mb-6">
+              {queueErrorMessage || "Failed to add patient to queue."}
+            </p>
+
+            <div className="flex justify-center">
+              <button
+                onClick={() => setQueueErrorOpen(false)}
+                className="px-6 py-2 bg-red-500 hover:bg-red-600 text-white rounded-lg font-medium transition"
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      <h3 className="text-blue-700 font-semibold mb-3">
+        Today’s Appointments
+      </h3>
+
+      <div className="w-full overflow-x-auto overflow-y-auto max-h-[500px]">
+        <table className="min-w-[1100px] w-full border text-sm">
+          <thead className="bg-blue-600 text-white sticky top-0 z-10">
+            <tr>
+              <th className="p-2 text-left whitespace-nowrap">Patient</th>
+              <th className="p-2 text-left whitespace-nowrap">Date</th>
+              <th className="p-2 text-left whitespace-nowrap">Type</th>
+              <th className="p-2 text-left whitespace-nowrap">Priority</th>
+              <th className="p-2 text-left whitespace-nowrap">Status</th>
+              <th className="p-2 text-left whitespace-nowrap">Actions</th>
+            </tr>
+          </thead>
+
+          <tbody>
+            {currentItems.map((a) => (
+              <tr
+                key={a.appointment_id}
+                className="border-t hover:bg-blue-50"
+              >
+                <td className="p-2 whitespace-nowrap">
+                  {`${a.patient_f_name} ${a.patient_m_name || ""} ${a.patient_l_name}`}
+                </td>
+
+                <td className="p-2 whitespace-nowrap">{a.appointment_date}</td>
+
+                <td className="p-2 whitespace-nowrap">{a.appointment_type}</td>
+
+                <td className="p-2 whitespace-nowrap">{a.priority_type}</td>
+
+                <td className="p-2 whitespace-nowrap">
+                  <StatusBadge status={a.status} />
+                </td>
+
+                <td className="p-2 whitespace-nowrap">
+                  <div className="flex gap-2">
+                    <button
+                      className="px-2 py-1 text-xs bg-blue-600 text-white rounded hover:bg-blue-700 transition"
+                      onClick={() => handleQueueOnly(a)}
+                      disabled={loadingQueues}
+                    >
+                      {loadingQueues ? "Adding..." : "Add to Queue"}
+                    </button>
+
+                    <button
+                      className="px-2 py-1 text-xs bg-blue-100 text-blue-700 rounded hover:bg-blue-200"
+                      onClick={() => {
+                        setSelectedAppointment(a);
+                        setShowView(true);
+                      }}
+                    >
+                      View
+                    </button>
+
+                    <button
+                      className="px-2 py-1 text-xs bg-red-100 text-red-700 rounded hover:bg-red-200"
+                      onClick={() => {
+                        setSelectedAppointment(a);
+                        setShowCancel(true);
+                      }}
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+
+        <div className="flex justify-between items-center mt-4 text-sm">
+          <button
+            onClick={() => goToPage(currentPage - 1)}
+            disabled={currentPage === 1}
+            className="px-3 py-1 rounded border border-blue-600 text-blue-600 disabled:opacity-40 disabled:cursor-not-allowed hover:bg-blue-50"
+          >
+            Previous
+          </button>
+
+          <div className="flex gap-2">
+            {Array.from({ length: totalPages }, (_, i) => (
+              <button
+                key={i}
+                onClick={() => goToPage(i + 1)}
+                className={`px-3 py-1 rounded border ${
+                  currentPage === i + 1
+                    ? "bg-blue-600 text-white border-blue-600"
+                    : "border-blue-600 text-blue-600 hover:bg-blue-50"
+                }`}
+              >
+                {i + 1}
+              </button>
+            ))}
+          </div>
+
+          <button
+            onClick={() => goToPage(currentPage + 1)}
+            disabled={currentPage === totalPages || totalPages === 0}
+            className="px-3 py-1 rounded border border-blue-600 text-blue-600 disabled:opacity-40 disabled:cursor-not-allowed hover:bg-blue-50"
+          >
+            Next
+          </button>
+        </div>
       </div>
-
     </div>
-  </div>
-);
-
+  );
 }
