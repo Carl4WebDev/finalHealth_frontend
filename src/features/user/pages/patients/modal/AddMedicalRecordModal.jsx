@@ -1,5 +1,6 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useMedicalRecords } from "../../../context/medical-records/useMedicalRecords";
+import { useDiagnosisTreatment } from "../../../context/diagnosis-treatments/useDiagnosisTreatment";
 
 /* ---------------- HARDCODED OPTIONS ---------------- */
 
@@ -52,6 +53,10 @@ const CERTIFICATE_OPTIONS = [
 ];
 
 export default function AddMedicalRecordModal({ isOpen, onClose, patientId }) {
+  const { diagnoses, treatments, getAllDiagnoses, getAllTreatments } =
+  useDiagnosisTreatment();
+
+  
   const {
     createMedicalRecord,
     uploadMedicalRecordDocument,
@@ -92,6 +97,12 @@ const [form, setForm] = useState({
   lab_fee: "",
   other_fee: "",
 });
+
+
+useEffect(() => {
+  getAllDiagnoses();
+  getAllTreatments();
+}, []);
 
   if (!isOpen) return null;
 
@@ -178,15 +189,18 @@ const payload = {
         {/* DIAGNOSIS */}
         <Section title="Diagnosis">
           <SelectInput
-            label="Diagnosis"
-            options={DIAGNOSIS_OPTIONS}
-            onChange={(v) => handleChange("diagnosis", v)}
-          />
-          <SelectInput
-            label="Treatment"
-            options={TREATMENT_OPTIONS}
-            onChange={(v) => handleChange("treatment", v)}
-          />
+  label="Diagnosis"
+  options={diagnoses.map((d) => d.diagnosis_name)}
+  value={form.diagnosis}
+  onChange={(v) => handleChange("diagnosis", v)}
+/>
+
+<SelectInput
+  label="Treatment"
+  options={treatments.map((t) => t.treatment_name)}
+  value={form.treatment}
+  onChange={(v) => handleChange("treatment", v)}
+/>
           <SelectInput
             label="Medications"
             options={MEDICATION_OPTIONS}

@@ -51,7 +51,7 @@ const Hero = ({ openAuthModal }) => {
                 onClick={() => openAuthModal("register")}
                 className="px-8 py-4 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-xl shadow-lg transition-all duration-300"
               >
-                Use 7-Day Free Trial
+                Use Free Plan
               </button>
 
               {/* SECONDARY CTA */}

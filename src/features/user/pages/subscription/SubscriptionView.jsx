@@ -585,17 +585,29 @@ const monthsProgress =
                           <span className="text-gray-600 dark:text-gray-400">
                             Start Date:
                           </span>
-                          <span className="font-semibold">
-                            {subscription?.startDate || "2026-01-22"}
-                          </span>
+<span className="font-semibold">
+  {subscription?.startDate
+    ? new Date(subscription.startDate).toLocaleDateString("en-US", {
+        year: "numeric",
+        month: "long",
+        day: "numeric",
+      })
+    : "N/A"}
+</span>
                         </div>
                         <div className="flex justify-between py-2 border-b border-gray-200 dark:border-gray-600">
                           <span className="text-gray-600 dark:text-gray-400">
                             End Date:
                           </span>
-                          <span className="font-semibold">
-                            {subscription?.endDate || "2027-01-22"}
-                          </span>
+<span className="font-semibold">
+  {subscription?.endDate
+    ? new Date(subscription.endDate).toLocaleDateString("en-US", {
+        year: "numeric",
+        month: "long",
+        day: "numeric",
+      })
+    : "N/A"}
+</span>
                         </div>
                         <div className="flex justify-between py-2">
                           <span className="text-gray-600 dark:text-gray-400">

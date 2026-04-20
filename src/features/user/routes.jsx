@@ -15,6 +15,7 @@ import ManageClinicPage from "./pages/doctor-schedule/clinic-related/pages/Manag
 
 import PatientInfo from "./pages/patients/pages/PatientInfo";
 import MedicalHistoryInfo from "./pages/patients/pages/MedicalHistoryInfo";
+import DiagnosisTreatmentManagement from "./pages/patients/DiagnosisTreatmentManagement";
 
 import { AppointmentProvider } from "./context/appointments/AppointmentProvider";
 import { DoctorProvider } from "./context/doctors/DoctorProvider";
@@ -26,80 +27,87 @@ import { SubscriptionProvider } from "./context/subscriptions/SubscriptionProvid
 import { MedicalRecordsProvider } from "./context/medical-records/MedicalRecordsProvider";
 import { UserProvider } from "./context/users/UserProvider";
 import { DashboardProvider } from "./context/dashboard/DashboardProvider";
-
+import {DiagnosisTreatmentProvider} from "./context/diagnosis-treatments/DiagnosisTreatmentProvider"
 
 export default function UserRoutes() {
   return (
-    <DashboardProvider>
-      <UserProvider>
-        <MedicalRecordsProvider>
-          <SubscriptionProvider>
-            <DoctorSessionProvider>
-              <QueueProvider>
-                <PatientProvider>
-                  <ClinicProvider>
-                    <DoctorProvider>
-                      <AppointmentProvider>
-                        <Routes>
-                          <Route path="/dashboard" element={<Dashboard />} />
+    <DiagnosisTreatmentProvider>
 
-                          <Route
-                            path="/appointments"
-                            element={<AppointmentsPage />}
-                          />
-                          <Route
-                            path="/appointments/create"
-                            element={<CreateAppointment />}
-                          />
+      <DashboardProvider>
+        <UserProvider>
+          <MedicalRecordsProvider>
+            <SubscriptionProvider>
+              <DoctorSessionProvider>
+                <QueueProvider>
+                  <PatientProvider>
+                    <ClinicProvider>
+                      <DoctorProvider>
+                        <AppointmentProvider>
+                          <Routes>
+                            <Route path="/dashboard" element={<Dashboard />} />
 
-                          <Route
-                            path="/appointments/create-patient"
-                            element={<RegisterPatient />}
-                          />
+                            <Route
+                              path="/appointments"
+                              element={<AppointmentsPage />}
+                            />
+                            <Route
+                              path="/appointments/create"
+                              element={<CreateAppointment />}
+                            />
 
-                          <Route
-                            path="/doctor-clinic-management"
-                            element={<ClinicDoctorMngPage />}
-                          />
+                            <Route
+                              path="/appointments/create-patient"
+                              element={<RegisterPatient />}
+                            />
 
-                          <Route
-                            path="/manage-doctor/:doctorId"
-                            element={<ManageDoctorPage />}
-                          />
-                          <Route
-                            path="/manage-clinic/:clinicId"
-                            element={<ManageClinicPage />}
-                          />
+                            <Route
+                              path="/doctor-clinic-management"
+                              element={<ClinicDoctorMngPage />}
+                            />
 
-                          <Route path="/patients" element={<Patients />} />
+                            <Route
+                              path="/manage-doctor/:doctorId"
+                              element={<ManageDoctorPage />}
+                            />
+                            <Route
+                              path="/manage-clinic/:clinicId"
+                              element={<ManageClinicPage />}
+                            />
 
-                          {/*  */}
-                          <Route
-                            path="/patients/:patientId"
-                            element={<PatientInfo />}
-                          />
-                          <Route
-                            path="/patients/:patientId/records/:recordId"
-                            element={<MedicalHistoryInfo />}
-                          />
-                          {/*  */}
+                            <Route path="/patients" element={<Patients />} />
 
-                          <Route
-                            path="/subscription"
-                            element={<SubscriptionView />}
-                          />
+                            {/*  */}
+                            <Route
+                              path="/patients/:patientId"
+                              element={<PatientInfo />}
+                            />
+                            <Route
+                              path="/patients/:patientId/records/:recordId"
+                              element={<MedicalHistoryInfo />}
+                            />
+                            <Route
+  path="/patients/management"
+  element={<DiagnosisTreatmentManagement />}
+/>
+                            {/*  */}
 
-                          <Route path="/profile" element={<ProfileView />} />
-                        </Routes>
-                      </AppointmentProvider>
-                    </DoctorProvider>
-                  </ClinicProvider>
-                </PatientProvider>
-              </QueueProvider>
-            </DoctorSessionProvider>
-          </SubscriptionProvider>
-        </MedicalRecordsProvider>
-      </UserProvider>
-    </DashboardProvider>
+                            <Route
+                              path="/subscription"
+                              element={<SubscriptionView />}
+                            />
+
+                            <Route path="/profile" element={<ProfileView />} />
+                          </Routes>
+                        </AppointmentProvider>
+                      </DoctorProvider>
+                    </ClinicProvider>
+                  </PatientProvider>
+                </QueueProvider>
+              </DoctorSessionProvider>
+            </SubscriptionProvider>
+          </MedicalRecordsProvider>
+        </UserProvider>
+      </DashboardProvider>
+    </DiagnosisTreatmentProvider>
   );
 }

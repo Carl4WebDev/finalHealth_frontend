@@ -1,5 +1,6 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useMedicalRecords } from "../../../context/medical-records/useMedicalRecords";
+import { useDiagnosisTreatment } from "../../../context/diagnosis-treatments/useDiagnosisTreatment";
 
 const PAST_MEDICAL_HISTORY_OPTIONS = [
   "Hypertension",
@@ -43,13 +44,21 @@ export default function AddPreEmploymentModal({
   patientId,
 }) {
   const { createMedicalRecord, getPatientMedRecord } = useMedicalRecords();
+  const { diagnoses, treatments, getAllDiagnoses, getAllTreatments } =
+  useDiagnosisTreatment();
 
   const [submitError, setSubmitError] = useState("");
 
+
+  useEffect(() => {
+  getAllDiagnoses();
+  getAllTreatments();
+}, []);
+
 const [form, setForm] = useState({
   record_date: "",
-  diagnosis: "For evaluation",
-  treatment: "N/A",
+  diagnosis: "",
+  treatment: "",
   medications: "",
   assessment: "Pre-employment exam",
   requestingFor: "Pre-Employment",
@@ -109,6 +118,8 @@ const [form, setForm] = useState({
     });
   };
 
+  
+
   const handleSubmit = async () => {
     setSubmitError("");
 
@@ -161,6 +172,7 @@ const payload = {
     await getPatientMedRecord(patientId);
     onClose();
   };
+  
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center px-4">
@@ -180,39 +192,41 @@ const payload = {
           Add Pre-Employment Record
         </h3>
 
-        <Section title="Basic Information">
-          <Input
-            label="Record Date"
-            type="date"
-            value={form.record_date}
-            onChange={(v) => handleChange("record_date", v)}
-          />
-          <Input
-            label="Requesting For"
-            value={form.requestingFor}
-            onChange={(v) => handleChange("requestingFor", v)}
-          />
-          <Input
-            label="Diagnosis"
-            value={form.diagnosis}
-            onChange={(v) => handleChange("diagnosis", v)}
-          />
-          <Input
-            label="Treatment"
-            value={form.treatment}
-            onChange={(v) => handleChange("treatment", v)}
-          />
-          <Input
-            label="Medications"
-            value={form.medications}
-            onChange={(v) => handleChange("medications", v)}
-          />
-          <Input
-            label="Assessment"
-            value={form.assessment}
-            onChange={(v) => handleChange("assessment", v)}
-          />
-        </Section>
+<Section title="Basic Information">
+  <Input
+    label="Record Date"
+    type="date"
+    value={form.record_date}
+    onChange={(v) => handleChange("record_date", v)}
+  />
+  <Input
+    label="Requesting For"
+    value={form.requestingFor}
+    onChange={(v) => handleChange("requestingFor", v)}
+  />
+  <SelectInput
+    label="Diagnosis"
+    options={diagnoses.map((d) => d.diagnosis_name)}
+    value={form.diagnosis}
+    onChange={(v) => handleChange("diagnosis", v)}
+  />
+  <SelectInput
+    label="Treatment"
+    options={treatments.map((t) => t.treatment_name)}
+    value={form.treatment}
+    onChange={(v) => handleChange("treatment", v)}
+  />
+  <Input
+    label="Medications"
+    value={form.medications}
+    onChange={(v) => handleChange("medications", v)}
+  />
+  <Input
+    label="Assessment"
+    value={form.assessment}
+    onChange={(v) => handleChange("assessment", v)}
+  />
+</Section>
 
         <Section title="Past Medical History">
           <CheckboxGroup

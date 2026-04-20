@@ -91,7 +91,18 @@ export default function Patients() {
   return (
     <Layout>
       <div className="p-6 space-y-6 bg-gray-50 min-h-screen">
-        <h2 className="text-xl font-semibold">Patient Records</h2>
+<div className="flex items-center justify-between">
+  <h2 className="text-xl font-semibold">Patient Records</h2>
+
+  <button
+    onClick={() =>
+      navigate("/user/patients/management")
+    }
+    className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium shadow"
+  >
+    Manage Diagnosis & Treatment
+  </button>
+</div>
 
         {/* Filters */}
         <div className="flex gap-4 flex-wrap">
