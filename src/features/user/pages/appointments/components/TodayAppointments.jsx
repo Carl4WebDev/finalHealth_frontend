@@ -91,20 +91,6 @@ export default function TodayAppointments({ data }) {
     }
   };
 
-  const handleVitalsSubmit = async (payload) => {
-    try {
-      console.log("HARDCODED ADD VITALS PAYLOAD:", payload);
-
-      // later replace with separate API call
-      // await addVitals(payload);
-
-      setShowAddVitals(false);
-      setQueuedAppointmentForVitals(null);
-    } catch (err) {
-      console.error("Failed to save vitals:", err);
-    }
-  };
-
   const closeVitalsModal = () => {
     setShowAddVitals(false);
     setQueuedAppointmentForVitals(null);
@@ -112,7 +98,7 @@ export default function TodayAppointments({ data }) {
 
   if (loading) {
     return (
-      <div className="bg-white rounded-lg shadow p-4 mb-6">
+      <div className="mb-6 rounded-lg bg-white p-4 shadow">
         <p className="text-sm text-gray-500">Loading today’s appointments…</p>
       </div>
     );
@@ -120,7 +106,7 @@ export default function TodayAppointments({ data }) {
 
   if (error) {
     return (
-      <div className="bg-white rounded-lg shadow p-4 mb-6">
+      <div className="mb-6 rounded-lg bg-white p-4 shadow">
         <p className="text-sm text-red-500">{error}</p>
       </div>
     );
@@ -128,8 +114,8 @@ export default function TodayAppointments({ data }) {
 
   if (data.length === 0) {
     return (
-      <div className="bg-white rounded-lg shadow p-4 mb-6">
-        <h3 className="text-blue-700 font-semibold mb-3">
+      <div className="mb-6 rounded-lg bg-white p-4 shadow">
+        <h3 className="mb-3 font-semibold text-blue-700">
           Today’s Appointments
         </h3>
         <p className="text-sm text-gray-500">
@@ -163,7 +149,7 @@ export default function TodayAppointments({ data }) {
   };
 
   return (
-    <div className="bg-white rounded-lg shadow p-4 mb-6">
+    <div className="mb-6 rounded-lg bg-white p-4 shadow">
       <ViewPatientModal
         isOpen={showView}
         appointment={selectedAppointment}
@@ -186,10 +172,12 @@ export default function TodayAppointments({ data }) {
       <AddVitalsModal
         isOpen={showAddVitals}
         onClose={closeVitalsModal}
-        onSubmit={handleVitalsSubmit}
-        loading={false}
         patient={queuedAppointmentForVitals}
         appointmentId={queuedAppointmentForVitals?.appointment_id || ""}
+        onSuccess={() => {
+          setShowAddVitals(false);
+          setQueuedAppointmentForVitals(null);
+        }}
       />
 
       {queueSuccessOpen && (
@@ -199,26 +187,26 @@ export default function TodayAppointments({ data }) {
             onClick={() => setQueueSuccessOpen(false)}
           />
 
-          <div className="relative bg-white w-full max-w-sm rounded-2xl border-4 border-blue-600 shadow-xl p-6 z-10">
+          <div className="relative z-10 w-full max-w-sm rounded-2xl border-4 border-blue-600 bg-white p-6 shadow-xl">
             <button
               onClick={() => setQueueSuccessOpen(false)}
-              className="absolute top-3 right-3 text-blue-600 hover:text-blue-800 text-xl font-bold"
+              className="absolute right-3 top-3 text-xl font-bold text-blue-600 hover:text-blue-800"
             >
               ×
             </button>
 
-            <h2 className="text-lg font-semibold text-blue-700 text-center mb-3">
+            <h2 className="mb-3 text-center text-lg font-semibold text-blue-700">
               Successfully Added
             </h2>
 
-            <p className="text-sm text-gray-600 text-center mb-6">
+            <p className="mb-6 text-center text-sm text-gray-600">
               The appointment has been successfully added to the queue.
             </p>
 
             <div className="flex justify-center">
               <button
                 onClick={() => setQueueSuccessOpen(false)}
-                className="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition"
+                className="rounded-lg bg-blue-600 px-6 py-2 font-medium text-white transition hover:bg-blue-700"
               >
                 Back
               </button>
@@ -234,26 +222,26 @@ export default function TodayAppointments({ data }) {
             onClick={() => setQueueErrorOpen(false)}
           />
 
-          <div className="relative bg-white w-full max-w-sm rounded-2xl border-4 border-red-500 shadow-xl p-6 z-10">
+          <div className="relative z-10 w-full max-w-sm rounded-2xl border-4 border-red-500 bg-white p-6 shadow-xl">
             <button
               onClick={() => setQueueErrorOpen(false)}
-              className="absolute top-3 right-3 text-red-500 hover:text-red-700 text-xl font-bold"
+              className="absolute right-3 top-3 text-xl font-bold text-red-500 hover:text-red-700"
             >
               ×
             </button>
 
-            <h2 className="text-lg font-semibold text-red-600 text-center mb-3">
+            <h2 className="mb-3 text-center text-lg font-semibold text-red-600">
               Queue Error
             </h2>
 
-            <p className="text-sm text-gray-600 text-center mb-6">
+            <p className="mb-6 text-center text-sm text-gray-600">
               {queueErrorMessage || "Failed to add patient to queue."}
             </p>
 
             <div className="flex justify-center">
               <button
                 onClick={() => setQueueErrorOpen(false)}
-                className="px-6 py-2 bg-red-500 hover:bg-red-600 text-white rounded-lg font-medium transition"
+                className="rounded-lg bg-red-500 px-6 py-2 font-medium text-white transition hover:bg-red-600"
               >
                 Close
               </button>
@@ -262,47 +250,40 @@ export default function TodayAppointments({ data }) {
         </div>
       )}
 
-      <h3 className="text-blue-700 font-semibold mb-3">
-        Today’s Appointments
-      </h3>
+      <h3 className="mb-3 font-semibold text-blue-700">Today’s Appointments</h3>
 
-      <div className="w-full overflow-x-auto overflow-y-auto max-h-[500px]">
+      <div className="max-h-[500px] w-full overflow-x-auto overflow-y-auto">
         <table className="min-w-[1100px] w-full border text-sm">
-          <thead className="bg-blue-600 text-white sticky top-0 z-10">
+          <thead className="sticky top-0 z-10 bg-blue-600 text-white">
             <tr>
-              <th className="p-2 text-left whitespace-nowrap">Patient</th>
-              <th className="p-2 text-left whitespace-nowrap">Date</th>
-              <th className="p-2 text-left whitespace-nowrap">Type</th>
-              <th className="p-2 text-left whitespace-nowrap">Priority</th>
-              <th className="p-2 text-left whitespace-nowrap">Status</th>
-              <th className="p-2 text-left whitespace-nowrap">Actions</th>
+              <th className="whitespace-nowrap p-2 text-left">Patient</th>
+              <th className="whitespace-nowrap p-2 text-left">Date</th>
+              <th className="whitespace-nowrap p-2 text-left">Type</th>
+              <th className="whitespace-nowrap p-2 text-left">Priority</th>
+              <th className="whitespace-nowrap p-2 text-left">Status</th>
+              <th className="whitespace-nowrap p-2 text-left">Actions</th>
             </tr>
           </thead>
 
           <tbody>
             {currentItems.map((a) => (
-              <tr
-                key={a.appointment_id}
-                className="border-t hover:bg-blue-50"
-              >
-                <td className="p-2 whitespace-nowrap">
+              <tr key={a.appointment_id} className="border-t hover:bg-blue-50">
+                <td className="whitespace-nowrap p-2">
                   {`${a.patient_f_name} ${a.patient_m_name || ""} ${a.patient_l_name}`}
                 </td>
 
-                <td className="p-2 whitespace-nowrap">{a.appointment_date}</td>
+                <td className="whitespace-nowrap p-2">{a.appointment_date}</td>
+                <td className="whitespace-nowrap p-2">{a.appointment_type}</td>
+                <td className="whitespace-nowrap p-2">{a.priority_type}</td>
 
-                <td className="p-2 whitespace-nowrap">{a.appointment_type}</td>
-
-                <td className="p-2 whitespace-nowrap">{a.priority_type}</td>
-
-                <td className="p-2 whitespace-nowrap">
+                <td className="whitespace-nowrap p-2">
                   <StatusBadge status={a.status} />
                 </td>
 
-                <td className="p-2 whitespace-nowrap">
+                <td className="whitespace-nowrap p-2">
                   <div className="flex gap-2">
                     <button
-                      className="px-2 py-1 text-xs bg-blue-600 text-white rounded hover:bg-blue-700 transition"
+                      className="rounded bg-blue-600 px-2 py-1 text-xs text-white transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-60"
                       onClick={() => handleQueueOnly(a)}
                       disabled={loadingQueues}
                     >
@@ -310,7 +291,7 @@ export default function TodayAppointments({ data }) {
                     </button>
 
                     <button
-                      className="px-2 py-1 text-xs bg-blue-100 text-blue-700 rounded hover:bg-blue-200"
+                      className="rounded bg-blue-100 px-2 py-1 text-xs text-blue-700 hover:bg-blue-200"
                       onClick={() => {
                         setSelectedAppointment(a);
                         setShowView(true);
@@ -320,7 +301,7 @@ export default function TodayAppointments({ data }) {
                     </button>
 
                     <button
-                      className="px-2 py-1 text-xs bg-red-100 text-red-700 rounded hover:bg-red-200"
+                      className="rounded bg-red-100 px-2 py-1 text-xs text-red-700 hover:bg-red-200"
                       onClick={() => {
                         setSelectedAppointment(a);
                         setShowCancel(true);
@@ -335,11 +316,11 @@ export default function TodayAppointments({ data }) {
           </tbody>
         </table>
 
-        <div className="flex justify-between items-center mt-4 text-sm">
+        <div className="mt-4 flex items-center justify-between text-sm">
           <button
             onClick={() => goToPage(currentPage - 1)}
             disabled={currentPage === 1}
-            className="px-3 py-1 rounded border border-blue-600 text-blue-600 disabled:opacity-40 disabled:cursor-not-allowed hover:bg-blue-50"
+            className="rounded border border-blue-600 px-3 py-1 text-blue-600 hover:bg-blue-50 disabled:cursor-not-allowed disabled:opacity-40"
           >
             Previous
           </button>
@@ -349,9 +330,9 @@ export default function TodayAppointments({ data }) {
               <button
                 key={i}
                 onClick={() => goToPage(i + 1)}
-                className={`px-3 py-1 rounded border ${
+                className={`rounded border px-3 py-1 ${
                   currentPage === i + 1
-                    ? "bg-blue-600 text-white border-blue-600"
+                    ? "border-blue-600 bg-blue-600 text-white"
                     : "border-blue-600 text-blue-600 hover:bg-blue-50"
                 }`}
               >
@@ -363,7 +344,7 @@ export default function TodayAppointments({ data }) {
           <button
             onClick={() => goToPage(currentPage + 1)}
             disabled={currentPage === totalPages || totalPages === 0}
-            className="px-3 py-1 rounded border border-blue-600 text-blue-600 disabled:opacity-40 disabled:cursor-not-allowed hover:bg-blue-50"
+            className="rounded border border-blue-600 px-3 py-1 text-blue-600 hover:bg-blue-50 disabled:cursor-not-allowed disabled:opacity-40"
           >
             Next
           </button>

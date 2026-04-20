@@ -1,4 +1,5 @@
 import { apiRequest } from "../../../api/httpClient/httpClient";
+
 export const getPatientOfDoctorInClinicApi = (doctorId, clinicId) =>
   apiRequest(`/api/med-routes/doctor/${doctorId}/clinic/${clinicId}/patients`);
 
@@ -17,8 +18,17 @@ export const createMedicalRecordApi = (patientId, medicalRecordData) =>
     body: JSON.stringify(medicalRecordData),
   });
 
+// vital signs
+export const getPatientVitalSignsApi = (patientId) =>
+  apiRequest(`/api/med-routes/patient/${patientId}/vitals`);
+
+export const createVitalSignApi = (patientId, vitalSignData) =>
+  apiRequest(`/api/med-routes/patient/${patientId}/vitals`, {
+    method: "POST",
+    body: JSON.stringify(vitalSignData),
+  });
+
 // medical record documents
-// medicalRecordsApi.js
 export const uploadMedicalRecordDocumentApi = (recordId, file) => {
   const formData = new FormData();
   formData.append("image", file);

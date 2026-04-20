@@ -7,6 +7,8 @@ import {
   getMedicalRecordsFullDetailsAPi,
   createMedicalRecordApi,
   uploadMedicalRecordDocumentApi,
+    getPatientVitalSignsApi,
+  createVitalSignApi,
 } from "../../api/medicalRecordsApi.js";
 
 export const MedicalRecordsProvider = ({ children }) => {
@@ -24,12 +26,60 @@ export const MedicalRecordsProvider = ({ children }) => {
     documents: [], // 🔥 REQUIRED
   });
 
+  const [patientVitalSigns, setPatientVitalSigns] = useState([]);
+const [loadingPatientVitalSigns, setLoadingPatientVitalSigns] = useState(false);
+
 const [loading, setLoading] = useState(false);
 const [loadingPatientInfo, setLoadingPatientInfo] = useState(false);
 const [loadingPatientMedRecord, setLoadingPatientMedRecord] = useState(false);
 const [loadingMedicalRecordsFullDetails, setLoadingMedicalRecordsFullDetails] = useState(false);
 const [error, setError] = useState(null);
 
+
+  const getPatientVitalSigns = async (patientId) => {
+  setLoadingPatientVitalSigns(true);
+  setError(null);
+
+  try {
+    const res = await getPatientVitalSignsApi(patientId);
+
+    if (!res.ok) {
+      setError(res.message);
+      setPatientVitalSigns([]);
+      return res;
+    }
+
+    setPatientVitalSigns(res.data.vitalSigns || []);
+    return res;
+  } catch (err) {
+    setError("Something went wrong");
+    setPatientVitalSigns([]);
+    return { ok: false, message: "Something went wrong" };
+  } finally {
+    setLoadingPatientVitalSigns(false);
+  }
+};
+
+const createVitalSign = async (patientId, vitalSignData) => {
+  setError(null);
+
+  try {
+    const res = await createVitalSignApi(patientId, vitalSignData);
+
+    if (!res.ok) {
+      setError(res.message);
+      return res;
+    }
+
+    return {
+      ...res,
+      vitalSign: res.data.vitalSign,
+    };
+  } catch (err) {
+    setError("Something went wrong");
+    return { ok: false, message: "Something went wrong" };
+  }
+};
 
   const getPatientOfDoctorInClinic = async (doctorId, clinicId) => {
     setLoading(true);
@@ -180,23 +230,27 @@ const uploadMedicalRecordDocument = async (recordId, file) => {
   };
 
   return (
-    <MedicalRecordsContext.Provider
-      value={{
-        getPatientOfDoctorInClinic,
-        getPatientInfo,
-        clearPatients,
-        getPatientMedRecord,
-        getMedicalRecordsFullDetails,
-        createMedicalRecord,
-        uploadMedicalRecordDocument,
-        loading,
-        error,
-        patients,
-        patientsInfo,
-        patientMedRecords,
-        medicalRecordsFullDetails,
-      }}
-    >
+<MedicalRecordsContext.Provider
+  value={{
+    getPatientOfDoctorInClinic,
+    getPatientInfo,
+    clearPatients,
+    getPatientMedRecord,
+    getMedicalRecordsFullDetails,
+    createMedicalRecord,
+    uploadMedicalRecordDocument,
+    getPatientVitalSigns,
+    createVitalSign,
+    loading,
+    error,
+    patients,
+    patientsInfo,
+    patientMedRecords,
+    patientVitalSigns,
+    medicalRecordsFullDetails,
+    loadingPatientVitalSigns,
+  }}
+>
       {children}
     </MedicalRecordsContext.Provider>
   );

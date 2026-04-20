@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
+import { useMedicalRecords } from "../../../context/medical-records/useMedicalRecords";
 
 const initialForm = {
-  appointmentId: "",
   bloodPressure: "",
   heartRate: "",
   temperature: "",
@@ -12,13 +12,15 @@ const initialForm = {
 export default function AddVitalsModal({
   isOpen,
   onClose,
-  onSubmit,
-  loading = false,
   patient = null,
   appointmentId = "",
+  onSuccess,
 }) {
+  const { createVitalSign, loadingCreateVitalSign } = useMedicalRecords();
+
   const [form, setForm] = useState(initialForm);
   const [errors, setErrors] = useState({});
+  const [submitError, setSubmitError] = useState("");
 
   const patientName = useMemo(() => {
     if (!patient) return "Selected Patient";
@@ -39,11 +41,9 @@ export default function AddVitalsModal({
 
   useEffect(() => {
     if (isOpen) {
-      setForm({
-        ...initialForm,
-        appointmentId: appointmentId ? String(appointmentId) : "",
-      });
+      setForm(initialForm);
       setErrors({});
+      setSubmitError("");
       document.body.style.overflow = "hidden";
     } else {
       document.body.style.overflow = "auto";
@@ -52,7 +52,7 @@ export default function AddVitalsModal({
     return () => {
       document.body.style.overflow = "auto";
     };
-  }, [isOpen, appointmentId]);
+  }, [isOpen]);
 
   if (!isOpen) return null;
 
@@ -70,12 +70,16 @@ export default function AddVitalsModal({
         [name]: "",
       }));
     }
+
+    if (submitError) {
+      setSubmitError("");
+    }
   };
 
   const validateForm = () => {
     const newErrors = {};
 
-    if (!form.appointmentId.trim()) {
+    if (!appointmentId) {
       newErrors.appointmentId = "Appointment ID is required.";
     }
 
@@ -104,15 +108,14 @@ export default function AddVitalsModal({
 
   const buildPayload = () => {
     return {
-      appointmentId: Number(form.appointmentId),
+      appointmentId: Number(appointmentId),
       patientId: patient?.patient_id || patient?.patientId || patient?.id || null,
-      vitalSigns: {
-        bloodPressure: form.bloodPressure.trim(),
-        heartRate: Number(form.heartRate),
-        temperature: form.temperature.trim(),
-        oxygenSaturation: Number(form.oxygenSaturation),
-        weight: Number(form.weight),
-      },
+      bloodPressure: form.bloodPressure.trim(),
+      heartRate: Number(form.heartRate),
+      temperature: form.temperature.trim(),
+      oxygenSaturation: Number(form.oxygenSaturation),
+      weight: Number(form.weight),
+      medicalRecordId: null,
     };
   };
 
@@ -127,7 +130,25 @@ export default function AddVitalsModal({
     }
 
     const payload = buildPayload();
-    await onSubmit?.(payload);
+    const patientId = payload.patientId;
+
+    if (!patientId) {
+      setSubmitError("Patient ID is missing.");
+      return;
+    }
+
+    const res = await createVitalSign(patientId, payload);
+
+    if (!res?.ok) {
+      setSubmitError(res?.message || "Failed to save vital signs.");
+      return;
+    }
+
+    if (onSuccess) {
+      onSuccess(res);
+    }
+
+    onClose();
   };
 
   return (
@@ -139,7 +160,7 @@ export default function AddVitalsModal({
               Add Vital Signs
             </h2>
             <p className="mt-1 text-sm text-gray-500">
-              Enter the appointment ID and the patient&apos;s vital signs.
+              Enter the patient&apos;s vital signs.
             </p>
           </div>
 
@@ -160,20 +181,32 @@ export default function AddVitalsModal({
               </p>
             </div>
 
+            {submitError && (
+              <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-600">
+                {submitError}
+              </div>
+            )}
+
             <div className="rounded-2xl border border-gray-200 bg-gray-50 p-4">
               <h3 className="mb-4 text-sm font-semibold uppercase tracking-wide text-blue-700">
                 Appointment
               </h3>
 
-<div className="w-full">
-  <label className="mb-2 block text-sm font-medium text-gray-700">
-    Appointment ID
-  </label>
+              <div className="w-full">
+                <label className="mb-2 block text-sm font-medium text-gray-700">
+                  Appointment ID
+                </label>
 
-  <div className="w-full rounded-xl border border-gray-300 bg-gray-100 px-4 py-3 text-sm text-gray-700">
-    {appointmentId || "N/A"}
-  </div>
-</div>
+                <div className="w-full rounded-xl border border-gray-300 bg-gray-100 px-4 py-3 text-sm text-gray-700">
+                  {appointmentId || "N/A"}
+                </div>
+
+                {errors.appointmentId && (
+                  <p className="mt-1 text-xs text-red-600">
+                    {errors.appointmentId}
+                  </p>
+                )}
+              </div>
             </div>
 
             <div className="rounded-2xl border border-blue-200 bg-slate-50 p-4">
@@ -312,10 +345,10 @@ export default function AddVitalsModal({
 
             <button
               type="submit"
-              disabled={loading}
+              disabled={loadingCreateVitalSign}
               className="rounded-xl bg-blue-600 px-4 py-2.5 text-sm font-medium text-white transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-60"
             >
-              {loading ? "Saving..." : "Save and Add to Queue"}
+              {loadingCreateVitalSign ? "Saving..." : "Save Vital Signs"}
             </button>
           </div>
         </form>
