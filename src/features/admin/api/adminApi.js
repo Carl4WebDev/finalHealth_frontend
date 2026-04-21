@@ -13,3 +13,4 @@ export const registerAdmin = (payload) =>
   });
 
 export const getAllSubscribersApi = () => apiRequest("/api/admin/subscribers");
+export const getCustomerRevenueApi = () => apiRequest("/api/admin/revenue");
