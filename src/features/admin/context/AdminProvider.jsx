@@ -1,12 +1,12 @@
 import { useState } from "react";
 import { AdminContext } from "./AdminContext.jsx";
 // 1. ADD getCustomerRevenueApi to your imports
-import { getAllSubscribersApi, getCustomerRevenueApi } from "../api/adminApi.js"; 
+import { getAllSubscribersApi, getCustomerRevenueApi, getDashboardSummaryApi} from "../api/adminApi.js"; 
 
 export const AdminProvider = ({ children }) => {
   const [subscribers, setSubscribers] = useState([]);
-  // 2. ADD the revenue state variable here
   const [revenue, setRevenue] = useState([]); 
+  const [dashboard, setDashboard] = useState(null); // For dashboard summary
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
@@ -44,17 +44,34 @@ export const AdminProvider = ({ children }) => {
     setLoading(false);
   };
 
-  
+  const getDashboardData = async () => {
+    setLoading(true);
+    setError(null);
+    
+    const res = await getDashboardSummaryApi();
+    
+    if (!res.ok) {
+      setError(res.message || "Failed to load dashboard stats");
+      setLoading(false);
+      return;
+    }
+    
+    // This saves the counts (users, doctors, etc.) into state
+    setDashboard(res.data || null);
+    setLoading(false);
+  };
 
   return (
     <AdminContext.Provider
       value={{
         subscribers,
-        revenue,          // 3. ADD THIS
+        revenue,          
+        dashboard,        
         loading,
         error,
         getAllSubscribers,
-        getRevenue,       // 3. ADD THIS
+        getRevenue,       
+        getDashboardData,
         clearSubscribers,
       }}
     >
