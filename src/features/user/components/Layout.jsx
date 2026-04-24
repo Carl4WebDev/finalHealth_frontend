@@ -31,7 +31,7 @@ export default function Layout({ children }) {
       {/* MAIN CONTENT — FULL WIDTH, TRANSPARENT */}
       <main
         className={`pt-16 p-5 pb-10 min-h-screen transition-all duration-200 ${
-          isCollapsed ? "md:pl-20" : "md:pl-64"
+          isCollapsed ? "md:pl-20" : "md:pl-28"
         }`}
       >
         {children}

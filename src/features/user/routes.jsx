@@ -28,6 +28,9 @@ import { MedicalRecordsProvider } from "./context/medical-records/MedicalRecords
 import { UserProvider } from "./context/users/UserProvider";
 import { DashboardProvider } from "./context/dashboard/DashboardProvider";
 import {DiagnosisTreatmentProvider} from "./context/diagnosis-treatments/DiagnosisTreatmentProvider"
+import VisitHistoryDetails from "./pages/patients/pages/VisitHistoryDetails";
+
+import VisiDetails from "./pages/patients/pages/VisitDetails"
 
 export default function UserRoutes() {
   return (
@@ -84,6 +87,10 @@ export default function UserRoutes() {
                             <Route
                               path="/patients/:patientId/records/:recordId"
                               element={<MedicalHistoryInfo />}
+                            />
+                            <Route
+                               path="/patients/:patientId/visit-history/:visitId"
+                              element={<VisiDetails />}
                             />
                             <Route
   path="/patients/management"

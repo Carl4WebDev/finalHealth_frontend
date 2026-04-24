@@ -41,3 +41,100 @@ export const uploadMedicalRecordDocumentApi = (recordId, file) => {
     },
   );
 };
+
+// visit history
+export const getPatientVisitHistoryApi = (patientId) =>
+  apiRequest(`/api/med-routes/patient/${patientId}/visit-history`);
+
+// medical record
+export const updateMedicalRecordApi = (recordId, medicalRecordData) =>
+  apiRequest(`/api/med-routes/medical-records/${recordId}`, {
+    method: "PATCH",
+    body: JSON.stringify(medicalRecordData),
+  });
+
+export const deleteMedicalRecordApi = (recordId) =>
+  apiRequest(`/api/med-routes/medical-records/${recordId}`, {
+    method: "DELETE",
+  });
+
+// prescription
+export const getPrescriptionsByRecordApi = (recordId) =>
+  apiRequest(`/api/med-routes/record/${recordId}/prescriptions`);
+
+export const getPrescriptionByIdApi = (prescriptionId) =>
+  apiRequest(`/api/med-routes/prescriptions/${prescriptionId}`);
+
+export const createPrescriptionApi = (recordId, prescriptionData) =>
+  apiRequest(`/api/med-routes/record/${recordId}/prescriptions`, {
+    method: "POST",
+    body: JSON.stringify(prescriptionData),
+  });
+
+export const updatePrescriptionApi = (prescriptionId, prescriptionData) =>
+  apiRequest(`/api/med-routes/prescriptions/${prescriptionId}`, {
+    method: "PATCH",
+    body: JSON.stringify(prescriptionData),
+  });
+
+export const deletePrescriptionApi = (prescriptionId) =>
+  apiRequest(`/api/med-routes/prescriptions/${prescriptionId}`, {
+    method: "DELETE",
+  });
+
+// lab results
+export const getLabResultsByRecordApi = (recordId) =>
+  apiRequest(`/api/med-routes/record/${recordId}/lab-results`);
+
+export const getLabResultByIdApi = (resultId) =>
+  apiRequest(`/api/med-routes/lab-results/${resultId}`);
+
+export const createLabResultApi = (recordId, labResultData) =>
+  apiRequest(`/api/med-routes/record/${recordId}/lab-results`, {
+    method: "POST",
+    body: JSON.stringify(labResultData),
+  });
+
+export const updateLabResultApi = (resultId, labResultData) =>
+  apiRequest(`/api/med-routes/lab-results/${resultId}`, {
+    method: "PATCH",
+    body: JSON.stringify(labResultData),
+  });
+
+export const deleteLabResultApi = (resultId) =>
+  apiRequest(`/api/med-routes/lab-results/${resultId}`, {
+    method: "DELETE",
+  });
+
+// certificates
+export const getCertificatesByRecordApi = (recordId) =>
+  apiRequest(`/api/med-routes/record/${recordId}/certificates`);
+
+export const getCertificateByIdApi = (certificateId) =>
+  apiRequest(`/api/med-routes/certificates/${certificateId}`);
+
+export const createCertificateApi = (recordId, certificateData) =>
+  apiRequest(`/api/med-routes/record/${recordId}/certificates`, {
+    method: "POST",
+    body: JSON.stringify(certificateData),
+  });
+
+export const updateCertificateApi = (certificateId, certificateData) =>
+  apiRequest(`/api/med-routes/certificates/${certificateId}`, {
+    method: "PATCH",
+    body: JSON.stringify(certificateData),
+  });
+
+export const deleteCertificateApi = (certificateId) =>
+  apiRequest(`/api/med-routes/certificates/${certificateId}`, {
+    method: "DELETE",
+  });
+
+export const getMedicalRecordByAppointmentIdApi = (appointmentId) =>
+  apiRequest(`/api/med-routes/appointment/${appointmentId}/medical-record`);
+
+export const getDoctorLimitStatusApi = () =>
+  apiRequest("/api/med-routes/limit-status");
+
+export const getClinicLimitStatusApi = () =>
+  apiRequest("/api/med-routes/limit-status/clinic");

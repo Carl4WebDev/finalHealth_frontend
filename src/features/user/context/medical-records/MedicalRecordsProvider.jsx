@@ -7,8 +7,32 @@ import {
   getMedicalRecordsFullDetailsAPi,
   createMedicalRecordApi,
   uploadMedicalRecordDocumentApi,
-    getPatientVitalSignsApi,
+  getPatientVitalSignsApi,
   createVitalSignApi,
+  getPatientVisitHistoryApi,
+  //added
+    updateMedicalRecordApi,
+  deleteMedicalRecordApi,
+
+  getPrescriptionsByRecordApi,
+  getPrescriptionByIdApi,
+  createPrescriptionApi,
+  updatePrescriptionApi,
+  deletePrescriptionApi,
+
+  getLabResultsByRecordApi,
+  getLabResultByIdApi,
+  createLabResultApi,
+  updateLabResultApi,
+  deleteLabResultApi,
+
+  getCertificatesByRecordApi,
+  getCertificateByIdApi,
+  createCertificateApi,
+  updateCertificateApi,
+  deleteCertificateApi,
+
+  getMedicalRecordByAppointmentIdApi,
 } from "../../api/medicalRecordsApi.js";
 
 export const MedicalRecordsProvider = ({ children }) => {
@@ -26,6 +50,9 @@ export const MedicalRecordsProvider = ({ children }) => {
     documents: [], // 🔥 REQUIRED
   });
 
+  const [patientVisitHistory, setPatientVisitHistory] = useState([]);
+const [loadingPatientVisitHistory, setLoadingPatientVisitHistory] = useState(false);
+
   const [patientVitalSigns, setPatientVitalSigns] = useState([]);
 const [loadingPatientVitalSigns, setLoadingPatientVitalSigns] = useState(false);
 
@@ -35,6 +62,47 @@ const [loadingPatientMedRecord, setLoadingPatientMedRecord] = useState(false);
 const [loadingMedicalRecordsFullDetails, setLoadingMedicalRecordsFullDetails] = useState(false);
 const [error, setError] = useState(null);
 
+  const [prescriptions, setPrescriptions] = useState([]);
+  const [selectedPrescription, setSelectedPrescription] = useState(null);
+
+  const [labResults, setLabResults] = useState([]);
+  const [selectedLabResult, setSelectedLabResult] = useState(null);
+
+  const [certificates, setCertificates] = useState([]);
+  const [selectedCertificate, setSelectedCertificate] = useState(null);
+
+  const [loadingPrescriptions, setLoadingPrescriptions] = useState(false);
+  const [loadingLabResults, setLoadingLabResults] = useState(false);
+  const [loadingCertificates, setLoadingCertificates] = useState(false);
+
+  const [medicalRecordByAppointment, setMedicalRecordByAppointment] = useState(null);
+const [loadingMedicalRecordByAppointment, setLoadingMedicalRecordByAppointment] =
+  useState(false);
+
+
+const getPatientVisitHistory = async (patientId) => {
+  setLoadingPatientVisitHistory(true);
+  setError(null);
+
+  try {
+    const res = await getPatientVisitHistoryApi(patientId);
+
+    if (!res.ok) {
+      setError(res.message);
+      setPatientVisitHistory([]);
+      return res;
+    }
+
+    setPatientVisitHistory(res.data.visitHistory || []);
+    return res;
+  } catch (err) {
+    setError("Something went wrong");
+    setPatientVisitHistory([]);
+    return { ok: false, message: "Something went wrong" };
+  } finally {
+    setLoadingPatientVisitHistory(false);
+  }
+};
 
   const getPatientVitalSigns = async (patientId) => {
   setLoadingPatientVitalSigns(true);
@@ -229,6 +297,388 @@ const uploadMedicalRecordDocument = async (recordId, file) => {
     setPatients([]);
   };
 
+    // medical record
+  const updateMedicalRecord = async (recordId, medicalRecordData) => {
+    setError(null);
+
+    try {
+      const res = await updateMedicalRecordApi(recordId, medicalRecordData);
+
+      if (!res.ok) {
+        setError(res.message);
+        return res;
+      }
+
+      return {
+        ...res,
+        record: res.data.record,
+      };
+    } catch (err) {
+      setError("Something went wrong");
+      return { ok: false, message: "Something went wrong" };
+    }
+  };
+
+  const deleteMedicalRecord = async (recordId) => {
+    setError(null);
+
+    try {
+      const res = await deleteMedicalRecordApi(recordId);
+
+      if (!res.ok) {
+        setError(res.message);
+        return res;
+      }
+
+      return res;
+    } catch (err) {
+      setError("Something went wrong");
+      return { ok: false, message: "Something went wrong" };
+    }
+  };
+
+  // prescriptions
+  const getPrescriptionsByRecord = async (recordId) => {
+    setLoadingPrescriptions(true);
+    setError(null);
+
+    try {
+      const res = await getPrescriptionsByRecordApi(recordId);
+
+      if (!res.ok) {
+        setError(res.message);
+        setPrescriptions([]);
+        return res;
+      }
+
+      setPrescriptions(res.data.prescriptions || []);
+      return res;
+    } catch (err) {
+      setError("Something went wrong");
+      setPrescriptions([]);
+      return { ok: false, message: "Something went wrong" };
+    } finally {
+      setLoadingPrescriptions(false);
+    }
+  };
+
+  const getPrescriptionById = async (prescriptionId) => {
+    setError(null);
+
+    try {
+      const res = await getPrescriptionByIdApi(prescriptionId);
+
+      if (!res.ok) {
+        setError(res.message);
+        setSelectedPrescription(null);
+        return res;
+      }
+
+      setSelectedPrescription(res.data.prescription || null);
+      return res;
+    } catch (err) {
+      setError("Something went wrong");
+      setSelectedPrescription(null);
+      return { ok: false, message: "Something went wrong" };
+    }
+  };
+
+  const createPrescription = async (recordId, prescriptionData) => {
+    setError(null);
+
+    try {
+      const res = await createPrescriptionApi(recordId, prescriptionData);
+
+      if (!res.ok) {
+        setError(res.message);
+        return res;
+      }
+
+      return {
+        ...res,
+        prescription: res.data.prescription,
+      };
+    } catch (err) {
+      setError("Something went wrong");
+      return { ok: false, message: "Something went wrong" };
+    }
+  };
+
+  const updatePrescription = async (prescriptionId, prescriptionData) => {
+    setError(null);
+
+    try {
+      const res = await updatePrescriptionApi(prescriptionId, prescriptionData);
+
+      if (!res.ok) {
+        setError(res.message);
+        return res;
+      }
+
+      return {
+        ...res,
+        prescription: res.data.prescription,
+      };
+    } catch (err) {
+      setError("Something went wrong");
+      return { ok: false, message: "Something went wrong" };
+    }
+  };
+
+  const deletePrescription = async (prescriptionId) => {
+    setError(null);
+
+    try {
+      const res = await deletePrescriptionApi(prescriptionId);
+
+      if (!res.ok) {
+        setError(res.message);
+        return res;
+      }
+
+      return res;
+    } catch (err) {
+      setError("Something went wrong");
+      return { ok: false, message: "Something went wrong" };
+    }
+  };
+
+  // lab results
+  const getLabResultsByRecord = async (recordId) => {
+    setLoadingLabResults(true);
+    setError(null);
+
+    try {
+      const res = await getLabResultsByRecordApi(recordId);
+
+      if (!res.ok) {
+        setError(res.message);
+        setLabResults([]);
+        return res;
+      }
+
+      setLabResults(res.data.labResults || []);
+      return res;
+    } catch (err) {
+      setError("Something went wrong");
+      setLabResults([]);
+      return { ok: false, message: "Something went wrong" };
+    } finally {
+      setLoadingLabResults(false);
+    }
+  };
+
+  const getLabResultById = async (resultId) => {
+    setError(null);
+
+    try {
+      const res = await getLabResultByIdApi(resultId);
+
+      if (!res.ok) {
+        setError(res.message);
+        setSelectedLabResult(null);
+        return res;
+      }
+
+      setSelectedLabResult(res.data.labResult || null);
+      return res;
+    } catch (err) {
+      setError("Something went wrong");
+      setSelectedLabResult(null);
+      return { ok: false, message: "Something went wrong" };
+    }
+  };
+
+  const createLabResult = async (recordId, labResultData) => {
+    setError(null);
+
+    try {
+      const res = await createLabResultApi(recordId, labResultData);
+
+      if (!res.ok) {
+        setError(res.message);
+        return res;
+      }
+
+      return {
+        ...res,
+        labResult: res.data.labResult,
+      };
+    } catch (err) {
+      setError("Something went wrong");
+      return { ok: false, message: "Something went wrong" };
+    }
+  };
+
+  const updateLabResult = async (resultId, labResultData) => {
+    setError(null);
+
+    try {
+      const res = await updateLabResultApi(resultId, labResultData);
+
+      if (!res.ok) {
+        setError(res.message);
+        return res;
+      }
+
+      return {
+        ...res,
+        labResult: res.data.labResult,
+      };
+    } catch (err) {
+      setError("Something went wrong");
+      return { ok: false, message: "Something went wrong" };
+    }
+  };
+
+  const deleteLabResult = async (resultId) => {
+    setError(null);
+
+    try {
+      const res = await deleteLabResultApi(resultId);
+
+      if (!res.ok) {
+        setError(res.message);
+        return res;
+      }
+
+      return res;
+    } catch (err) {
+      setError("Something went wrong");
+      return { ok: false, message: "Something went wrong" };
+    }
+  };
+
+  // certificates
+  const getCertificatesByRecord = async (recordId) => {
+    setLoadingCertificates(true);
+    setError(null);
+
+    try {
+      const res = await getCertificatesByRecordApi(recordId);
+
+      if (!res.ok) {
+        setError(res.message);
+        setCertificates([]);
+        return res;
+      }
+
+      setCertificates(res.data.certificates || []);
+      return res;
+    } catch (err) {
+      setError("Something went wrong");
+      setCertificates([]);
+      return { ok: false, message: "Something went wrong" };
+    } finally {
+      setLoadingCertificates(false);
+    }
+  };
+
+  const getCertificateById = async (certificateId) => {
+    setError(null);
+
+    try {
+      const res = await getCertificateByIdApi(certificateId);
+
+      if (!res.ok) {
+        setError(res.message);
+        setSelectedCertificate(null);
+        return res;
+      }
+
+      setSelectedCertificate(res.data.certificate || null);
+      return res;
+    } catch (err) {
+      setError("Something went wrong");
+      setSelectedCertificate(null);
+      return { ok: false, message: "Something went wrong" };
+    }
+  };
+
+  const createCertificate = async (recordId, certificateData) => {
+    setError(null);
+
+    try {
+      const res = await createCertificateApi(recordId, certificateData);
+
+      if (!res.ok) {
+        setError(res.message);
+        return res;
+      }
+
+      return {
+        ...res,
+        certificate: res.data.certificate,
+      };
+    } catch (err) {
+      setError("Something went wrong");
+      return { ok: false, message: "Something went wrong" };
+    }
+  };
+
+  const updateCertificate = async (certificateId, certificateData) => {
+    setError(null);
+
+    try {
+      const res = await updateCertificateApi(certificateId, certificateData);
+
+      if (!res.ok) {
+        setError(res.message);
+        return res;
+      }
+
+      return {
+        ...res,
+        certificate: res.data.certificate,
+      };
+    } catch (err) {
+      setError("Something went wrong");
+      return { ok: false, message: "Something went wrong" };
+    }
+  };
+
+  const deleteCertificate = async (certificateId) => {
+    setError(null);
+
+    try {
+      const res = await deleteCertificateApi(certificateId);
+
+      if (!res.ok) {
+        setError(res.message);
+        return res;
+      }
+
+      return res;
+    } catch (err) {
+      setError("Something went wrong");
+      return { ok: false, message: "Something went wrong" };
+    }
+  };
+
+  const getMedicalRecordByAppointmentId = async (appointmentId) => {
+  setLoadingMedicalRecordByAppointment(true);
+  setError(null);
+
+  try {
+    const res = await getMedicalRecordByAppointmentIdApi(appointmentId);
+
+    if (!res.ok) {
+      setError(res.message);
+      setMedicalRecordByAppointment(null);
+      return res;
+    }
+
+    setMedicalRecordByAppointment(res.data.medicalRecord || null);
+    return res;
+  } catch (err) {
+    setError("Something went wrong");
+    setMedicalRecordByAppointment(null);
+    return { ok: false, message: "Something went wrong" };
+  } finally {
+    setLoadingMedicalRecordByAppointment(false);
+  }
+};
+
   return (
 <MedicalRecordsContext.Provider
   value={{
@@ -249,6 +699,45 @@ const uploadMedicalRecordDocument = async (recordId, file) => {
     patientVitalSigns,
     medicalRecordsFullDetails,
     loadingPatientVitalSigns,
+
+    patientVisitHistory,
+    getPatientVisitHistory,
+
+    //added
+        updateMedicalRecord,
+    deleteMedicalRecord,
+
+    prescriptions,
+    selectedPrescription,
+    loadingPrescriptions,
+    getPrescriptionsByRecord,
+    getPrescriptionById,
+    createPrescription,
+    updatePrescription,
+    deletePrescription,
+
+    labResults,
+    selectedLabResult,
+    loadingLabResults,
+    getLabResultsByRecord,
+    getLabResultById,
+    createLabResult,
+    updateLabResult,
+    deleteLabResult,
+
+    certificates,
+    selectedCertificate,
+    loadingCertificates,
+    getCertificatesByRecord,
+    getCertificateById,
+    createCertificate,
+    updateCertificate,
+    deleteCertificate,
+
+    medicalRecordByAppointment,
+loadingMedicalRecordByAppointment,
+getMedicalRecordByAppointmentId,
+    
   }}
 >
       {children}

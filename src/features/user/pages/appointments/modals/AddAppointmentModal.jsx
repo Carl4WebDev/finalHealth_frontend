@@ -242,19 +242,8 @@ export default function AddAppointmentModal({
           />
 
           <datalist id="appointment-types">
-            <option value="Consultation" />
-            <option value="Follow-up" />
-            <option value="Emergency" />
-            <option value="Routine Check-up" />
-            <option value="New Patient Visit" />
-            <option value="Lab Result Review" />
-            <option value="Medical Certificate" />
-            <option value="Vaccination" />
-            <option value="Pre-employment Exam" />
-            <option value="Physical Examination" />
-            <option value="Chronic Disease Management" />
-            <option value="Teleconsultation" />
-            <option value="Procedure / Minor Surgery" />
+            <option value="general" label="Consultation"/>
+            <option value="pre-employment" />
           </datalist>
         </div>
 
