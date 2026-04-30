@@ -47,7 +47,6 @@ export default function CustomerRevenue() {
         grouped[id] = {
           user_id: id,
           name: `${item.f_name} ${item.l_name}`,
-          email: item.email || "N/A",
           total: 0,
           transactions: 0,
           lastPayment: item.payment_date,
@@ -335,7 +334,7 @@ export default function CustomerRevenue() {
                     >
                       <td className="p-4">
                         <p className="font-medium text-gray-800">{c.name}</p>
-                        <p className="text-xs text-gray-400">{c.email}</p>
+
                       </td>
                       <td className="p-4 text-sm">{c.transactions}</td>
                       <td className="p-4 text-sm text-gray-500">
@@ -362,7 +361,6 @@ export default function CustomerRevenue() {
               </div>
 
               <p className="font-medium">{selectedUser.name}</p>
-              <p className="text-sm text-gray-400 mb-4">{selectedUser.email}</p>
 
               <div className="mb-4">
                 <p className="text-sm text-gray-500">Total Revenue</p>
