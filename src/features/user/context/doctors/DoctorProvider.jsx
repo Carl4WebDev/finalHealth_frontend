@@ -5,6 +5,7 @@ import {
   getAllDoctorsOfUserApi,
   createDoctorApi,
   updateDoctorInfoApi,
+  getDoctorsByClinicApi 
 } from "../../api/doctorApi.js";
 
 export const DoctorProvider = ({ children }) => {
@@ -13,6 +14,26 @@ export const DoctorProvider = ({ children }) => {
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+
+  const [clinicDoctors, setClinicDoctors] = useState([]);
+const [loadingClinicDoctors, setLoadingClinicDoctors] =
+  useState(false);
+
+  const getDoctorsByClinic = async (clinicId) => {
+  setLoadingClinicDoctors(true);
+  setError(null);
+
+  const res = await getDoctorsByClinicApi(clinicId);
+
+  if (!res.ok) {
+    setError(res.message);
+    setLoadingClinicDoctors(false);
+    return;
+  }
+
+  setClinicDoctors(res.data.doctors || []);
+  setLoadingClinicDoctors(false);
+};
 
   const getAllApprovedDoctorsOfUser = async () => {
     setLoading(true);
@@ -94,6 +115,8 @@ export const DoctorProvider = ({ children }) => {
     <DoctorContext.Provider
       value={{
         approvedDoctors,
+        clinicDoctors,
+loadingClinicDoctors,
         doctors,
         loading,
         error,
@@ -101,6 +124,7 @@ export const DoctorProvider = ({ children }) => {
         getAllDoctorsOfUser,
         createDoctor,
         updateDoctorInfo,
+        getDoctorsByClinic
       }}
     >
       {children}

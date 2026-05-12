@@ -11,23 +11,24 @@ export default function Layout({ children }) {
     <div className="min-h-screen ">
       <Navbar setIsSidebarOpen={setIsSidebarOpen} />
 
-      {/* FIXED DESKTOP SIDEBAR */}
-      <div className="hidden md:block fixed top-16 left-0 h-[calc(100vh-4rem)] z-30">
-        <Sidebar
-          isOpen={isSidebarOpen}
-          setIsOpen={setIsSidebarOpen}
-          isCollapsed={isCollapsed}
-          setIsCollapsed={setIsCollapsed}
-        />
-      </div>
+{/* FIXED DESKTOP SIDEBAR */}
+<div className="hidden md:block fixed top-16 left-0 h-[calc(100vh-4rem)] z-30">
+  <Sidebar
+    isOpen={isSidebarOpen}
+    setIsOpen={setIsSidebarOpen}
+    isCollapsed={isCollapsed}
+    setIsCollapsed={setIsCollapsed}
+  />
+</div>
 
-      {/* MOBILE SIDEBAR (SLIDE-IN) */}
-      <Sidebar
-        isOpen={isSidebarOpen}
-        setIsOpen={setIsSidebarOpen}
-        isMobile={true}
-      />
-
+{/* MOBILE SIDEBAR (SLIDE-IN) */}
+<Sidebar
+  isOpen={isSidebarOpen}
+  setIsOpen={setIsSidebarOpen}
+  isMobile={true}
+  isCollapsed={isCollapsed}
+  setIsCollapsed={setIsCollapsed}
+/>
       {/* MAIN CONTENT — FULL WIDTH, TRANSPARENT */}
       <main
         className={`pt-16 p-5 pb-10 min-h-screen transition-all duration-200 ${

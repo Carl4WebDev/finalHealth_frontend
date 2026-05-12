@@ -280,18 +280,17 @@ const styles = {
     gap: '30px',
     marginBottom: '60px'
   },
-  featureCard: {
-    background: 'white',
-    borderRadius: '20px',
-    overflow: 'hidden',
-    boxShadow: '0 10px 25px rgba(2, 132, 199, 0.08)',
-    transition: 'all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275)',
-    position: 'relative',
-    border: '1px solid rgba(2, 132, 199, 0.1)',
-    opacity: 0,
-    animation: 'floatIn 0.6s ease forwards',
-    position: 'relative'
-  },
+featureCard: {
+  background: 'white',
+  borderRadius: '20px',
+  overflow: 'hidden',
+  boxShadow: '0 10px 25px rgba(2, 132, 199, 0.08)',
+  transition: 'all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275)',
+  position: 'relative',
+  border: '1px solid rgba(2, 132, 199, 0.1)',
+  opacity: 0,
+  animation: 'floatIn 0.6s ease forwards'
+},
   medicalIndicator: {
     position: 'absolute',
     width: '8px',

@@ -56,8 +56,7 @@ const About = () => {
             <span style={styles.titleChar}>N</span>
             <span style={styles.titleChar}>A</span>
             <span style={styles.titleChar}>L</span>
-            <span style={styles.titleChar} style={{ marginLeft: "8px" }}>
-              H
+<span style={{ ...styles.titleChar, marginLeft: "8px" }}>              H
             </span>
             <span style={styles.titleChar}>E</span>
             <span style={styles.titleChar}>A</span>

@@ -17,3 +17,6 @@ export const updateDoctorInfoApi = (doctorId, doctorData) =>
     method: "PUT",
     body: JSON.stringify(doctorData),
   });
+
+export const getDoctorsByClinicApi = (clinicId) =>
+  apiRequest(`/api/doctor-routes/clinic/${clinicId}/doctors`);

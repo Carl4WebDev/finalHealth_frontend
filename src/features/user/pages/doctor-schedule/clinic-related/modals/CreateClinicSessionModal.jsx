@@ -1,5 +1,7 @@
-import { useState } from "react";
+import { useState, useEffect} from "react";
 import { useClinics } from "../../../../context/clinics/useClinics";
+import { useDoctors } from "../../../../context/doctors/useDoctors";
+import { useDoctorSessions } from "../../../../context/doctor-sessions/useDoctorSessions";
 
 const DAYS = [
   "Monday",
@@ -17,6 +19,23 @@ export default function CreateClinicSessionModal({
   clinicId,
 }) {
   const { createClinicSession, getClinicSessions } = useClinics();
+
+  const {
+  clinicDoctors,
+  getDoctorsByClinic,
+} = useDoctors();
+
+const { createDoctorSession } = useDoctorSessions();
+
+
+
+const [selectedDoctorId, setSelectedDoctorId] = useState("");
+
+useEffect(() => {
+  if (clinicId) {
+    getDoctorsByClinic(clinicId);
+  }
+}, []);
 
   const [sessions, setSessions] = useState(
     DAYS.map((day) => ({
@@ -69,6 +88,14 @@ export default function CreateClinicSessionModal({
         open_time: session.open_time,
         close_time: session.close_time,
       });
+
+      await createDoctorSession({
+  doctorId: selectedDoctorId,
+  clinicId,
+  dayOfWeek: session.day_of_week,
+  startTime: session.open_time,
+  endTime: session.close_time,
+});
     }
 
     await getClinicSessions(clinicId);
@@ -110,6 +137,28 @@ export default function CreateClinicSessionModal({
               ×
             </button>
           </div>
+          <div className="mb-6">
+  <label className="block text-sm font-semibold text-blue-700 mb-2">
+    Select Doctor
+  </label>
+
+  <select
+    value={selectedDoctorId}
+    onChange={(e) => setSelectedDoctorId(e.target.value)}
+    className="w-full border border-blue-200 rounded-lg px-3 py-2"
+  >
+    <option value="">Select doctor</option>
+
+    {clinicDoctors.map((doctor) => (
+      <option
+        key={doctor.doctorId}
+        value={doctor.doctorId}
+      >
+        Dr. {doctor.fName} {doctor.lName}
+      </option>
+    ))}
+  </select>
+</div>
 
           {/* Days Selection */}
           <div className="mb-6">

@@ -28,6 +28,10 @@ export default function PatientInfo() {
   const [showEdit, setShowEdit] = useState(false);
   const [isPreEmploymentOpen, setIsPreEmploymentOpen] = useState(false);
 
+const [startDate, setStartDate] = useState("");
+const [endDate, setEndDate] = useState("");
+const [filterStatus, setFilterStatus] = useState("");
+
   const [diagnosisList, setDiagnosisList] = useState([]);
 const [treatmentList, setTreatmentList] = useState([]);
 
@@ -193,6 +197,23 @@ const removeTreatment = (id) => {
   setTreatmentList((prev) => prev.filter((t) => t.id !== id));
 };
 
+const filteredVisitHistory = patientVisitHistory?.filter((visit) => {
+  const visitDate = new Date(visit.date);
+
+  const matchesStartDate = startDate
+    ? visitDate >= new Date(startDate)
+    : true;
+
+  const matchesEndDate = endDate
+    ? visitDate <= new Date(endDate + "T23:59:59")
+    : true;
+
+  const matchesStatus = filterStatus
+    ? visit.status === filterStatus
+    : true;
+
+  return matchesStartDate && matchesEndDate && matchesStatus;
+});
   return (
     <Layout>
       <AddPreEmploymentModal
@@ -337,6 +358,47 @@ const removeTreatment = (id) => {
                 </p>
               </div>
 
+              <div className="flex w-full flex-col gap-3 sm:w-auto sm:flex-row">
+<input
+  type="date"
+  value={startDate}
+  onChange={(e) => setStartDate(e.target.value)}
+  className="rounded-lg border border-gray-300 px-4 py-2 text-sm"
+  placeholder="Start Date"
+/>
+
+<input
+  type="date"
+  value={endDate}
+  onChange={(e) => setEndDate(e.target.value)}
+  className="rounded-lg border border-gray-300 px-4 py-2 text-sm"
+  placeholder="End Date"
+/>
+
+  <select
+    value={filterStatus}
+    onChange={(e) => setFilterStatus(e.target.value)}
+    className="rounded-lg border border-gray-300 px-4 py-2 text-sm"
+  >
+    <option value="">All Status</option>
+    <option value="Scheduled">Scheduled</option>
+    <option value="Completed">Completed</option>
+    <option value="Cancelled">Cancelled</option>
+  </select>
+
+  <button
+    type="button"
+    onClick={() => {
+setStartDate("");
+setEndDate("");
+      setFilterStatus("");
+    }}
+    className="rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100"
+  >
+    Clear
+  </button>
+</div>
+
             </div>
 
             {loadingPatientVisitHistory ? (
@@ -384,12 +446,12 @@ const removeTreatment = (id) => {
                     </thead>
 
                     <tbody>
-                      {patientVisitHistory.map((visit, index) => (
+                      {filteredVisitHistory.map((visit, index) => (
                         <tr
                           key={visit.appointmentId}
                           onClick={() => openVisitHistory(visit.appointmentId)}
                           className={`cursor-pointer text-center transition hover:bg-blue-50 ${
-                            index !== patientVisitHistory.length - 1
+                            index !== filteredVisitHistory.length - 1
                               ? "border-b border-gray-200"
                               : ""
                           }`}
@@ -432,7 +494,7 @@ const removeTreatment = (id) => {
                 </div>
 
                 <div className="mt-6 space-y-4 lg:hidden">
-                  {patientVisitHistory.map((visit) => (
+                  {filteredVisitHistory.map((visit) => (
                     <div
                       key={visit.appointmentId}
                       onClick={() => openVisitHistory(visit.appointmentId)}

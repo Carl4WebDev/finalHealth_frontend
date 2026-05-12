@@ -9,6 +9,8 @@ import {
 } from "@heroicons/react/24/solid";
 import { useUser } from "../context/users/useUser";
 
+import { Link } from "react-router-dom";
+
 export default function Sidebar({
   isOpen,
   setIsOpen,
@@ -200,9 +202,9 @@ export default function Sidebar({
           <nav className="px-4 py-2 flex-grow">
             <div className="space-y-1">
               {menu.map((m, index) => (
-                <a
-                  key={index}
-                  href={m.link}
+                <Link
+  key={index}
+  to={m.link}
                   className={`
                     group flex items-center space-x-3 px-4 py-3 rounded-xl
                     transition-all duration-200 ease-in-out
@@ -211,7 +213,13 @@ export default function Sidebar({
                     active:scale-[0.98]
                     ${isCollapsed ? "justify-center" : ""}
                   `}
-                  onClick={() => isMobile && setIsOpen(false)}
+             onClick={() => {
+  setIsCollapsed(true);
+
+  if (isMobile) {
+    setIsOpen(false);
+  }
+}}
                 >
                   <span className={`
                     text-blue-600 dark:text-blue-400
@@ -233,7 +241,7 @@ export default function Sidebar({
                       </svg>
                     </>
                   )}
-                </a>
+                </Link>
               ))}
             </div>
           </nav>
