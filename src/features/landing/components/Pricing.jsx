@@ -48,34 +48,42 @@ const Pricing = () => {
                     <span className="text-4xl font-bold text-blue-600 dark:text-blue-400">₱0</span>
                     <span className="text-blue-500 dark:text-blue-400">/forever</span>
                   </div>
-                  <p className="text-blue-500 dark:text-blue-400 text-sm">Perfect for trying out our platform</p>
+                  <p className="text-blue-500 dark:text-blue-400 text-sm">Card only - No commitment</p>
                 </div>
 
                 {/* Features List */}
                 <ul className="space-y-4 mb-8">
                   <li className="flex items-center gap-3">
                     <i className="fas fa-check-circle text-blue-500 dark:text-blue-400"></i>
-                    <span className="text-blue-700 dark:text-blue-300">1 user access</span>
+                    <span className="text-blue-700 dark:text-blue-300">Card only</span>
+                  </li>
+                  <li className="flex items-center gap-3 opacity-70">
+                    <i className="fas fa-times-circle text-red-400 dark:text-red-500"></i>
+                    <span className="text-blue-500 dark:text-blue-400">Cannot change profile</span>
+                  </li>
+                  <li className="flex items-center gap-3 opacity-70">
+                    <i className="fas fa-times-circle text-red-400 dark:text-red-500"></i>
+                    <span className="text-blue-500 dark:text-blue-400">Cannot add doctors</span>
+                  </li>
+                  <li className="flex items-center gap-3 opacity-70">
+                    <i className="fas fa-times-circle text-red-400 dark:text-red-500"></i>
+                    <span className="text-blue-500 dark:text-blue-400">Cannot add clinics</span>
                   </li>
                   <li className="flex items-center gap-3">
                     <i className="fas fa-check-circle text-blue-500 dark:text-blue-400"></i>
-                    <span className="text-blue-700 dark:text-blue-300">Basic clinic tools</span>
+                    <span className="text-blue-700 dark:text-blue-300">Manage Dx/Tx: cannot add diagnosis/treatment</span>
                   </li>
                   <li className="flex items-center gap-3">
                     <i className="fas fa-check-circle text-blue-500 dark:text-blue-400"></i>
-                    <span className="text-blue-700 dark:text-blue-300">Limited support</span>
+                    <span className="text-blue-700 dark:text-blue-300">Can add: fee, lab result, prescription, certificate</span>
                   </li>
-                  <li className="flex items-center gap-3">
-                    <i className="fas fa-check-circle text-blue-500 dark:text-blue-400"></i>
-                    <span className="text-blue-700 dark:text-blue-300">No commitment</span>
+                  <li className="flex items-center gap-3 opacity-70">
+                    <i className="fas fa-times-circle text-red-400 dark:text-red-500"></i>
+                    <span className="text-blue-500 dark:text-blue-400">No dashboard access</span>
                   </li>
-                  <li className="flex items-center gap-3 opacity-50">
-                    <i className="fas fa-times-circle text-blue-300 dark:text-blue-700"></i>
-                    <span className="text-blue-400 dark:text-blue-500">Advanced analytics</span>
-                  </li>
-                  <li className="flex items-center gap-3 opacity-50">
-                    <i className="fas fa-times-circle text-blue-300 dark:text-blue-700"></i>
-                    <span className="text-blue-400 dark:text-blue-500">Priority support</span>
+                  <li className="flex items-center gap-3 opacity-70">
+                    <i className="fas fa-times-circle text-red-400 dark:text-red-500"></i>
+                    <span className="text-blue-500 dark:text-blue-400">Cannot add appointments</span>
                   </li>
                 </ul>
 
@@ -87,7 +95,7 @@ const Pricing = () => {
 
                 {/* Note */}
                 <p className="text-center text-blue-500 dark:text-blue-400 text-sm mt-4">
-                  No credit card required
+                  Card Only
                 </p>
               </div>
             </div>
@@ -125,11 +133,31 @@ const Pricing = () => {
                 <ul className="space-y-4 mb-8 relative z-10">
                   <li className="flex items-center gap-3">
                     <i className="fas fa-check-circle text-blue-500 dark:text-blue-400"></i>
-                    <span className="text-blue-700 dark:text-blue-300 font-medium">5 user access</span>
+                    <span className="text-blue-700 dark:text-blue-300 font-medium">Access dashboard</span>
                   </li>
                   <li className="flex items-center gap-3">
                     <i className="fas fa-check-circle text-blue-500 dark:text-blue-400"></i>
-                    <span className="text-blue-700 dark:text-blue-300 font-medium">Full feature access</span>
+                    <span className="text-blue-700 dark:text-blue-300 font-medium">Access & change profile info</span>
+                  </li>
+                  <li className="flex items-center gap-3">
+                    <i className="fas fa-check-circle text-blue-500 dark:text-blue-400"></i>
+                    <span className="text-blue-700 dark:text-blue-300 font-medium">Can add doctors & clinics</span>
+                  </li>
+                  <li className="flex items-center gap-3">
+                    <i className="fas fa-check-circle text-blue-500 dark:text-blue-400"></i>
+                    <span className="text-blue-700 dark:text-blue-300 font-medium">See patient records</span>
+                  </li>
+                  <li className="flex items-center gap-3">
+                    <i className="fas fa-check-circle text-blue-500 dark:text-blue-400"></i>
+                    <span className="text-blue-700 dark:text-blue-300 font-medium">Manage Dx/Tx: can add everything</span>
+                  </li>
+                  <li className="flex items-center gap-3">
+                    <i className="fas fa-check-circle text-blue-500 dark:text-blue-400"></i>
+                    <span className="text-blue-700 dark:text-blue-300 font-medium">Can add appointments (with limitations)</span>
+                  </li>
+                  <li className="flex items-center gap-3">
+                    <i className="fas fa-check-circle text-blue-500 dark:text-blue-400"></i>
+                    <span className="text-blue-700 dark:text-blue-300 font-medium">5 user access</span>
                   </li>
                   <li className="flex items-center gap-3">
                     <i className="fas fa-check-circle text-blue-500 dark:text-blue-400"></i>
@@ -142,10 +170,6 @@ const Pricing = () => {
                   <li className="flex items-center gap-3">
                     <i className="fas fa-check-circle text-blue-500 dark:text-blue-400"></i>
                     <span className="text-blue-700 dark:text-blue-300 font-medium">Data backup</span>
-                  </li>
-                  <li className="flex items-center gap-3 opacity-50">
-                    <i className="fas fa-times-circle text-blue-300 dark:text-blue-700"></i>
-                    <span className="text-blue-400 dark:text-blue-500">Advanced analytics</span>
                   </li>
                 </ul>
 
@@ -187,7 +211,11 @@ const Pricing = () => {
                 <ul className="space-y-4 mb-8">
                   <li className="flex items-center gap-3">
                     <i className="fas fa-check-circle text-blue-500 dark:text-blue-400"></i>
-                    <span className="text-blue-700 dark:text-blue-300 font-medium">Up to 10 users</span>
+                    <span className="text-blue-700 dark:text-blue-300 font-medium">Everything from Monthly Plan</span>
+                  </li>
+                  <li className="flex items-center gap-3">
+                    <i className="fas fa-check-circle text-blue-500 dark:text-blue-400"></i>
+                    <span className="text-blue-700 dark:text-blue-300 font-medium">No limitations on appointments</span>
                   </li>
                   <li className="flex items-center gap-3">
                     <i className="fas fa-check-circle text-blue-500 dark:text-blue-400"></i>
@@ -203,11 +231,11 @@ const Pricing = () => {
                   </li>
                   <li className="flex items-center gap-3">
                     <i className="fas fa-check-circle text-blue-500 dark:text-blue-400"></i>
-                    <span className="text-blue-700 dark:text-blue-300 font-medium">Custom integrations</span>
+                    <span className="text-blue-700 dark:text-blue-300 font-medium">Dedicated account manager</span>
                   </li>
                   <li className="flex items-center gap-3">
                     <i className="fas fa-check-circle text-blue-500 dark:text-blue-400"></i>
-                    <span className="text-blue-700 dark:text-blue-300 font-medium">Dedicated account manager</span>
+                    <span className="text-blue-700 dark:text-blue-300 font-medium">Up to 10 users</span>
                   </li>
                 </ul>
 
