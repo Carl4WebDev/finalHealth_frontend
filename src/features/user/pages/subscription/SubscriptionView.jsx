@@ -354,7 +354,7 @@ useEffect(() => {
   }
 
   // User has an active subscription - Show Subscription Status Card
-  if (subscription || subscriptionStatus === "active") {
+ if (subscription) {
     const today = new Date().toISOString().slice(0, 10);
     const isExpired = subscription?.endDate < today;
 

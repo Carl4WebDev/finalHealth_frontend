@@ -8,7 +8,8 @@ import { usePrescriptionMaster } from "../../../../context/prescriptions-master/
 
 /* ================= OPTIONS ================= */
 
-const FORM_TYPE_OPTIONS = ["general", "pre-employment", "follow-up"];
+const FORM_TYPE_OPTIONS = ["general", "pre-employment"];
+const STATUS_OPTIONS = ["Scheduled", "Completed", "Cancelled"];
 
 const RECORD_DATE_OPTIONS = [
   "2026-04-21",
@@ -60,6 +61,7 @@ const DEFAULT_RECORD = {
   isContagious: false,
   contagiousDescription: "",
   formType: "general",
+  status: "Scheduled",
 };
 
 /* ================= HELPERS ================= */
@@ -356,14 +358,14 @@ const {
       return;
     }
 
-    setRecord({
-      recordDate: medicalRecord.record_date || DEFAULT_RECORD.recordDate,
-      assessment: medicalRecord.assessment || DEFAULT_RECORD.assessment,
-      isContagious: Boolean(medicalRecord.is_contagious),
-      contagiousDescription: medicalRecord.contagious_description || "",
-      formType: medicalRecord.form_type || "general",
-    });
-
+setRecord({
+  recordDate: medicalRecord.record_date || DEFAULT_RECORD.recordDate,
+  assessment: medicalRecord.assessment || DEFAULT_RECORD.assessment,
+  isContagious: Boolean(medicalRecord.is_contagious),
+  contagiousDescription: medicalRecord.contagious_description || "",
+  formType: medicalRecord.form_type || "general",
+  status: medicalRecord.status || "Scheduled",
+});
     setDiagnosis(
       parseList(medicalRecord.diagnosis).map((item) => ({
         ...item,
@@ -420,24 +422,25 @@ const {
   };
 
   const handleSave = async () => {
-    const payload = {
-      appointment_id: appointmentId,
-      record_date: record.recordDate,
-      assessment: record.assessment,
-      diagnosis: diagnosis.map((item) => item.value),
-      treatment: treatment.map((item) => item.value),
-      medications: medications.map((item) => item.value),
-      is_contagious: record.isContagious,
-      contagious_description: record.contagiousDescription,
-      form_type: record.formType,
-      pre_employment_data: null,
-      consultation_fee: medicalRecord?.consultation_fee ?? 0,
-      medicine_fee: medicalRecord?.medicine_fee ?? 0,
-      lab_fee: medicalRecord?.lab_fee ?? 0,
-      other_fee: medicalRecord?.other_fee ?? 0,
-      doctor_id: medicalRecord?.doctor_id ?? 1,
-      clinic_id: medicalRecord?.clinic_id ?? 1,
-    };
+const payload = {
+  appointment_id: appointmentId,
+  status: record.status,
+  record_date: record.recordDate,
+  assessment: record.assessment,
+  diagnosis: diagnosis.map((item) => item.value),
+  treatment: treatment.map((item) => item.value),
+  medications: medications.map((item) => item.value),
+  is_contagious: record.isContagious,
+  contagious_description: record.contagiousDescription,
+  form_type: record.formType,
+  pre_employment_data: null,
+  consultation_fee: medicalRecord?.consultation_fee ?? 0,
+  medicine_fee: medicalRecord?.medicine_fee ?? 0,
+  lab_fee: medicalRecord?.lab_fee ?? 0,
+  other_fee: medicalRecord?.other_fee ?? 0,
+  doctor_id: medicalRecord?.doctor_id ?? 1,
+  clinic_id: medicalRecord?.clinic_id ?? 1,
+};
 
     let res;
 
@@ -477,7 +480,7 @@ const {
         </button>
       </div>
 
-      <div className="grid gap-4 md:grid-cols-2">
+<div className="grid gap-4 md:grid-cols-3">
         <div className="rounded-2xl border border-gray-200 bg-white p-4 shadow-sm">
           <label className="text-xs font-semibold uppercase tracking-wide text-gray-500">
             Record Date
@@ -515,27 +518,76 @@ const {
             ))}
           </select>
         </div>
+
+        <div className="rounded-2xl border border-gray-200 bg-white p-4 shadow-sm">
+  <label className="text-xs font-semibold uppercase tracking-wide text-gray-500">
+    Visit Status
+  </label>
+
+  <select
+    value={record.status}
+    onChange={(e) =>
+      setRecord((prev) => ({
+        ...prev,
+        status: e.target.value,
+      }))
+    }
+    className="mt-2 w-full rounded-lg border border-gray-300 px-3 py-2 text-sm"
+  >
+    {STATUS_OPTIONS.map((status) => (
+      <option key={status} value={status}>
+        {status}
+      </option>
+    ))}
+  </select>
+</div>
       </div>
 
-      <div className="rounded-2xl border border-gray-200 bg-white p-4 shadow-sm">
-        <label className="text-xs font-semibold uppercase tracking-wide text-gray-500">
-          Assessment
-        </label>
-        <select
-          value={record.assessment}
-          onChange={(e) =>
-            setRecord((prev) => ({ ...prev, assessment: e.target.value }))
-          }
-          className="mt-2 w-full rounded-lg border border-gray-300 px-3 py-2 text-sm"
-        >
-          {ASSESSMENT_OPTIONS.map((option) => (
-            <option key={option} value={option}>
-              {option}
-            </option>
-          ))}
-        </select>
-      </div>
+<div className="rounded-2xl border border-gray-200 bg-white p-4 shadow-sm">
+  <label className="text-xs font-semibold uppercase tracking-wide text-gray-500">
+    Assessment
+  </label>
 
+  <div className="mt-2 space-y-3">
+    {/* Dropdown */}
+    <select
+      value={
+        ASSESSMENT_OPTIONS.includes(record.assessment)
+          ? record.assessment
+          : ""
+      }
+      onChange={(e) =>
+        setRecord((prev) => ({
+          ...prev,
+          assessment: e.target.value,
+        }))
+      }
+      className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm"
+    >
+      <option value="">Select Assessment</option>
+
+      {ASSESSMENT_OPTIONS.map((option) => (
+        <option key={option} value={option}>
+          {option}
+        </option>
+      ))}
+    </select>
+
+    {/* Custom Input */}
+    <textarea
+      value={record.assessment}
+      onChange={(e) =>
+        setRecord((prev) => ({
+          ...prev,
+          assessment: e.target.value,
+        }))
+      }
+      placeholder="Or type custom assessment here..."
+      rows={4}
+      className="w-full resize-none rounded-lg border border-gray-300 px-3 py-2 text-sm outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+    />
+  </div>
+</div>
       <div className="rounded-2xl border border-gray-200 bg-white p-4 shadow-sm">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div>
@@ -596,7 +648,7 @@ const {
       <TableSection
         title="Diagnosis"
 options={diagnosisOptions}
-onManageOptions={() => navigate("/diagnosis-treatment-management")}
+onManageOptions={() => navigate("/user/patients/management")}
         selectedValue={selectedDiagnosis}
         setSelectedValue={setSelectedDiagnosis}
         rows={diagnosis}
@@ -615,7 +667,7 @@ onManageOptions={() => navigate("/diagnosis-treatment-management")}
       <TableSection
         title="Treatment"
 options={treatmentOptions}
-onManageOptions={() => navigate("/diagnosis-treatment-management")}
+onManageOptions={() => navigate("/user/patients/management")}
         selectedValue={selectedTreatment}
         setSelectedValue={setSelectedTreatment}
         rows={treatment}
@@ -634,7 +686,7 @@ onManageOptions={() => navigate("/diagnosis-treatment-management")}
       <TableSection
         title="Medication"
 options={medicationOptions}
-onManageOptions={() => navigate("/diagnosis-treatment-management")}
+onManageOptions={() => navigate("/user/patients/management")}
         selectedValue={selectedMedication}
         setSelectedValue={setSelectedMedication}
         rows={medications}

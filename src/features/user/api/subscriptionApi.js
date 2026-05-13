@@ -35,3 +35,9 @@ export const createPaymentIntentApi = (planId) =>
     method: "POST",
     body: JSON.stringify({ planId }),
   });
+
+export const activateSubscriptionApi = (payload) =>
+  apiRequest("/api/subscription-routes-v2/payments/activate", {
+    method: "POST",
+    body: JSON.stringify(payload),
+  });

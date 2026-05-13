@@ -8,6 +8,7 @@ import {
   createPaymentIntentApi,
   getSubscriptionHistoryApi,
   getPaymentHistoryApi,
+  activateSubscriptionApi,
 } from "../../api/subscriptionApi.js";
 
 export const SubscriptionProvider = ({ children }) => {
@@ -21,6 +22,26 @@ const [paymentHistory, setPaymentHistory] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
+
+
+  const activateSubscription = async (payload) => {
+  setLoading(true);
+  setError(null);
+
+  const res = await activateSubscriptionApi(payload);
+
+  if (!res.ok) {
+    setError(res.message);
+    setLoading(false);
+    return null;
+  }
+
+  setSubscription(res.data.subscription || null);
+  setPlan(res.data.plan || null);
+
+  setLoading(false);
+  return res.data;
+};
   // -----------------------------
   // Load plans
   // -----------------------------
@@ -156,7 +177,8 @@ const getPaymentHistory = async () => {
         cancelSubscription,
         clearSubscription,
         getSubscriptionHistory,
-        getPaymentHistory
+        getPaymentHistory,
+        activateSubscription,
       }}
     >
       {children}

@@ -447,15 +447,22 @@ setEndDate("");
 
                     <tbody>
                       {filteredVisitHistory.map((visit, index) => (
-                        <tr
-                          key={visit.appointmentId}
-                          onClick={() => openVisitHistory(visit.appointmentId)}
-                          className={`cursor-pointer text-center transition hover:bg-blue-50 ${
-                            index !== filteredVisitHistory.length - 1
-                              ? "border-b border-gray-200"
-                              : ""
-                          }`}
-                        >
+ <tr
+  key={visit.appointmentId}
+  onClick={() => {
+    if (visit.status === "Cancelled") return;
+    openVisitHistory(visit.appointmentId);
+  }}
+  className={`text-center transition ${
+    visit.status === "Cancelled"
+      ? "cursor-not-allowed bg-gray-100 opacity-60"
+      : "cursor-pointer hover:bg-blue-50"
+  } ${
+    index !== filteredVisitHistory.length - 1
+      ? "border-b border-gray-200"
+      : ""
+  }`}
+>
                           <td className="px-4 py-4 text-sm text-gray-700">
                             {formatDate(visit.date)}
                           </td>
@@ -495,11 +502,18 @@ setEndDate("");
 
                 <div className="mt-6 space-y-4 lg:hidden">
                   {filteredVisitHistory.map((visit) => (
-                    <div
-                      key={visit.appointmentId}
-                      onClick={() => openVisitHistory(visit.appointmentId)}
-                      className="cursor-pointer rounded-2xl border border-gray-200 bg-gray-50 p-5 shadow-sm transition hover:border-blue-300 hover:bg-blue-50"
-                    >
+<div
+  key={visit.appointmentId}
+  onClick={() => {
+    if (visit.status === "Cancelled") return;
+    openVisitHistory(visit.appointmentId);
+  }}
+  className={`rounded-2xl border p-5 shadow-sm transition ${
+    visit.status === "Cancelled"
+      ? "cursor-not-allowed border-gray-200 bg-gray-100 opacity-60"
+      : "cursor-pointer border-gray-200 bg-gray-50 hover:border-blue-300 hover:bg-blue-50"
+  }`}
+>
                       <div className="flex flex-col items-center justify-center gap-3 text-center">
                         <h4 className="text-base font-bold text-gray-800">
                           {visit.visitType || "-"}

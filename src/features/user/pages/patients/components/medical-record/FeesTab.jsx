@@ -1,28 +1,30 @@
 import { useEffect, useMemo, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { useMedicalRecords } from "../../../../context/medical-records/useMedicalRecords.js";
-
-const FEE_TYPE_OPTIONS = [
-  "Consultation Fee",
-  "Medication Fee",
-  "Lab Fee",
-  "Other Fee",
-];
-
-const FEE_AMOUNT_OPTIONS = [100, 200, 300, 500, 700, 1000, 1200, 1500];
+import { useFeeMaster } from "../../../../context/fee-master/useFeeMaster.js";
 
 export default function FeesTab({ medicalRecord }) {
+  const navigate = useNavigate();
+
   const { updateMedicalRecord, getMedicalRecordByAppointmentId } =
     useMedicalRecords();
+
+  const { fees, getAllFees } = useFeeMaster();
 
   const [feesList, setFeesList] = useState([]);
   const [selectedFeeType, setSelectedFeeType] = useState("");
   const [selectedAmount, setSelectedAmount] = useState("");
 
-  // ✅ DATE FORMATTER
+  const feeOptions = fees || [];
+
   const formatDate = (dateValue) => {
     if (!dateValue) return new Date().toLocaleDateString();
     return new Date(dateValue).toLocaleDateString();
   };
+
+  useEffect(() => {
+    getAllFees();
+  }, []);
 
   useEffect(() => {
     if (!medicalRecord) return;
@@ -60,26 +62,19 @@ export default function FeesTab({ medicalRecord }) {
     }).format(Number(value || 0));
   };
 
-  const buildFeePayload = (list) => {
-    let consultation_fee = 0;
-    let medicine_fee = 0;
-    let lab_fee = 0;
-    let other_fee = 0;
+const buildFeePayload = (list) => {
+  const total = list.reduce(
+    (sum, fee) => sum + Number(fee.amount || 0),
+    0
+  );
 
-    list.forEach((fee) => {
-      if (fee.feeType === "Consultation Fee") consultation_fee += Number(fee.amount || 0);
-      if (fee.feeType === "Medication Fee") medicine_fee += Number(fee.amount || 0);
-      if (fee.feeType === "Lab Fee") lab_fee += Number(fee.amount || 0);
-      if (fee.feeType === "Other Fee") other_fee += Number(fee.amount || 0);
-    });
-
-    return {
-      consultation_fee,
-      medicine_fee,
-      lab_fee,
-      other_fee,
-    };
+  return {
+    consultation_fee: total,
+    medicine_fee: 0,
+    lab_fee: 0,
+    other_fee: 0,
   };
+};
 
   const saveFeesToBackend = async (updatedFeesList) => {
     if (!medicalRecord?.record_id) return;
@@ -108,8 +103,18 @@ export default function FeesTab({ medicalRecord }) {
     }
   };
 
+  const handleFeeTypeChange = (feeName) => {
+    setSelectedFeeType(feeName);
+
+    const selectedFee = feeOptions.find((fee) => fee.fee_name === feeName);
+
+    if (selectedFee) {
+      setSelectedAmount(Number(selectedFee.amount || 0));
+    }
+  };
+
   const addFee = async () => {
-    if (!selectedFeeType || !selectedAmount) return;
+    if (!selectedFeeType || selectedAmount === "") return;
 
     const updatedFeesList = [
       ...feesList,
@@ -142,31 +147,38 @@ export default function FeesTab({ medicalRecord }) {
       <h2 className="text-center text-lg font-semibold text-gray-800">Fees</h2>
 
       <div className="flex flex-col items-center justify-center gap-3 sm:flex-row">
-        <select
-          value={selectedFeeType}
-          onChange={(e) => setSelectedFeeType(e.target.value)}
-          className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm sm:w-[240px]"
-        >
-          <option value="">Select Fee Type</option>
-          {FEE_TYPE_OPTIONS.map((option, index) => (
-            <option key={index} value={option}>
-              {option}
-            </option>
-          ))}
-        </select>
+        <div className="flex w-full gap-2 sm:w-[280px]">
+          <select
+            value={selectedFeeType}
+            onChange={(e) => handleFeeTypeChange(e.target.value)}
+            className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm"
+          >
+            <option value="">Select Fee Type</option>
 
-        <select
-          value={selectedAmount}
-          onChange={(e) => setSelectedAmount(e.target.value)}
-          className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm sm:w-[200px]"
-        >
-          <option value="">Select Amount</option>
-          {FEE_AMOUNT_OPTIONS.map((amount, index) => (
-            <option key={index} value={amount}>
-              {formatCurrency(amount)}
-            </option>
-          ))}
-        </select>
+            {feeOptions.map((fee) => (
+              <option key={fee.fee_id} value={fee.fee_name}>
+                {fee.fee_name}
+              </option>
+            ))}
+          </select>
+
+          <button
+            type="button"
+            onClick={() => navigate("/user/patients/management")}
+            className="rounded-lg bg-gray-100 px-3 py-2 text-sm font-bold text-blue-600 hover:bg-blue-100"
+            title="Manage fee options"
+          >
+            +
+          </button>
+        </div>
+
+<input
+  type="number"
+  value={selectedAmount}
+  placeholder="Amount"
+  readOnly
+  className="w-full cursor-not-allowed rounded-lg border border-gray-300 bg-gray-100 px-3 py-2 text-sm sm:w-[200px]"
+/>
 
         <button
           onClick={addFee}
@@ -191,7 +203,6 @@ export default function FeesTab({ medicalRecord }) {
                 <th className="px-4 py-3 text-center text-sm font-semibold">
                   Amount
                 </th>
-                {/* ✅ DATE COLUMN */}
                 <th className="px-4 py-3 text-center text-sm font-semibold">
                   Date
                 </th>
@@ -219,7 +230,6 @@ export default function FeesTab({ medicalRecord }) {
                     {formatCurrency(fee.amount)}
                   </td>
 
-                  {/* ✅ DATE CELL */}
                   <td className="px-4 py-4 text-sm text-gray-800">
                     {formatDate(medicalRecord?.created_at)}
                   </td>

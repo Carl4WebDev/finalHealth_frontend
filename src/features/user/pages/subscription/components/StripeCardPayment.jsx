@@ -5,7 +5,11 @@ import { useSubscription } from "../../../context/subscriptions/useSubscription"
 export default function StripeCardPayment({ planId, onSuccess }) {
   const stripe = useStripe();
   const elements = useElements();
-  const { createPaymentIntent, loadMySubscription } = useSubscription();
+const {
+  createPaymentIntent,
+  activateSubscription,
+  loadMySubscription,
+} = useSubscription();
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -23,21 +27,31 @@ export default function StripeCardPayment({ planId, onSuccess }) {
       if (!clientSecret) return;
 
       // 2️⃣ Confirm payment
-      const result = await stripe.confirmCardPayment(clientSecret, {
-        payment_method: {
-          card: elements.getElement(CardElement),
-        },
-      });
+  const result = await stripe.confirmCardPayment(clientSecret, {
+  payment_method: {
+    card: elements.getElement(CardElement),
+  },
+});
 
-      if (result.error) {
-        setError(result.error.message);
-        return;
-      }
+if (result.error) {
+  setError(result.error.message);
+  return;
+}
 
-      await loadMySubscription();
+if (result.paymentIntent.status !== "succeeded") {
+  setError("Payment was not completed.");
+  return;
+}
 
-      // 4️⃣ UI callback ONLY
-      onSuccess();
+await activateSubscription({
+  planId,
+  paymentIntentId: result.paymentIntent.id,
+  paymentMethod: "card",
+});
+
+await loadMySubscription();
+
+onSuccess();
     } catch (err) {
       setError("Payment failed");
     } finally {

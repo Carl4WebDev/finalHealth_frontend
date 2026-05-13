@@ -1,22 +1,11 @@
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { useMedicalRecords } from "../../../../context/medical-records/useMedicalRecords.js";
-
-const TEST_TYPE_OPTIONS = [
-  "Blood Test",
-  "Urinalysis",
-  "X-Ray",
-  "ECG",
-];
-
-const RESULT_OPTIONS = ["Normal", "Needs Review", "Abnormal", "Pending"];
-const INTERPRETATION_OPTIONS = [
-  "Within normal range",
-  "Requires follow-up",
-  "Needs specialist review",
-  "Pending validation",
-];
+import { useLabResultMaster } from "../../../../context/lab-result-master/useLabResultMaster.js";
 
 export default function LabResultsTab({ recordId, patientId }) {
+  const navigate = useNavigate();
+
   const {
     labResults,
     loadingLabResults,
@@ -26,10 +15,14 @@ export default function LabResultsTab({ recordId, patientId }) {
     deleteLabResult,
   } = useMedicalRecords();
 
+  const { labResults: labResultOptions, getAllLabResultMasters } =
+    useLabResultMaster();
+
   const [form, setForm] = useState({
     test_type: "",
     result: "",
     interpretation: "",
+    lab_img_path: "",
   });
 
   const [editingId, setEditingId] = useState(null);
@@ -37,10 +30,18 @@ export default function LabResultsTab({ recordId, patientId }) {
     test_type: "",
     result: "",
     interpretation: "",
+    lab_img_path: "",
   });
 
-  // ✅ LIVE DATE PLACEHOLDER
+  const [previewImage, setPreviewImage] = useState(null);
+
+  const testTypeOptions = labResultOptions.map((item) => item.lab_result_name);
+
   const getNow = () => new Date().toLocaleDateString();
+
+  useEffect(() => {
+    getAllLabResultMasters();
+  }, []);
 
   useEffect(() => {
     if (recordId) {
@@ -61,6 +62,7 @@ export default function LabResultsTab({ recordId, patientId }) {
         test_type: "",
         result: "",
         interpretation: "",
+        lab_img_path: "",
       });
       getLabResultsByRecord(recordId);
     }
@@ -72,6 +74,7 @@ export default function LabResultsTab({ recordId, patientId }) {
       test_type: item.test_type || "",
       result: item.result || "",
       interpretation: item.interpretation || "",
+      lab_img_path: item.lab_img_path || "",
     });
   };
 
@@ -95,60 +98,64 @@ export default function LabResultsTab({ recordId, patientId }) {
     }
   };
 
+  const handleImagePlaceholder = () => {
+    alert("Image upload placeholder only. Implement actual upload later.");
+  };
+
+  const handleViewImage = (imagePath) => {
+    if (!imagePath) {
+      alert("No image uploaded yet.");
+      return;
+    }
+
+    setPreviewImage(imagePath);
+  };
+
   return (
     <div className="space-y-6">
       <h2 className="text-lg font-semibold text-gray-800">Lab Results</h2>
 
       <div className="rounded-xl bg-gray-50 p-4 space-y-4">
-        <div className="grid gap-3 md:grid-cols-3">
-          <select
-            value={form.test_type}
-            onChange={(e) =>
-              setForm((prev) => ({ ...prev, test_type: e.target.value }))
-            }
-            className="rounded-lg border border-gray-300 px-3 py-2 text-sm"
-          >
-            <option value="">Select Test Type</option>
-            {TEST_TYPE_OPTIONS.map((option) => (
-              <option key={option} value={option}>
-                {option}
-              </option>
-            ))}
-          </select>
+        <div className="grid gap-3 md:grid-cols-2">
+          <div className="flex gap-2">
+            <select
+              value={form.test_type}
+              onChange={(e) =>
+                setForm((prev) => ({ ...prev, test_type: e.target.value }))
+              }
+              className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm"
+            >
+              <option value="">Select Test Type</option>
+              {testTypeOptions.map((option) => (
+                <option key={option} value={option}>
+                  {option}
+                </option>
+              ))}
+            </select>
 
-          <select
-            value={form.result}
-            onChange={(e) =>
-              setForm((prev) => ({ ...prev, result: e.target.value }))
-            }
-            className="rounded-lg border border-gray-300 px-3 py-2 text-sm"
-          >
-            <option value="">Select Result</option>
-            {RESULT_OPTIONS.map((option) => (
-              <option key={option} value={option}>
-                {option}
-              </option>
-            ))}
-          </select>
+            <button
+              type="button"
+              onClick={() => navigate("/diagnosis-treatment-management")}
+              className="rounded-lg bg-gray-100 px-3 py-2 text-sm font-bold text-blue-600 hover:bg-blue-100"
+              title="Manage lab result options"
+            >
+              +
+            </button>
+          </div>
 
-          <select
-            value={form.interpretation}
-            onChange={(e) =>
-              setForm((prev) => ({
-                ...prev,
-                interpretation: e.target.value,
-              }))
-            }
-            className="rounded-lg border border-gray-300 px-3 py-2 text-sm"
+          <button
+            type="button"
+            onClick={handleImagePlaceholder}
+            className="rounded-lg border border-dashed border-gray-400 bg-white px-4 py-2 text-sm font-semibold text-gray-600 hover:bg-gray-100"
           >
-            <option value="">Select Interpretation</option>
-            {INTERPRETATION_OPTIONS.map((option) => (
-              <option key={option} value={option}>
-                {option}
-              </option>
-            ))}
-          </select>
+            Upload Lab Image Placeholder
+          </button>
         </div>
+
+        <p className="text-sm text-gray-500">
+          Image Status:{" "}
+          <span className="font-semibold text-red-600">No image uploaded</span>
+        </p>
 
         <button
           onClick={handleCreate}
@@ -175,12 +182,8 @@ export default function LabResultsTab({ recordId, patientId }) {
                   Test Type
                 </th>
                 <th className="px-4 py-3 text-center text-sm font-semibold">
-                  Result
+                  Image Status
                 </th>
-                <th className="px-4 py-3 text-center text-sm font-semibold">
-                  Interpretation
-                </th>
-                {/* ✅ NEW DATE COLUMN */}
                 <th className="px-4 py-3 text-center text-sm font-semibold">
                   Date
                 </th>
@@ -202,74 +205,59 @@ export default function LabResultsTab({ recordId, patientId }) {
                 >
                   <td className="px-4 py-4 text-center text-sm text-gray-800">
                     {editingId === item.result_id ? (
-                      <select
-                        value={editForm.test_type}
-                        onChange={(e) =>
-                          setEditForm((prev) => ({
-                            ...prev,
-                            test_type: e.target.value,
-                          }))
-                        }
-                        className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm"
-                      >
-                        {TEST_TYPE_OPTIONS.map((option) => (
-                          <option key={option} value={option}>
-                            {option}
-                          </option>
-                        ))}
-                      </select>
+                      <div className="flex gap-2">
+                        <select
+                          value={editForm.test_type}
+                          onChange={(e) =>
+                            setEditForm((prev) => ({
+                              ...prev,
+                              test_type: e.target.value,
+                            }))
+                          }
+                          className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm"
+                        >
+                          <option value="">Select Test Type</option>
+                          {testTypeOptions.map((option) => (
+                            <option key={option} value={option}>
+                              {option}
+                            </option>
+                          ))}
+                        </select>
+
+                        <button
+                          type="button"
+                          onClick={() =>
+                            navigate("/diagnosis-treatment-management")
+                          }
+                          className="rounded-lg bg-gray-100 px-3 py-2 text-sm font-bold text-blue-600 hover:bg-blue-100"
+                          title="Manage lab result options"
+                        >
+                          +
+                        </button>
+                      </div>
                     ) : (
                       item.test_type
                     )}
                   </td>
 
-                  <td className="px-4 py-4 text-center text-sm text-gray-800">
-                    {editingId === item.result_id ? (
-                      <select
-                        value={editForm.result}
-                        onChange={(e) =>
-                          setEditForm((prev) => ({
-                            ...prev,
-                            result: e.target.value,
-                          }))
-                        }
-                        className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm"
+                  <td className="px-4 py-4 text-center text-sm">
+                    {item.lab_img_path ? (
+                      <button
+                        onClick={() => handleViewImage(item.lab_img_path)}
+                        className="font-semibold text-blue-600 hover:text-blue-800"
                       >
-                        {RESULT_OPTIONS.map((option) => (
-                          <option key={option} value={option}>
-                            {option}
-                          </option>
-                        ))}
-                      </select>
+                        View Image
+                      </button>
                     ) : (
-                      item.result || "-"
+                      <button
+                        onClick={handleImagePlaceholder}
+                        className="font-semibold text-red-500 hover:text-red-700"
+                      >
+                        No Image - Upload
+                      </button>
                     )}
                   </td>
 
-                  <td className="px-4 py-4 text-center text-sm text-gray-800">
-                    {editingId === item.result_id ? (
-                      <select
-                        value={editForm.interpretation}
-                        onChange={(e) =>
-                          setEditForm((prev) => ({
-                            ...prev,
-                            interpretation: e.target.value,
-                          }))
-                        }
-                        className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm"
-                      >
-                        {INTERPRETATION_OPTIONS.map((option) => (
-                          <option key={option} value={option}>
-                            {option}
-                          </option>
-                        ))}
-                      </select>
-                    ) : (
-                      item.interpretation || "-"
-                    )}
-                  </td>
-
-                  {/* ✅ DATE CELL */}
                   <td className="px-4 py-4 text-center text-sm text-gray-800">
                     {getNow()}
                   </td>
@@ -313,6 +301,32 @@ export default function LabResultsTab({ recordId, patientId }) {
               ))}
             </tbody>
           </table>
+        </div>
+      )}
+
+      {previewImage && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4">
+          <div className="w-full max-w-lg rounded-2xl bg-white p-5 shadow-xl">
+            <div className="mb-4 flex items-center justify-between">
+              <h3 className="text-lg font-semibold text-gray-800">
+                Lab Image Preview
+              </h3>
+
+              <button
+                onClick={() => setPreviewImage(null)}
+                className="text-xl text-gray-500 hover:text-gray-700"
+              >
+                ×
+              </button>
+            </div>
+
+            <div className="rounded-xl border border-gray-200 bg-gray-50 p-6 text-center text-sm text-gray-500">
+              Image preview placeholder:
+              <div className="mt-2 font-semibold text-gray-700">
+                {previewImage}
+              </div>
+            </div>
+          </div>
         </div>
       )}
     </div>
