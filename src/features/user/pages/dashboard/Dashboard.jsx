@@ -1,5 +1,9 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
+import { 
+  PieChart, Pie, Cell, ResponsiveContainer, Tooltip, Legend,
+  BarChart, Bar, XAxis, YAxis, CartesianGrid 
+} from "recharts";
 
 import Layout from "../../components/Layout";
 import { useDashboard } from "../../context/dashboard/useDashboard";
@@ -11,17 +15,21 @@ export default function Dashboard() {
 
   const {
     summaryCards,
+    analytics,
     upcomingAppointments,
     subscription,
     networkClinics,
     networkDoctors,
     loading,
     error,
+    usage,
+    getDashboardUsage,
     getDashboardOverview,
   } = useDashboard();
 
   useEffect(() => {
     getDashboardOverview();
+    getDashboardUsage();
   }, []);
 
   const BuildingIcon = () => (
@@ -244,6 +252,128 @@ export default function Dashboard() {
       default:
         return "bg-gray-100 text-gray-700";
     }
+  };
+
+ const renderAnalyticsSection = () => {
+    // 1. Guard Clause: Show a loading state or nothing until data arrives
+    if (!analytics || !usage) {
+        return <div className="mb-8 p-10 bg-white rounded-xl border border-dashed border-gray-300 text-center text-gray-500">Loading intelligent insights...</div>;
+    }
+
+    // 2. Prepare Data for Charts
+    const genderData = [
+      { name: "Male", value: analytics.gender_dist?.male || 0, color: "#3B82F6" },
+      { name: "Female", value: analytics.gender_dist?.female || 0, color: "#EC4899" },
+      { name: "Other", value: analytics.gender_dist?.other || 0, color: "#94A3B8" },
+    ];
+
+    const actualPatients = (analytics.visit_types?.new || 0) + (analytics.visit_types?.returning || 0);
+
+    const repeatRate = actualPatients > 0 
+      ? Math.round((analytics.visit_types?.returning / actualPatients) * 100) 
+      : 0;
+
+    return (
+      <div className="space-y-6 mb-8">
+        
+        {/* ROW 1: ADVANCED STAT CARDS */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+
+          {/* NEW: Total Patients Card */}
+          <div className="bg-white p-5 rounded-xl border border-gray-200 shadow-sm">
+            <p className="text-sm font-medium text-gray-500 uppercase">Total Patients</p>
+            <div className="flex items-baseline mt-2">
+              <p className="text-3xl font-bold text-gray-900">{analytics.total_patients || 0}</p>
+              <p className="ml-2 text-xs text-gray-400">Registered</p>
+            </div>
+          </div>
+          
+          {/* No-Show Rate */}
+          <div className="bg-white p-5 rounded-xl border border-gray-200 shadow-sm">
+            <p className="text-sm font-medium text-gray-500 uppercase">No-Show Rate</p>
+            <div className="flex items-end justify-between mt-2">
+              <p className="text-3xl font-bold text-red-600">{analytics.noShowRate}%</p>
+              <span className="text-xs text-gray-400 mb-1">Cancelled Appts</span>
+            </div>
+            <div className="w-full bg-gray-100 h-1.5 rounded-full mt-3">
+              <div 
+                className="bg-red-500 h-1.5 rounded-full transition-all duration-500" 
+                style={{ width: `${analytics.noShowRate}%` }}
+              ></div>
+            </div>
+          </div>
+
+          {/* Busiest Day */}
+          <div className="bg-white p-5 rounded-xl border border-gray-200 shadow-sm">
+            <p className="text-sm font-medium text-gray-500 uppercase">Busiest Day</p>
+            <p className="text-2xl font-bold text-indigo-600 mt-2">{analytics.busiestDay}</p>
+            <p className="text-xs text-gray-400 mt-1 italic">Peak patient traffic</p>
+          </div>
+
+          {/* Repeat Visit Rate */}
+          <div className="bg-white p-5 rounded-xl border border-gray-200 shadow-sm">
+            <p className="text-sm font-medium text-gray-500 uppercase">Repeat Rate</p>
+            <p className="text-3xl font-bold text-blue-600 mt-2">{repeatRate}%</p>
+            <p className="text-xs text-gray-400 mt-1 italic">Patient loyalty</p>
+          </div>
+
+          {/* New Patients This Month */}
+          <div className="bg-white p-5 rounded-xl border border-gray-200 shadow-sm">
+            <p className="text-sm font-medium text-gray-500 uppercase">New Patients</p>
+            <div className="flex items-baseline mt-2">
+              <p className="text-3xl font-bold text-green-600">{analytics.new_this_month || 0}</p>
+              <p className="ml-2 text-sm text-gray-500">this month</p>
+            </div>
+            <p className="text-xs text-gray-400 mt-1 italic">Growth trend</p>
+          </div>
+        </div>
+
+        {/* ROW 2: VISUAL CHARTS */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          
+          {/* Gender Distribution Pie Chart */}
+          <div className="bg-white p-6 rounded-xl border border-gray-200 shadow-sm">
+            <h3 className="font-bold text-gray-900 mb-6">Gender Distribution</h3>
+            <div className="h-72">
+              <ResponsiveContainer width="100%" height="100%">
+                <PieChart>
+                  <Pie
+                    data={genderData}
+                    innerRadius={70}
+                    outerRadius={90}
+                    paddingAngle={5}
+                    dataKey="value"
+                  >
+                    {genderData.map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={entry.color} />
+                    ))}
+                  </Pie>
+                  <Tooltip />
+                  <Legend verticalAlign="bottom" height={36}/>
+                </PieChart>
+              </ResponsiveContainer>
+            </div>
+          </div>
+
+          {/* Age Group Bar Chart */}
+          <div className="bg-white p-6 rounded-xl border border-gray-200 shadow-sm">
+            <h3 className="font-bold text-gray-900 mb-6">Patient Age Groups</h3>
+            <div className="h-72">
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={analytics.ageDist}>
+                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f0f0f0" />
+                  <XAxis dataKey="name" axisLine={false} tickLine={false} />
+                  <YAxis axisLine={false} tickLine={false} />
+                  <Tooltip cursor={{fill: '#f8fafc'}} />
+                  <Bar dataKey="value" fill="#6366F1" radius={[4, 4, 0, 0]} barSize={40} />
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    );
   };
 
   const renderClinicCards = () => {
@@ -609,6 +739,7 @@ export default function Dashboard() {
             </button>
           </div>
         </div>
+        {renderAnalyticsSection()}
       </div>
     </Layout>
   );
