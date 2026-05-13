@@ -1,5 +1,7 @@
 import { useEffect, useState } from "react";
 import { useMedicalRecords } from "../../../../context/medical-records/useMedicalRecords.js";
+import { useNavigate } from "react-router-dom";
+import { usePrescriptionMaster } from "../../../../context/prescriptions-master/usePrescriptionMaster";
 
 const MEDICATION_OPTIONS = [
   "Paracetamol",
@@ -22,6 +24,14 @@ export default function PrescriptionTab({ recordId, patientId }) {
     deletePrescription,
   } = useMedicalRecords();
 
+
+  const navigate = useNavigate();
+
+const {
+  prescriptions: prescriptionOptions,
+  getAllPrescriptionMasters,
+} = usePrescriptionMaster();
+
   const [form, setForm] = useState({
     medication_name: "",
     dosage: "",
@@ -36,6 +46,10 @@ export default function PrescriptionTab({ recordId, patientId }) {
     frequency: "",
     duration: "",
   });
+
+  useEffect(() => {
+  getAllPrescriptionMasters();
+}, []);
 
   useEffect(() => {
     if (recordId) {
@@ -101,69 +115,89 @@ export default function PrescriptionTab({ recordId, patientId }) {
     }
   };
 
+  const medicationOptions = prescriptionOptions.map(
+  (item) => item.prescription_name
+);
+
   return (
     <div className="space-y-6">
       <h2 className="text-lg font-semibold text-gray-800">Prescription</h2>
 
       <div className="rounded-xl bg-gray-50 p-4 space-y-4">
         <div className="grid gap-3 md:grid-cols-4">
-          <select
-            value={form.medication_name}
-            onChange={(e) =>
-              setForm((prev) => ({ ...prev, medication_name: e.target.value }))
-            }
-            className="rounded-lg border border-gray-300 px-3 py-2 text-sm"
-          >
-            <option value="">Select Medication</option>
-            {MEDICATION_OPTIONS.map((option) => (
-              <option key={option} value={option}>
-                {option}
-              </option>
-            ))}
-          </select>
+<div className="flex gap-2">
+  <select
+    value={form.medication_name}
+    onChange={(e) =>
+      setForm((prev) => ({ ...prev, medication_name: e.target.value }))
+    }
+    className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm"
+  >
+    <option value="">Select Medication</option>
 
-          <select
-            value={form.dosage}
-            onChange={(e) => setForm((prev) => ({ ...prev, dosage: e.target.value }))}
-            className="rounded-lg border border-gray-300 px-3 py-2 text-sm"
-          >
-            <option value="">Select Dosage</option>
-            {DOSAGE_OPTIONS.map((option) => (
-              <option key={option} value={option}>
-                {option}
-              </option>
-            ))}
-          </select>
+    {medicationOptions.map((option) => (
+      <option key={option} value={option}>
+        {option}
+      </option>
+    ))}
+  </select>
 
-          <select
-            value={form.frequency}
-            onChange={(e) =>
-              setForm((prev) => ({ ...prev, frequency: e.target.value }))
-            }
-            className="rounded-lg border border-gray-300 px-3 py-2 text-sm"
-          >
-            <option value="">Select Frequency</option>
-            {FREQUENCY_OPTIONS.map((option) => (
-              <option key={option} value={option}>
-                {option}
-              </option>
-            ))}
-          </select>
+  <button
+    type="button"
+    onClick={() => navigate("/diagnosis-treatment-management")}
+    className="rounded-lg bg-gray-100 px-3 py-2 text-sm font-bold text-blue-600 hover:bg-blue-100"
+    title="Manage prescription options"
+  >
+    +
+  </button>
+</div>
 
-          <select
-            value={form.duration}
-            onChange={(e) =>
-              setForm((prev) => ({ ...prev, duration: e.target.value }))
-            }
-            className="rounded-lg border border-gray-300 px-3 py-2 text-sm"
-          >
-            <option value="">Select Duration</option>
-            {DURATION_OPTIONS.map((option) => (
-              <option key={option} value={option}>
-                {option}
-              </option>
-            ))}
-          </select>
+<input
+  list="dosage-options"
+  value={form.dosage}
+  onChange={(e) =>
+    setForm((prev) => ({ ...prev, dosage: e.target.value }))
+  }
+  placeholder="Select or type dosage"
+  className="rounded-lg border border-gray-300 px-3 py-2 text-sm"
+/>
+
+<datalist id="dosage-options">
+  {DOSAGE_OPTIONS.map((option) => (
+    <option key={option} value={option} />
+  ))}
+</datalist>
+
+<input
+  list="frequency-options"
+  value={form.frequency}
+  onChange={(e) =>
+    setForm((prev) => ({ ...prev, frequency: e.target.value }))
+  }
+  placeholder="Select or type frequency"
+  className="rounded-lg border border-gray-300 px-3 py-2 text-sm"
+/>
+
+<datalist id="frequency-options">
+  {FREQUENCY_OPTIONS.map((option) => (
+    <option key={option} value={option} />
+  ))}
+</datalist>
+<input
+  list="duration-options"
+  value={form.duration}
+  onChange={(e) =>
+    setForm((prev) => ({ ...prev, duration: e.target.value }))
+  }
+  placeholder="Select or type duration"
+  className="rounded-lg border border-gray-300 px-3 py-2 text-sm"
+/>
+
+<datalist id="duration-options">
+  {DURATION_OPTIONS.map((option) => (
+    <option key={option} value={option} />
+  ))}
+</datalist>
         </div>
 
         <button
@@ -213,11 +247,11 @@ export default function PrescriptionTab({ recordId, patientId }) {
                         }
                         className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm"
                       >
-                        {MEDICATION_OPTIONS.map((option) => (
-                          <option key={option} value={option}>
-                            {option}
-                          </option>
-                        ))}
+                       {medicationOptions.map((option) => (
+  <option key={option} value={option}>
+    {option}
+  </option>
+))}
                       </select>
                     ) : (
                       item.medication_name
@@ -226,19 +260,23 @@ export default function PrescriptionTab({ recordId, patientId }) {
 
                   <td className="px-4 py-4 text-center text-sm text-gray-800">
                     {editingId === item.prescription_id ? (
-                      <select
-                        value={editForm.dosage}
-                        onChange={(e) =>
-                          setEditForm((prev) => ({ ...prev, dosage: e.target.value }))
-                        }
-                        className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm"
-                      >
-                        {DOSAGE_OPTIONS.map((option) => (
-                          <option key={option} value={option}>
-                            {option}
-                          </option>
-                        ))}
-                      </select>
+<>
+  <input
+    list="edit-dosage-options"
+    value={editForm.dosage}
+    onChange={(e) =>
+      setEditForm((prev) => ({ ...prev, dosage: e.target.value }))
+    }
+    placeholder="Select or type dosage"
+    className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm"
+  />
+
+  <datalist id="edit-dosage-options">
+    {DOSAGE_OPTIONS.map((option) => (
+      <option key={option} value={option} />
+    ))}
+  </datalist>
+</>
                     ) : (
                       item.dosage || "-"
                     )}

@@ -1,10 +1,18 @@
+
+
 import React, { useEffect, useState } from "react";
 import Layout from "../../components/Layout";
 import { useDiagnosisTreatment } from "../../context/diagnosis-treatments/useDiagnosisTreatment";
 import { useNavigate } from "react-router-dom";
 
+import { useFeeMaster } from "../../context/fee-master/useFeeMaster";
+import { usePrescriptionMaster } from "../../context/prescriptions-master/usePrescriptionMaster";
+import { useLabResultMaster } from "../../context/lab-result-master/useLabResultMaster";
+import { useCertificateMaster } from "../../context/certificate-master/useCertificateMaster";
+
 export default function DiagnosisTreatmentManagement() {
   const navigate = useNavigate();
+
   const {
     diagnoses,
     treatments,
@@ -28,6 +36,54 @@ export default function DiagnosisTreatmentManagement() {
     deleteTreatment,
   } = useDiagnosisTreatment();
 
+  const {
+    fees,
+    loadingFees,
+    feeActionLoading,
+    feeError,
+
+    getAllFees,
+    createFee,
+    updateFee,
+    deleteFee,
+  } = useFeeMaster();
+
+  const {
+    prescriptions,
+    loadingPrescriptions,
+    prescriptionActionLoading,
+    prescriptionError,
+
+    getAllPrescriptionMasters,
+    createPrescriptionMaster,
+    updatePrescriptionMaster,
+    deletePrescriptionMaster,
+  } = usePrescriptionMaster();
+
+  const {
+    labResults,
+    loadingLabResults,
+    labResultActionLoading,
+    labResultError,
+
+    getAllLabResultMasters,
+    createLabResultMaster,
+    updateLabResultMaster,
+    deleteLabResultMaster,
+  } = useLabResultMaster();
+
+  const {
+    certificates,
+    loadingCertificates,
+    certificateActionLoading,
+    certificateError,
+
+    getAllCertificateMasters,
+    createCertificateMaster,
+    updateCertificateMaster,
+    deleteCertificateMaster,
+  } = useCertificateMaster();
+
   const [isAddDiagnosisOpen, setIsAddDiagnosisOpen] = useState(false);
   const [isEditDiagnosisOpen, setIsEditDiagnosisOpen] = useState(false);
   const [selectedDiagnosis, setSelectedDiagnosis] = useState(null);
@@ -35,12 +91,6 @@ export default function DiagnosisTreatmentManagement() {
   const [isAddTreatmentOpen, setIsAddTreatmentOpen] = useState(false);
   const [isEditTreatmentOpen, setIsEditTreatmentOpen] = useState(false);
   const [selectedTreatment, setSelectedTreatment] = useState(null);
-
-  // UI ONLY STATES
-  const [feesOptions, setFeesOptions] = useState([]);
-  const [prescriptionOptions, setPrescriptionOptions] = useState([]);
-  const [labResultOptions, setLabResultOptions] = useState([]);
-  const [certificateOptions, setCertificateOptions] = useState([]);
 
   const [isAddFeeOpen, setIsAddFeeOpen] = useState(false);
   const [isEditFeeOpen, setIsEditFeeOpen] = useState(false);
@@ -61,6 +111,11 @@ export default function DiagnosisTreatmentManagement() {
   useEffect(() => {
     getAllDiagnoses();
     getAllTreatments();
+
+    getAllFees();
+    getAllPrescriptionMasters();
+    getAllLabResultMasters();
+    getAllCertificateMasters();
   }, []);
 
   const openEditDiagnosis = (diagnosis) => {
@@ -71,32 +126,6 @@ export default function DiagnosisTreatmentManagement() {
   const openEditTreatment = (treatment) => {
     setSelectedTreatment(treatment);
     setIsEditTreatmentOpen(true);
-  };
-
-  // UI ONLY HANDLERS
-  const addSimpleItem = async (setter, value, keyName) => {
-    setter((prev) => [
-      ...prev,
-      {
-        id: Date.now(),
-        [keyName]: value,
-      },
-    ]);
-    return true;
-  };
-
-  const updateSimpleItem = async (setter, id, value, keyName) => {
-    setter((prev) =>
-      prev.map((item) =>
-        item.id === id ? { ...item, [keyName]: value } : item
-      )
-    );
-    return true;
-  };
-
-  
-  const deleteSimpleItem = (setter, id) => {
-    setter((prev) => prev.filter((item) => item.id !== id));
   };
 
   return (
@@ -262,7 +291,7 @@ export default function DiagnosisTreatmentManagement() {
             </div>
           </div>
 
-          {/* Fees Management */}
+          {/* Fees */}
           <div className="bg-white rounded-2xl shadow border border-gray-200 p-5 space-y-5">
             <div className="flex items-start justify-between gap-4">
               <div>
@@ -282,428 +311,461 @@ export default function DiagnosisTreatmentManagement() {
               </button>
             </div>
 
+            {feeError && (
+              <p className="text-sm text-red-600">{feeError}</p>
+            )}
+
             <div className="border rounded-xl overflow-hidden">
               <table className="w-full">
-<thead className="bg-blue-600 text-white">
-  <tr>
-    <th className="p-3 text-left">Fee Name</th>
-    <th className="p-3 text-left">Amount</th>
-    <th className="p-3 text-left w-[180px]">Actions</th>
-  </tr>
-</thead>
-<tbody>
-  {feesOptions.length === 0 ? (
-    <tr>
-      <td colSpan="3" className="p-4 text-center text-gray-500">
-        No fees found
-      </td>
-    </tr>
-  ) : (
-    feesOptions.map((item) => (
-      <tr key={item.id} className="border-t">
-        <td className="p-3">{item.fee_name}</td>
-
-        <td className="p-3">
-          ₱ {Number(item.amount || 0).toFixed(2)}
-        </td>
-
-        <td className="p-3">
-          <div className="flex gap-2 flex-wrap">
-            <button
-              onClick={() => {
-                setSelectedFee(item);
-                setIsEditFeeOpen(true);
-              }}
-              className="bg-yellow-500 hover:bg-yellow-600 text-white px-3 py-1 rounded"
-            >
-              Edit
-            </button>
-            <button
-              onClick={() =>
-                deleteSimpleItem(setFeesOptions, item.id)
-              }
-              className="bg-red-600 hover:bg-red-700 text-white px-3 py-1 rounded"
-            >
-              Delete
-            </button>
+                <thead className="bg-blue-600 text-white">
+                  <tr>
+                    <th className="p-3 text-left">Fee Name</th>
+                    <th className="p-3 text-left">Amount</th>
+                    <th className="p-3 text-left w-[180px]">Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {loadingFees ? (
+                    <tr>
+                      <td colSpan="3" className="p-4 text-center">
+                        Loading fees...
+                      </td>
+                    </tr>
+                  ) : fees.length === 0 ? (
+                    <tr>
+                      <td colSpan="3" className="p-4 text-center text-gray-500">
+                        No fees found
+                      </td>
+                    </tr>
+                  ) : (
+                    fees.map((item) => (
+                      <tr key={item.fee_id} className="border-t">
+                        <td className="p-3">{item.fee_name}</td>
+                        <td className="p-3">₱ {Number(item.amount || 0).toFixed(2)}</td>
+                        <td className="p-3">
+                          <div className="flex gap-2 flex-wrap">
+                            <button
+                              onClick={() => {
+                                setSelectedFee(item);
+                                setIsEditFeeOpen(true);
+                              }}
+                              className="bg-yellow-500 hover:bg-yellow-600 text-white px-3 py-1 rounded"
+                            >
+                              Edit
+                            </button>
+                            <button
+                              onClick={() => deleteFee(item.fee_id)}
+                              disabled={feeActionLoading}
+                              className="bg-red-600 hover:bg-red-700 text-white px-3 py-1 rounded"
+                            >
+                              Delete
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </table>
+            </div>
           </div>
-        </td>
-      </tr>
-    ))
+        {/* Prescription Management */}
+<div className="bg-white rounded-2xl shadow border border-gray-200 p-5 space-y-5">
+  <div className="flex items-start justify-between gap-4">
+    <div>
+      <h3 className="text-lg font-semibold text-blue-700">
+        Prescription Management
+      </h3>
+      <p className="text-sm text-gray-500">
+        Add, edit, and delete prescription dropdown options.
+      </p>
+    </div>
+
+    <button
+      onClick={() => setIsAddPrescriptionOpen(true)}
+      className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg"
+    >
+      Add Prescription
+    </button>
+  </div>
+
+  {prescriptionError && (
+    <p className="text-sm text-red-600">{prescriptionError}</p>
   )}
-</tbody>
-              </table>
-            </div>
-          </div>
 
-          {/* Prescription Management */}
-          <div className="bg-white rounded-2xl shadow border border-gray-200 p-5 space-y-5">
-            <div className="flex items-start justify-between gap-4">
-              <div>
-                <h3 className="text-lg font-semibold text-blue-700">
-                  Prescription Management
-                </h3>
-                <p className="text-sm text-gray-500">
-                  Add, edit, and delete prescription dropdown options.
-                </p>
-              </div>
+  <div className="border rounded-xl overflow-hidden">
+    <table className="w-full">
+      <thead className="bg-blue-600 text-white">
+        <tr>
+          <th className="p-3 text-left">Prescription</th>
+          <th className="p-3 text-left w-[180px]">Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {loadingPrescriptions ? (
+          <tr>
+            <td colSpan="2" className="p-4 text-center">
+              Loading prescriptions...
+            </td>
+          </tr>
+        ) : prescriptions.length === 0 ? (
+          <tr>
+            <td colSpan="2" className="p-4 text-center text-gray-500">
+              No prescriptions found
+            </td>
+          </tr>
+        ) : (
+          prescriptions.map((item) => (
+            <tr key={item.prescription_id} className="border-t">
+              <td className="p-3">{item.prescription_name}</td>
+              <td className="p-3">
+                <div className="flex gap-2 flex-wrap">
+                  <button
+                    onClick={() => {
+                      setSelectedPrescription(item);
+                      setIsEditPrescriptionOpen(true);
+                    }}
+                    className="bg-yellow-500 hover:bg-yellow-600 text-white px-3 py-1 rounded"
+                  >
+                    Edit
+                  </button>
+                  <button
+                    onClick={() =>
+                      deletePrescriptionMaster(item.prescription_id)
+                    }
+                    disabled={prescriptionActionLoading}
+                    className="bg-red-600 hover:bg-red-700 text-white px-3 py-1 rounded"
+                  >
+                    Delete
+                  </button>
+                </div>
+              </td>
+            </tr>
+          ))
+        )}
+      </tbody>
+    </table>
+  </div>
+</div>
 
-              <button
-                onClick={() => setIsAddPrescriptionOpen(true)}
-                className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg"
-              >
-                Add Prescription
-              </button>
-            </div>
+{/* Lab Result Management */}
+<div className="bg-white rounded-2xl shadow border border-gray-200 p-5 space-y-5">
+  <div className="flex items-start justify-between gap-4">
+    <div>
+      <h3 className="text-lg font-semibold text-blue-700">
+        Lab Result Management
+      </h3>
+      <p className="text-sm text-gray-500">
+        Add, edit, and delete lab result dropdown options.
+      </p>
+    </div>
 
-            <div className="border rounded-xl overflow-hidden">
-              <table className="w-full">
-                <thead className="bg-blue-600 text-white">
-                  <tr>
-                    <th className="p-3 text-left">Prescription</th>
-                    <th className="p-3 text-left w-[180px]">Actions</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {prescriptionOptions.length === 0 ? (
-                    <tr>
-                      <td colSpan="2" className="p-4 text-center text-gray-500">
-                        No prescriptions found
-                      </td>
-                    </tr>
-                  ) : (
-                    prescriptionOptions.map((item) => (
-                      <tr key={item.id} className="border-t">
-                        <td className="p-3">{item.prescription_name}</td>
-                        <td className="p-3">
-                          <div className="flex gap-2 flex-wrap">
-                            <button
-                              onClick={() => {
-                                setSelectedPrescription(item);
-                                setIsEditPrescriptionOpen(true);
-                              }}
-                              className="bg-yellow-500 hover:bg-yellow-600 text-white px-3 py-1 rounded"
-                            >
-                              Edit
-                            </button>
-                            <button
-                              onClick={() =>
-                                deleteSimpleItem(setPrescriptionOptions, item.id)
-                              }
-                              className="bg-red-600 hover:bg-red-700 text-white px-3 py-1 rounded"
-                            >
-                              Delete
-                            </button>
-                          </div>
-                        </td>
-                      </tr>
-                    ))
-                  )}
-                </tbody>
-              </table>
-            </div>
-          </div>
+    <button
+      onClick={() => setIsAddLabResultOpen(true)}
+      className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg"
+    >
+      Add Lab Result
+    </button>
+  </div>
 
-          {/* Lab Result Management */}
-          <div className="bg-white rounded-2xl shadow border border-gray-200 p-5 space-y-5">
-            <div className="flex items-start justify-between gap-4">
-              <div>
-                <h3 className="text-lg font-semibold text-blue-700">
-                  Lab Results Management
-                </h3>
-                <p className="text-sm text-gray-500">
-                  Add, edit, and delete lab result dropdown options.
-                </p>
-              </div>
+  {labResultError && (
+    <p className="text-sm text-red-600">{labResultError}</p>
+  )}
 
-              <button
-                onClick={() => setIsAddLabResultOpen(true)}
-                className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg"
-              >
-                Add Lab Result
-              </button>
-            </div>
+  <div className="border rounded-xl overflow-hidden">
+    <table className="w-full">
+      <thead className="bg-blue-600 text-white">
+        <tr>
+          <th className="p-3 text-left">Lab Result</th>
+          <th className="p-3 text-left w-[180px]">Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {loadingLabResults ? (
+          <tr>
+            <td colSpan="2" className="p-4 text-center">
+              Loading lab results...
+            </td>
+          </tr>
+        ) : labResults.length === 0 ? (
+          <tr>
+            <td colSpan="2" className="p-4 text-center text-gray-500">
+              No lab results found
+            </td>
+          </tr>
+        ) : (
+          labResults.map((item) => (
+            <tr key={item.lab_result_id} className="border-t">
+              <td className="p-3">{item.lab_result_name}</td>
+              <td className="p-3">
+                <div className="flex gap-2 flex-wrap">
+                  <button
+                    onClick={() => {
+                      setSelectedLabResult(item);
+                      setIsEditLabResultOpen(true);
+                    }}
+                    className="bg-yellow-500 hover:bg-yellow-600 text-white px-3 py-1 rounded"
+                  >
+                    Edit
+                  </button>
+                  <button
+                    onClick={() =>
+                      deleteLabResultMaster(item.lab_result_id)
+                    }
+                    disabled={labResultActionLoading}
+                    className="bg-red-600 hover:bg-red-700 text-white px-3 py-1 rounded"
+                  >
+                    Delete
+                  </button>
+                </div>
+              </td>
+            </tr>
+          ))
+        )}
+      </tbody>
+    </table>
+  </div>
+</div>
 
-            <div className="border rounded-xl overflow-hidden">
-              <table className="w-full">
-                <thead className="bg-blue-600 text-white">
-                  <tr>
-                    <th className="p-3 text-left">Lab Result</th>
-                    <th className="p-3 text-left w-[180px]">Actions</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {labResultOptions.length === 0 ? (
-                    <tr>
-                      <td colSpan="2" className="p-4 text-center text-gray-500">
-                        No lab results found
-                      </td>
-                    </tr>
-                  ) : (
-                    labResultOptions.map((item) => (
-                      <tr key={item.id} className="border-t">
-                        <td className="p-3">{item.lab_result_name}</td>
-                        <td className="p-3">
-                          <div className="flex gap-2 flex-wrap">
-                            <button
-                              onClick={() => {
-                                setSelectedLabResult(item);
-                                setIsEditLabResultOpen(true);
-                              }}
-                              className="bg-yellow-500 hover:bg-yellow-600 text-white px-3 py-1 rounded"
-                            >
-                              Edit
-                            </button>
-                            <button
-                              onClick={() =>
-                                deleteSimpleItem(setLabResultOptions, item.id)
-                              }
-                              className="bg-red-600 hover:bg-red-700 text-white px-3 py-1 rounded"
-                            >
-                              Delete
-                            </button>
-                          </div>
-                        </td>
-                      </tr>
-                    ))
-                  )}
-                </tbody>
-              </table>
-            </div>
-          </div>
+{/* Certificate Management */}
+<div className="bg-white rounded-2xl shadow border border-gray-200 p-5 space-y-5">
+  <div className="flex items-start justify-between gap-4">
+    <div>
+      <h3 className="text-lg font-semibold text-blue-700">
+        Certificate Management
+      </h3>
+      <p className="text-sm text-gray-500">
+        Add, edit, and delete certificate dropdown options.
+      </p>
+    </div>
 
-          {/* Certificate Management */}
-          <div className="bg-white rounded-2xl shadow border border-gray-200 p-5 space-y-5">
-            <div className="flex items-start justify-between gap-4">
-              <div>
-                <h3 className="text-lg font-semibold text-blue-700">
-                  Certificates Management
-                </h3>
-                <p className="text-sm text-gray-500">
-                  Add, edit, and delete certificate dropdown options.
-                </p>
-              </div>
+    <button
+      onClick={() => setIsAddCertificateOpen(true)}
+      className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg"
+    >
+      Add Certificate
+    </button>
+  </div>
 
-              <button
-                onClick={() => setIsAddCertificateOpen(true)}
-                className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg"
-              >
-                Add Certificate
-              </button>
-            </div>
+  {certificateError && (
+    <p className="text-sm text-red-600">{certificateError}</p>
+  )}
 
-            <div className="border rounded-xl overflow-hidden">
-              <table className="w-full">
-                <thead className="bg-blue-600 text-white">
-                  <tr>
-                    <th className="p-3 text-left">Certificate</th>
-                    <th className="p-3 text-left w-[180px]">Actions</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {certificateOptions.length === 0 ? (
-                    <tr>
-                      <td colSpan="2" className="p-4 text-center text-gray-500">
-                        No certificates found
-                      </td>
-                    </tr>
-                  ) : (
-                    certificateOptions.map((item) => (
-                      <tr key={item.id} className="border-t">
-                        <td className="p-3">{item.certificate_name}</td>
-                        <td className="p-3">
-                          <div className="flex gap-2 flex-wrap">
-                            <button
-                              onClick={() => {
-                                setSelectedCertificate(item);
-                                setIsEditCertificateOpen(true);
-                              }}
-                              className="bg-yellow-500 hover:bg-yellow-600 text-white px-3 py-1 rounded"
-                            >
-                              Edit
-                            </button>
-                            <button
-                              onClick={() =>
-                                deleteSimpleItem(setCertificateOptions, item.id)
-                              }
-                              className="bg-red-600 hover:bg-red-700 text-white px-3 py-1 rounded"
-                            >
-                              Delete
-                            </button>
-                          </div>
-                        </td>
-                      </tr>
-                    ))
-                  )}
-                </tbody>
-              </table>
-            </div>
-          </div>
+  <div className="border rounded-xl overflow-hidden">
+    <table className="w-full">
+      <thead className="bg-blue-600 text-white">
+        <tr>
+          <th className="p-3 text-left">Certificate</th>
+          <th className="p-3 text-left w-[180px]">Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {loadingCertificates ? (
+          <tr>
+            <td colSpan="2" className="p-4 text-center">
+              Loading certificates...
+            </td>
+          </tr>
+        ) : certificates.length === 0 ? (
+          <tr>
+            <td colSpan="2" className="p-4 text-center text-gray-500">
+              No certificates found
+            </td>
+          </tr>
+        ) : (
+          certificates.map((item) => (
+            <tr key={item.certificate_id} className="border-t">
+              <td className="p-3">{item.certificate_name}</td>
+              <td className="p-3">
+                <div className="flex gap-2 flex-wrap">
+                  <button
+                    onClick={() => {
+                      setSelectedCertificate(item);
+                      setIsEditCertificateOpen(true);
+                    }}
+                    className="bg-yellow-500 hover:bg-yellow-600 text-white px-3 py-1 rounded"
+                  >
+                    Edit
+                  </button>
+                  <button
+                    onClick={() =>
+                      deleteCertificateMaster(item.certificate_id)
+                    }
+                    disabled={certificateActionLoading}
+                    className="bg-red-600 hover:bg-red-700 text-white px-3 py-1 rounded"
+                  >
+                    Delete
+                  </button>
+                </div>
+              </td>
+            </tr>
+          ))
+        )}
+      </tbody>
+    </table>
+  </div>
+</div>
         </div>
 
-        <AddDiagnosisModal
-          isOpen={isAddDiagnosisOpen}
-          onClose={() => setIsAddDiagnosisOpen(false)}
-          onSubmit={createDiagnosis}
-          loading={diagnosisActionLoading}
-        />
-
-        <EditDiagnosisModal
-          isOpen={isEditDiagnosisOpen}
-          onClose={() => {
-            setIsEditDiagnosisOpen(false);
-            setSelectedDiagnosis(null);
-          }}
-          diagnosis={selectedDiagnosis}
-          onSubmit={updateDiagnosis}
-          loading={diagnosisActionLoading}
-        />
-
-        <AddTreatmentModal
-          isOpen={isAddTreatmentOpen}
-          onClose={() => setIsAddTreatmentOpen(false)}
-          onSubmit={createTreatment}
-          loading={treatmentActionLoading}
-        />
-
-        <EditTreatmentModal
-          isOpen={isEditTreatmentOpen}
-          onClose={() => {
-            setIsEditTreatmentOpen(false);
-            setSelectedTreatment(null);
-          }}
-          treatment={selectedTreatment}
-          onSubmit={updateTreatment}
-          loading={treatmentActionLoading}
-        />
-
- <AddFeeModal
-  isOpen={isAddFeeOpen}
-  onClose={() => setIsAddFeeOpen(false)}
-  onSubmit={async (data) => {
-    setFeesOptions((prev) => [
-      ...prev,
-      {
-        id: Date.now(),
-        fee_name: data.fee_name,
-        amount: data.amount,
-      },
-    ]);
-    return true;
-  }}
+        <AddTextModal
+  isOpen={isAddDiagnosisOpen}
+  title="Add Diagnosis"
+  placeholder="Enter diagnosis name"
+  loading={diagnosisActionLoading}
+  onClose={() => setIsAddDiagnosisOpen(false)}
+  onSubmit={createDiagnosis}
 />
 
-        <EditSimpleOptionModal
-          isOpen={isEditFeeOpen}
-          onClose={() => {
-            setIsEditFeeOpen(false);
-            setSelectedFee(null);
-          }}
-          title="Edit Fee"
-          placeholder="Enter fee name"
-          item={selectedFee}
-          valueKey="fee_name"
-          onSubmit={(id, value) =>
-            updateSimpleItem(setFeesOptions, id, value, "fee_name")
-          }
-        />
+<EditTextModal
+  isOpen={isEditDiagnosisOpen}
+  title="Edit Diagnosis"
+  placeholder="Enter diagnosis name"
+  item={selectedDiagnosis}
+  value={selectedDiagnosis?.diagnosis_name}
+  loading={diagnosisActionLoading}
+  onClose={() => {
+    setIsEditDiagnosisOpen(false);
+    setSelectedDiagnosis(null);
+  }}
+  onSubmit={(value) =>
+    updateDiagnosis(selectedDiagnosis.diagnosis_id, value)
+  }
+/>
 
-        <AddSimpleOptionModal
-          isOpen={isAddPrescriptionOpen}
-          onClose={() => setIsAddPrescriptionOpen(false)}
-          title="Add Prescription"
-          placeholder="Enter prescription name"
-          onSubmit={(value) =>
-            addSimpleItem(
-              setPrescriptionOptions,
-              value,
-              "prescription_name"
-            )
-          }
-        />
+<AddTextModal
+  isOpen={isAddTreatmentOpen}
+  title="Add Treatment"
+  placeholder="Enter treatment name"
+  loading={treatmentActionLoading}
+  onClose={() => setIsAddTreatmentOpen(false)}
+  onSubmit={createTreatment}
+/>
 
-        <EditSimpleOptionModal
-          isOpen={isEditPrescriptionOpen}
-          onClose={() => {
-            setIsEditPrescriptionOpen(false);
-            setSelectedPrescription(null);
-          }}
-          title="Edit Prescription"
-          placeholder="Enter prescription name"
-          item={selectedPrescription}
-          valueKey="prescription_name"
-          onSubmit={(id, value) =>
-            updateSimpleItem(
-              setPrescriptionOptions,
-              id,
-              value,
-              "prescription_name"
-            )
-          }
-        />
+<EditTextModal
+  isOpen={isEditTreatmentOpen}
+  title="Edit Treatment"
+  placeholder="Enter treatment name"
+  item={selectedTreatment}
+  value={selectedTreatment?.treatment_name}
+  loading={treatmentActionLoading}
+  onClose={() => {
+    setIsEditTreatmentOpen(false);
+    setSelectedTreatment(null);
+  }}
+  onSubmit={(value) =>
+    updateTreatment(selectedTreatment.treatment_id, value)
+  }
+/>
 
-        <AddSimpleOptionModal
-          isOpen={isAddLabResultOpen}
-          onClose={() => setIsAddLabResultOpen(false)}
-          title="Add Lab Result"
-          placeholder="Enter lab result name"
-          onSubmit={(value) =>
-            addSimpleItem(setLabResultOptions, value, "lab_result_name")
-          }
-        />
+<AddFeeModal
+  isOpen={isAddFeeOpen}
+  loading={feeActionLoading}
+  onClose={() => setIsAddFeeOpen(false)}
+  onSubmit={createFee}
+/>
 
-        <EditSimpleOptionModal
-          isOpen={isEditLabResultOpen}
-          onClose={() => {
-            setIsEditLabResultOpen(false);
-            setSelectedLabResult(null);
-          }}
-          title="Edit Lab Result"
-          placeholder="Enter lab result name"
-          item={selectedLabResult}
-          valueKey="lab_result_name"
-          onSubmit={(id, value) =>
-            updateSimpleItem(setLabResultOptions, id, value, "lab_result_name")
-          }
-        />
+<EditFeeModal
+  isOpen={isEditFeeOpen}
+  fee={selectedFee}
+  loading={feeActionLoading}
+  onClose={() => {
+    setIsEditFeeOpen(false);
+    setSelectedFee(null);
+  }}
+  onSubmit={(data) => updateFee(selectedFee.fee_id, data)}
+/>
 
-        <AddSimpleOptionModal
-          isOpen={isAddCertificateOpen}
-          onClose={() => setIsAddCertificateOpen(false)}
-          title="Add Certificate"
-          placeholder="Enter certificate name"
-          onSubmit={(value) =>
-            addSimpleItem(setCertificateOptions, value, "certificate_name")
-          }
-        />
+<AddTextModal
+  isOpen={isAddPrescriptionOpen}
+  title="Add Prescription"
+  placeholder="Enter prescription name"
+  loading={prescriptionActionLoading}
+  onClose={() => setIsAddPrescriptionOpen(false)}
+  onSubmit={createPrescriptionMaster}
+/>
 
-        <EditSimpleOptionModal
-          isOpen={isEditCertificateOpen}
-          onClose={() => {
-            setIsEditCertificateOpen(false);
-            setSelectedCertificate(null);
-          }}
-          title="Edit Certificate"
-          placeholder="Enter certificate name"
-          item={selectedCertificate}
-          valueKey="certificate_name"
-          onSubmit={(id, value) =>
-            updateSimpleItem(
-              setCertificateOptions,
-              id,
-              value,
-              "certificate_name"
-            )
-          }
-        />
+<EditTextModal
+  isOpen={isEditPrescriptionOpen}
+  title="Edit Prescription"
+  placeholder="Enter prescription name"
+  item={selectedPrescription}
+  value={selectedPrescription?.prescription_name}
+  loading={prescriptionActionLoading}
+  onClose={() => {
+    setIsEditPrescriptionOpen(false);
+    setSelectedPrescription(null);
+  }}
+  onSubmit={(value) =>
+    updatePrescriptionMaster(selectedPrescription.prescription_id, value)
+  }
+/>
+
+<AddTextModal
+  isOpen={isAddLabResultOpen}
+  title="Add Lab Result"
+  placeholder="Enter lab result name"
+  loading={labResultActionLoading}
+  onClose={() => setIsAddLabResultOpen(false)}
+  onSubmit={createLabResultMaster}
+/>
+
+<EditTextModal
+  isOpen={isEditLabResultOpen}
+  title="Edit Lab Result"
+  placeholder="Enter lab result name"
+  item={selectedLabResult}
+  value={selectedLabResult?.lab_result_name}
+  loading={labResultActionLoading}
+  onClose={() => {
+    setIsEditLabResultOpen(false);
+    setSelectedLabResult(null);
+  }}
+  onSubmit={(value) =>
+    updateLabResultMaster(selectedLabResult.lab_result_id, value)
+  }
+/>
+
+<AddTextModal
+  isOpen={isAddCertificateOpen}
+  title="Add Certificate"
+  placeholder="Enter certificate name"
+  loading={certificateActionLoading}
+  onClose={() => setIsAddCertificateOpen(false)}
+  onSubmit={createCertificateMaster}
+/>
+
+<EditTextModal
+  isOpen={isEditCertificateOpen}
+  title="Edit Certificate"
+  placeholder="Enter certificate name"
+  item={selectedCertificate}
+  value={selectedCertificate?.certificate_name}
+  loading={certificateActionLoading}
+  onClose={() => {
+    setIsEditCertificateOpen(false);
+    setSelectedCertificate(null);
+  }}
+  onSubmit={(value) =>
+    updateCertificateMaster(selectedCertificate.certificate_id, value)
+  }
+/>
+
+
       </div>
     </Layout>
+
   );
+  
 }
 
-/* ---------------- MODALS ---------------- */
-
-function AddDiagnosisModal({ isOpen, onClose, onSubmit, loading }) {
+function AddTextModal({
+  isOpen,
+  title,
+  placeholder,
+  loading,
+  onClose,
+  onSubmit,
+}) {
   const [value, setValue] = useState("");
 
   if (!isOpen) return null;
@@ -712,6 +774,7 @@ function AddDiagnosisModal({ isOpen, onClose, onSubmit, loading }) {
     if (!value.trim()) return;
 
     const ok = await onSubmit(value.trim());
+
     if (ok) {
       setValue("");
       onClose();
@@ -719,12 +782,11 @@ function AddDiagnosisModal({ isOpen, onClose, onSubmit, loading }) {
   };
 
   return (
-    <ModalShell title="Add Diagnosis" onClose={onClose}>
+    <ModalShell title={title} onClose={onClose}>
       <input
-        type="text"
         value={value}
         onChange={(e) => setValue(e.target.value)}
-        placeholder="Enter diagnosis name"
+        placeholder={placeholder}
         className="w-full border rounded-lg px-3 py-2"
       />
 
@@ -737,39 +799,40 @@ function AddDiagnosisModal({ isOpen, onClose, onSubmit, loading }) {
   );
 }
 
-function EditDiagnosisModal({
+function EditTextModal({
   isOpen,
-  onClose,
-  diagnosis,
-  onSubmit,
+  title,
+  placeholder,
+  item,
+  value,
   loading,
+  onClose,
+  onSubmit,
 }) {
-  const [value, setValue] = useState("");
+  const [inputValue, setInputValue] = useState("");
 
-  React.useEffect(() => {
-    if (diagnosis) {
-      setValue(diagnosis.diagnosis_name || "");
-    }
-  }, [diagnosis]);
+  useEffect(() => {
+    setInputValue(value || "");
+  }, [value]);
 
-  if (!isOpen || !diagnosis) return null;
+  if (!isOpen || !item) return null;
 
   const handleSave = async () => {
-    if (!value.trim()) return;
+    if (!inputValue.trim()) return;
 
-    const ok = await onSubmit(diagnosis.diagnosis_id, value.trim());
+    const ok = await onSubmit(inputValue.trim());
+
     if (ok) {
       onClose();
     }
   };
 
   return (
-    <ModalShell title="Edit Diagnosis" onClose={onClose}>
+    <ModalShell title={title} onClose={onClose}>
       <input
-        type="text"
-        value={value}
-        onChange={(e) => setValue(e.target.value)}
-        placeholder="Enter diagnosis name"
+        value={inputValue}
+        onChange={(e) => setInputValue(e.target.value)}
+        placeholder={placeholder}
         className="w-full border rounded-lg px-3 py-2"
       />
 
@@ -782,102 +845,22 @@ function EditDiagnosisModal({
   );
 }
 
-function AddTreatmentModal({ isOpen, onClose, onSubmit, loading }) {
-  const [value, setValue] = useState("");
-
-  if (!isOpen) return null;
-
-  const handleSave = async () => {
-    if (!value.trim()) return;
-
-    const ok = await onSubmit(value.trim());
-    if (ok) {
-      setValue("");
-      onClose();
-    }
-  };
-
-  return (
-    <ModalShell title="Add Treatment" onClose={onClose}>
-      <input
-        type="text"
-        value={value}
-        onChange={(e) => setValue(e.target.value)}
-        placeholder="Enter treatment name"
-        className="w-full border rounded-lg px-3 py-2"
-      />
-
-      <ModalActions
-        onClose={onClose}
-        onSave={handleSave}
-        saveLabel={loading ? "Saving..." : "Save"}
-      />
-    </ModalShell>
-  );
-}
-
-function EditTreatmentModal({
-  isOpen,
-  onClose,
-  treatment,
-  onSubmit,
-  loading,
-}) {
-  const [value, setValue] = useState("");
-
-  React.useEffect(() => {
-    if (treatment) {
-      setValue(treatment.treatment_name || "");
-    }
-  }, [treatment]);
-
-  if (!isOpen || !treatment) return null;
-
-  const handleSave = async () => {
-    if (!value.trim()) return;
-
-    const ok = await onSubmit(treatment.treatment_id, value.trim());
-    if (ok) {
-      onClose();
-    }
-  };
-
-  return (
-    <ModalShell title="Edit Treatment" onClose={onClose}>
-      <input
-        type="text"
-        value={value}
-        onChange={(e) => setValue(e.target.value)}
-        placeholder="Enter treatment name"
-        className="w-full border rounded-lg px-3 py-2"
-      />
-
-      <ModalActions
-        onClose={onClose}
-        onSave={handleSave}
-        saveLabel={loading ? "Updating..." : "Update"}
-      />
-    </ModalShell>
-  );
-}
-
-/* ---------------- SIMPLE UI ONLY MODALS ---------------- */
-function AddFeeModal({ isOpen, onClose, onSubmit }) {
-  const [name, setName] = useState("");
+function AddFeeModal({ isOpen, loading, onClose, onSubmit }) {
+  const [feeName, setFeeName] = useState("");
   const [amount, setAmount] = useState("");
 
   if (!isOpen) return null;
 
   const handleSave = async () => {
-    if (!name.trim() || !amount) return;
+    if (!feeName.trim()) return;
 
     const ok = await onSubmit({
-      fee_name: name.trim(),
-      amount: Number(amount),
+      fee_name: feeName.trim(),
+      amount: Number(amount || 0),
     });
 
     if (ok) {
-      setName("");
+      setFeeName("");
       setAmount("");
       onClose();
     }
@@ -887,10 +870,9 @@ function AddFeeModal({ isOpen, onClose, onSubmit }) {
     <ModalShell title="Add Fee" onClose={onClose}>
       <div className="space-y-3">
         <input
-          type="text"
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-          placeholder="Fee name (e.g. Consultation)"
+          value={feeName}
+          onChange={(e) => setFeeName(e.target.value)}
+          placeholder="Enter fee name"
           className="w-full border rounded-lg px-3 py-2"
         />
 
@@ -898,22 +880,27 @@ function AddFeeModal({ isOpen, onClose, onSubmit }) {
           type="number"
           value={amount}
           onChange={(e) => setAmount(e.target.value)}
-          placeholder="Amount"
+          placeholder="Enter amount"
           className="w-full border rounded-lg px-3 py-2"
         />
       </div>
 
-      <ModalActions onClose={onClose} onSave={handleSave} saveLabel="Save" />
+      <ModalActions
+        onClose={onClose}
+        onSave={handleSave}
+        saveLabel={loading ? "Saving..." : "Save"}
+      />
     </ModalShell>
   );
 }
-function EditFeeModal({ isOpen, onClose, fee, onSubmit }) {
-  const [name, setName] = useState("");
+
+function EditFeeModal({ isOpen, fee, loading, onClose, onSubmit }) {
+  const [feeName, setFeeName] = useState("");
   const [amount, setAmount] = useState("");
 
   useEffect(() => {
     if (fee) {
-      setName(fee.fee_name || "");
+      setFeeName(fee.fee_name || "");
       setAmount(fee.amount || "");
     }
   }, [fee]);
@@ -921,11 +908,11 @@ function EditFeeModal({ isOpen, onClose, fee, onSubmit }) {
   if (!isOpen || !fee) return null;
 
   const handleSave = async () => {
-    if (!name.trim() || !amount) return;
+    if (!feeName.trim()) return;
 
-    const ok = await onSubmit(fee.id, {
-      fee_name: name.trim(),
-      amount: Number(amount),
+    const ok = await onSubmit({
+      fee_name: feeName.trim(),
+      amount: Number(amount || 0),
     });
 
     if (ok) {
@@ -937,10 +924,9 @@ function EditFeeModal({ isOpen, onClose, fee, onSubmit }) {
     <ModalShell title="Edit Fee" onClose={onClose}>
       <div className="space-y-3">
         <input
-          type="text"
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-          placeholder="Fee name"
+          value={feeName}
+          onChange={(e) => setFeeName(e.target.value)}
+          placeholder="Enter fee name"
           className="w-full border rounded-lg px-3 py-2"
         />
 
@@ -948,96 +934,19 @@ function EditFeeModal({ isOpen, onClose, fee, onSubmit }) {
           type="number"
           value={amount}
           onChange={(e) => setAmount(e.target.value)}
-          placeholder="Amount"
+          placeholder="Enter amount"
           className="w-full border rounded-lg px-3 py-2"
         />
       </div>
 
-      <ModalActions onClose={onClose} onSave={handleSave} saveLabel="Update" />
-    </ModalShell>
-  );
-}
-
-function AddSimpleOptionModal({
-  isOpen,
-  onClose,
-  title,
-  placeholder,
-  onSubmit,
-}) {
-  const [value, setValue] = useState("");
-
-  if (!isOpen) return null;
-
-  const handleSave = async () => {
-    if (!value.trim()) return;
-
-    const ok = await onSubmit(value.trim());
-    if (ok) {
-      setValue("");
-      onClose();
-    }
-  };
-
-  return (
-    <ModalShell title={title} onClose={onClose}>
-      <input
-        type="text"
-        value={value}
-        onChange={(e) => setValue(e.target.value)}
-        placeholder={placeholder}
-        className="w-full border rounded-lg px-3 py-2"
+      <ModalActions
+        onClose={onClose}
+        onSave={handleSave}
+        saveLabel={loading ? "Updating..." : "Update"}
       />
-
-      <ModalActions onClose={onClose} onSave={handleSave} saveLabel="Save" />
     </ModalShell>
   );
 }
-
-function EditSimpleOptionModal({
-  isOpen,
-  onClose,
-  title,
-  placeholder,
-  item,
-  valueKey,
-  onSubmit,
-}) {
-  const [value, setValue] = useState("");
-
-  React.useEffect(() => {
-    if (item) {
-      setValue(item[valueKey] || "");
-    }
-  }, [item, valueKey]);
-
-  if (!isOpen || !item) return null;
-
-  const handleSave = async () => {
-    if (!value.trim()) return;
-
-    const ok = await onSubmit(item.id, value.trim());
-    if (ok) {
-      onClose();
-    }
-  };
-
-  return (
-    <ModalShell title={title} onClose={onClose}>
-      <input
-        type="text"
-        value={value}
-        onChange={(e) => setValue(e.target.value)}
-        placeholder={placeholder}
-        className="w-full border rounded-lg px-3 py-2"
-      />
-
-      <ModalActions onClose={onClose} onSave={handleSave} saveLabel="Update" />
-    </ModalShell>
-  );
-}
-
-/* ---------------- REUSABLE MODAL PARTS ---------------- */
 
 function ModalShell({ title, children, onClose }) {
   return (
@@ -1050,6 +959,7 @@ function ModalShell({ title, children, onClose }) {
       <div className="relative z-10 w-full max-w-md rounded-2xl border border-gray-200 bg-white p-6 shadow-xl space-y-4">
         <div className="flex items-center justify-between">
           <h3 className="text-lg font-semibold text-blue-700">{title}</h3>
+
           <button
             onClick={onClose}
             className="text-gray-500 hover:text-gray-700 text-xl"
@@ -1073,6 +983,7 @@ function ModalActions({ onClose, onSave, saveLabel }) {
       >
         Cancel
       </button>
+
       <button
         onClick={onSave}
         className="rounded-lg bg-blue-600 px-4 py-2 text-white hover:bg-blue-700"

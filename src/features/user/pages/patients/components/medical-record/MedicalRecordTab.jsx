@@ -1,6 +1,11 @@
 import { useEffect, useState } from "react";
 import { useMedicalRecords } from "../../../../context/medical-records/useMedicalRecords.js";
 
+
+import { useNavigate } from "react-router-dom";
+import { useDiagnosisTreatment } from "../../../../context/diagnosis-treatments/useDiagnosisTreatment.js";
+import { usePrescriptionMaster } from "../../../../context/prescriptions-master/usePrescriptionMaster.js";
+
 /* ================= OPTIONS ================= */
 
 const FORM_TYPE_OPTIONS = ["general", "pre-employment", "follow-up"];
@@ -136,6 +141,7 @@ const TableSection = ({
   onAdd,
   onEdit,
   onRemove,
+    onManageOptions,
 }) => {
   const [editingId, setEditingId] = useState(null);
   const [editingValue, setEditingValue] = useState("");
@@ -167,19 +173,29 @@ const TableSection = ({
         </div>
 
         <div className="flex flex-col gap-2 sm:flex-row">
-          <select
-            value={selectedValue}
-            onChange={(e) => setSelectedValue(e.target.value)}
-            className="rounded-lg border border-gray-300 px-3 py-2 text-sm"
-          >
-            <option value="">Select {title}</option>
-            {options.map((option) => (
-              <option key={option} value={option}>
-                {option}
-              </option>
-            ))}
-          </select>
+<div className="flex gap-2">
+  <select
+    value={selectedValue}
+    onChange={(e) => setSelectedValue(e.target.value)}
+    className="rounded-lg border border-gray-300 px-3 py-2 text-sm"
+  >
+    <option value="">Select {title}</option>
+    {options.map((option) => (
+      <option key={option} value={option}>
+        {option}
+      </option>
+    ))}
+  </select>
 
+  <button
+    type="button"
+    onClick={onManageOptions}
+    className="rounded-lg bg-gray-100 px-3 py-2 text-sm font-bold text-blue-600 hover:bg-blue-100"
+    title={`Manage ${title} options`}
+  >
+    +
+  </button>
+</div>
           <button
             onClick={onAdd}
             className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-blue-700"
@@ -298,6 +314,20 @@ export default function MedicalRecordTab({
     getMedicalRecordByAppointmentId,
   } = useMedicalRecords();
 
+  const navigate = useNavigate();
+
+const {
+  diagnoses,
+  treatments,
+  getAllDiagnoses,
+  getAllTreatments,
+} = useDiagnosisTreatment();
+
+const {
+  prescriptions,
+  getAllPrescriptionMasters,
+} = usePrescriptionMaster();
+
   const [record, setRecord] = useState(DEFAULT_RECORD);
   const [diagnosis, setDiagnosis] = useState([]);
   const [treatment, setTreatment] = useState([]);
@@ -309,6 +339,12 @@ export default function MedicalRecordTab({
 
   const hasRecord = !!medicalRecord?.record_id;
 
+
+  useEffect(() => {
+  getAllDiagnoses();
+  getAllTreatments();
+  getAllPrescriptionMasters();
+}, []);
   useEffect(() => {
     if (medicalRecord === undefined) return;
 
@@ -415,6 +451,11 @@ export default function MedicalRecordTab({
       await getMedicalRecordByAppointmentId(appointmentId);
     }
   };
+
+
+  const diagnosisOptions = diagnoses.map((item) => item.diagnosis_name);
+  const treatmentOptions = treatments.map((item) => item.treatment_name);
+  const medicationOptions = prescriptions.map((item) => item.prescription_name);
 
   return (
     <div className="space-y-6">
@@ -554,7 +595,8 @@ export default function MedicalRecordTab({
 
       <TableSection
         title="Diagnosis"
-        options={DIAGNOSIS_OPTIONS}
+options={diagnosisOptions}
+onManageOptions={() => navigate("/diagnosis-treatment-management")}
         selectedValue={selectedDiagnosis}
         setSelectedValue={setSelectedDiagnosis}
         rows={diagnosis}
@@ -572,7 +614,8 @@ export default function MedicalRecordTab({
 
       <TableSection
         title="Treatment"
-        options={TREATMENT_OPTIONS}
+options={treatmentOptions}
+onManageOptions={() => navigate("/diagnosis-treatment-management")}
         selectedValue={selectedTreatment}
         setSelectedValue={setSelectedTreatment}
         rows={treatment}
@@ -590,7 +633,8 @@ export default function MedicalRecordTab({
 
       <TableSection
         title="Medication"
-        options={MEDICATION_OPTIONS}
+options={medicationOptions}
+onManageOptions={() => navigate("/diagnosis-treatment-management")}
         selectedValue={selectedMedication}
         setSelectedValue={setSelectedMedication}
         rows={medications}
