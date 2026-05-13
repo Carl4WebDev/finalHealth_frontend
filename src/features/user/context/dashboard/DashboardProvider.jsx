@@ -18,6 +18,7 @@ export const DashboardProvider = ({ children }) => {
   const [subscription, setSubscription] = useState(null);
   const [networkClinics, setNetworkClinics] = useState([]);
   const [networkDoctors, setNetworkDoctors] = useState([]);
+  const [analytics, setAnalytics] = useState(null)
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -43,7 +44,7 @@ export const DashboardProvider = ({ children }) => {
           appointments: 0,
         }
       );
-
+      setAnalytics(overview.analytics || null);
       setUpcomingAppointments(overview.upcomingAppointments || []);
       setSubscription(overview.subscription || null);
       setNetworkClinics(overview.network?.clinics || []);
@@ -87,6 +88,7 @@ export const DashboardProvider = ({ children }) => {
       doctors: 0,
       appointments: 0,
     });
+    setAnalytics(null);
     setUpcomingAppointments([]);
     setSubscription(null);
     setNetworkClinics([]);
@@ -98,6 +100,7 @@ export const DashboardProvider = ({ children }) => {
     <DashboardContext.Provider
       value={{
         summaryCards,
+        analytics,
         upcomingAppointments,
         subscription,
         networkClinics,
@@ -105,11 +108,11 @@ export const DashboardProvider = ({ children }) => {
         loading,
         error,
         usage,
-getDashboardUsage,
+        getDashboardUsage,
         getDashboardOverview,
         clearDashboard,
       }}
-    >
+    > 
       {children}
     </DashboardContext.Provider>
   );
