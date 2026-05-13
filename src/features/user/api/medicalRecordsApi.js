@@ -1,4 +1,5 @@
 import { apiRequest } from "../../../api/httpClient/httpClient";
+import { apiFormRequest } from "../../../api/httpClient/apiFormRequest";
 
 export const getPatientOfDoctorInClinicApi = (doctorId, clinicId) =>
   apiRequest(`/api/med-routes/doctor/${doctorId}/clinic/${clinicId}/patients`);
@@ -89,10 +90,16 @@ export const getLabResultsByRecordApi = (recordId) =>
 export const getLabResultByIdApi = (resultId) =>
   apiRequest(`/api/med-routes/lab-results/${resultId}`);
 
-export const createLabResultApi = (recordId, labResultData) =>
-  apiRequest(`/api/med-routes/record/${recordId}/lab-results`, {
+export const createLabResultApi = (recordId, formData) =>
+  apiFormRequest(`/api/med-routes/record/${recordId}/lab-results`, {
     method: "POST",
-    body: JSON.stringify(labResultData),
+    body: formData,
+  });
+
+export const updateLabResultImageApi = (labResultId, formData) =>
+  apiFormRequest(`/api/med-routes/lab-results/${labResultId}/image`, {
+    method: "PATCH",
+    body: formData,
   });
 
 export const updateLabResultApi = (resultId, labResultData) =>

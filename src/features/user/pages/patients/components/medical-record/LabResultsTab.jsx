@@ -3,6 +3,8 @@ import { useNavigate } from "react-router-dom";
 import { useMedicalRecords } from "../../../../context/medical-records/useMedicalRecords.js";
 import { useLabResultMaster } from "../../../../context/lab-result-master/useLabResultMaster.js";
 
+const API_BASE = import.meta.env.VITE_API_BASE;
+
 export default function LabResultsTab({ recordId, patientId }) {
   const navigate = useNavigate();
 
@@ -13,6 +15,7 @@ export default function LabResultsTab({ recordId, patientId }) {
     createLabResult,
     updateLabResult,
     deleteLabResult,
+    updateLabResultImage,
   } = useMedicalRecords();
 
   const { labResults: labResultOptions, getAllLabResultMasters } =
@@ -22,10 +25,12 @@ export default function LabResultsTab({ recordId, patientId }) {
     test_type: "",
     result: "",
     interpretation: "",
-    lab_img_path: "",
   });
 
+  const [selectedFile, setSelectedFile] = useState(null);
   const [editingId, setEditingId] = useState(null);
+  const [previewImage, setPreviewImage] = useState(null);
+
   const [editForm, setEditForm] = useState({
     test_type: "",
     result: "",
@@ -33,11 +38,7 @@ export default function LabResultsTab({ recordId, patientId }) {
     lab_img_path: "",
   });
 
-  const [previewImage, setPreviewImage] = useState(null);
-
   const testTypeOptions = labResultOptions.map((item) => item.lab_result_name);
-
-  const getNow = () => new Date().toLocaleDateString();
 
   useEffect(() => {
     getAllLabResultMasters();
@@ -49,22 +50,35 @@ export default function LabResultsTab({ recordId, patientId }) {
     }
   }, [recordId]);
 
-  const handleCreate = async () => {
-    if (!form.test_type) return;
+  const getImageUrl = (imagePath) => {
+    if (!imagePath) return "";
+    if (imagePath.startsWith("http")) return imagePath;
+    return `${API_BASE}${imagePath}`;
+  };
 
-    const res = await createLabResult(recordId, {
-      patient_id: patientId,
-      ...form,
-    });
+  const handleCreate = async () => {
+    if (!recordId || !form.test_type) return;
+
+    const formData = new FormData();
+    formData.append("patient_id", patientId);
+    formData.append("test_type", form.test_type);
+    formData.append("result", form.result || "");
+    formData.append("interpretation", form.interpretation || "");
+
+    if (selectedFile) {
+      formData.append("lab_image", selectedFile);
+    }
+
+    const res = await createLabResult(recordId, formData);
 
     if (res?.ok !== false) {
       setForm({
         test_type: "",
         result: "",
         interpretation: "",
-        lab_img_path: "",
       });
-      getLabResultsByRecord(recordId);
+      setSelectedFile(null);
+      await getLabResultsByRecord(recordId);
     }
   };
 
@@ -86,7 +100,7 @@ export default function LabResultsTab({ recordId, patientId }) {
 
     if (res?.ok !== false) {
       setEditingId(null);
-      getLabResultsByRecord(recordId);
+      await getLabResultsByRecord(recordId);
     }
   };
 
@@ -94,21 +108,23 @@ export default function LabResultsTab({ recordId, patientId }) {
     const res = await deleteLabResult(resultId);
 
     if (res?.ok !== false) {
-      getLabResultsByRecord(recordId);
+      await getLabResultsByRecord(recordId);
     }
   };
 
-  const handleImagePlaceholder = () => {
-    alert("Image upload placeholder only. Implement actual upload later.");
+  const handleUploadExistingImage = async (labResultId, file) => {
+    if (!file) return;
+
+    const res = await updateLabResultImage(labResultId, recordId, file);
+
+    if (res?.ok !== false) {
+      await getLabResultsByRecord(recordId);
+    }
   };
 
   const handleViewImage = (imagePath) => {
-    if (!imagePath) {
-      alert("No image uploaded yet.");
-      return;
-    }
-
-    setPreviewImage(imagePath);
+    if (!imagePath) return;
+    setPreviewImage(getImageUrl(imagePath));
   };
 
   return (
@@ -143,18 +159,25 @@ export default function LabResultsTab({ recordId, patientId }) {
             </button>
           </div>
 
-          <button
-            type="button"
-            onClick={handleImagePlaceholder}
-            className="rounded-lg border border-dashed border-gray-400 bg-white px-4 py-2 text-sm font-semibold text-gray-600 hover:bg-gray-100"
-          >
-            Upload Lab Image Placeholder
-          </button>
+          <input
+            type="file"
+            accept="image/*"
+            onChange={(e) => setSelectedFile(e.target.files?.[0] || null)}
+            className="rounded-lg border border-dashed border-gray-400 bg-white px-4 py-2 text-sm"
+          />
         </div>
 
         <p className="text-sm text-gray-500">
           Image Status:{" "}
-          <span className="font-semibold text-red-600">No image uploaded</span>
+          {selectedFile ? (
+            <span className="font-semibold text-green-600">
+              {selectedFile.name}
+            </span>
+          ) : (
+            <span className="font-semibold text-red-600">
+              No image uploaded
+            </span>
+          )}
         </p>
 
         <button
@@ -185,9 +208,6 @@ export default function LabResultsTab({ recordId, patientId }) {
                   Image Status
                 </th>
                 <th className="px-4 py-3 text-center text-sm font-semibold">
-                  Date
-                </th>
-                <th className="px-4 py-3 text-center text-sm font-semibold">
                   Actions
                 </th>
               </tr>
@@ -205,36 +225,23 @@ export default function LabResultsTab({ recordId, patientId }) {
                 >
                   <td className="px-4 py-4 text-center text-sm text-gray-800">
                     {editingId === item.result_id ? (
-                      <div className="flex gap-2">
-                        <select
-                          value={editForm.test_type}
-                          onChange={(e) =>
-                            setEditForm((prev) => ({
-                              ...prev,
-                              test_type: e.target.value,
-                            }))
-                          }
-                          className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm"
-                        >
-                          <option value="">Select Test Type</option>
-                          {testTypeOptions.map((option) => (
-                            <option key={option} value={option}>
-                              {option}
-                            </option>
-                          ))}
-                        </select>
-
-                        <button
-                          type="button"
-                          onClick={() =>
-                            navigate("/user/patients/management")
-                          }
-                          className="rounded-lg bg-gray-100 px-3 py-2 text-sm font-bold text-blue-600 hover:bg-blue-100"
-                          title="Manage lab result options"
-                        >
-                          +
-                        </button>
-                      </div>
+                      <select
+                        value={editForm.test_type}
+                        onChange={(e) =>
+                          setEditForm((prev) => ({
+                            ...prev,
+                            test_type: e.target.value,
+                          }))
+                        }
+                        className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm"
+                      >
+                        <option value="">Select Test Type</option>
+                        {testTypeOptions.map((option) => (
+                          <option key={option} value={option}>
+                            {option}
+                          </option>
+                        ))}
+                      </select>
                     ) : (
                       item.test_type
                     )}
@@ -249,17 +256,21 @@ export default function LabResultsTab({ recordId, patientId }) {
                         View Image
                       </button>
                     ) : (
-                      <button
-                        onClick={handleImagePlaceholder}
-                        className="font-semibold text-red-500 hover:text-red-700"
-                      >
+                      <label className="cursor-pointer font-semibold text-red-500 hover:text-red-700">
                         No Image - Upload
-                      </button>
+                        <input
+                          type="file"
+                          accept="image/*"
+                          hidden
+                          onChange={(e) =>
+                            handleUploadExistingImage(
+                              item.result_id,
+                              e.target.files?.[0],
+                            )
+                          }
+                        />
+                      </label>
                     )}
-                  </td>
-
-                  <td className="px-4 py-4 text-center text-sm text-gray-800">
-                    {getNow()}
                   </td>
 
                   <td className="px-4 py-4 text-center">
@@ -272,6 +283,7 @@ export default function LabResultsTab({ recordId, patientId }) {
                           >
                             Save
                           </button>
+
                           <button
                             onClick={() => setEditingId(null)}
                             className="text-sm font-semibold text-gray-600 hover:text-gray-800"
@@ -287,6 +299,7 @@ export default function LabResultsTab({ recordId, patientId }) {
                           >
                             Edit
                           </button>
+
                           <button
                             onClick={() => handleDelete(item.result_id)}
                             className="text-sm font-semibold text-red-500 hover:text-red-700"
@@ -305,8 +318,8 @@ export default function LabResultsTab({ recordId, patientId }) {
       )}
 
       {previewImage && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4">
-          <div className="w-full max-w-lg rounded-2xl bg-white p-5 shadow-xl">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4">
+          <div className="w-full max-w-5xl rounded-2xl bg-white p-5 shadow-xl">
             <div className="mb-4 flex items-center justify-between">
               <h3 className="text-lg font-semibold text-gray-800">
                 Lab Image Preview
@@ -314,18 +327,17 @@ export default function LabResultsTab({ recordId, patientId }) {
 
               <button
                 onClick={() => setPreviewImage(null)}
-                className="text-xl text-gray-500 hover:text-gray-700"
+                className="text-2xl text-gray-500 hover:text-gray-700"
               >
                 ×
               </button>
             </div>
 
-            <div className="rounded-xl border border-gray-200 bg-gray-50 p-6 text-center text-sm text-gray-500">
-              Image preview placeholder:
-              <div className="mt-2 font-semibold text-gray-700">
-                {previewImage}
-              </div>
-            </div>
+            <img
+              src={previewImage}
+              alt="Lab result"
+              className="max-h-[75vh] w-full rounded-xl object-contain"
+            />
           </div>
         </div>
       )}

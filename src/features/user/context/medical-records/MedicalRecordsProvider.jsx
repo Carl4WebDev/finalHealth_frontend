@@ -32,6 +32,8 @@ import {
   updateCertificateApi,
   deleteCertificateApi,
 
+  updateLabResultImageApi,
+
   getMedicalRecordByAppointmentIdApi,
 } from "../../api/medicalRecordsApi.js";
 
@@ -404,6 +406,21 @@ const uploadMedicalRecordDocument = async (recordId, file) => {
     }
   };
 
+  const updateLabResultImage = async (labResultId, recordId, file) => {
+  const formData = new FormData();
+  formData.append("lab_image", file);
+
+  const res = await updateLabResultImageApi(labResultId, formData);
+
+  if (!res.ok) {
+    return false;
+  }
+
+  await getLabResultsByRecord(recordId);
+
+  return res;
+};
+
   const updatePrescription = async (prescriptionId, prescriptionData) => {
     setError(null);
 
@@ -489,26 +506,17 @@ const uploadMedicalRecordDocument = async (recordId, file) => {
     }
   };
 
-  const createLabResult = async (recordId, labResultData) => {
-    setError(null);
+const createLabResult = async (recordId, formData) => {
+  const res = await createLabResultApi(recordId, formData);
 
-    try {
-      const res = await createLabResultApi(recordId, labResultData);
+  if (!res.ok) {
+    return false;
+  }
 
-      if (!res.ok) {
-        setError(res.message);
-        return res;
-      }
+  await getLabResultsByRecord(recordId);
 
-      return {
-        ...res,
-        labResult: res.data.labResult,
-      };
-    } catch (err) {
-      setError("Something went wrong");
-      return { ok: false, message: "Something went wrong" };
-    }
-  };
+  return res;
+};
 
   const updateLabResult = async (resultId, labResultData) => {
     setError(null);
@@ -737,6 +745,8 @@ const uploadMedicalRecordDocument = async (recordId, file) => {
     medicalRecordByAppointment,
 loadingMedicalRecordByAppointment,
 getMedicalRecordByAppointmentId,
+
+updateLabResultImage,
     
   }}
 >
