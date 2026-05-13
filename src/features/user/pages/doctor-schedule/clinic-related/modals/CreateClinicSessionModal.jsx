@@ -25,17 +25,35 @@ export default function CreateClinicSessionModal({
   getDoctorsByClinic,
 } = useDoctors();
 
-const { createDoctorSession } = useDoctorSessions();
-
+const {
+  createDoctorSession,
+  allDoctorSessions,
+  getAllDoctorSessions,
+} = useDoctorSessions();
 
 
 const [selectedDoctorId, setSelectedDoctorId] = useState("");
+const [selectedDoctorSessions, setSelectedDoctorSessions] = useState([]);
+
+useEffect(() => {
+  if (!selectedDoctorId) {
+    setSelectedDoctorSessions([]);
+    return;
+  }
+
+  getAllDoctorSessions(selectedDoctorId);
+}, [selectedDoctorId]);
+
+useEffect(() => {
+  setSelectedDoctorSessions(allDoctorSessions || []);
+}, [allDoctorSessions]);
 
 useEffect(() => {
   if (clinicId) {
     getDoctorsByClinic(clinicId);
   }
 }, []);
+
 
   const [sessions, setSessions] = useState(
     DAYS.map((day) => ({
@@ -76,6 +94,19 @@ useEffect(() => {
       return updated;
     });
   };
+
+  
+
+  const formatTimeForDisplay = (time) => {
+  if (!time) return "N/A";
+
+  const [hours, minutes] = time.split(":");
+  const hour = parseInt(hours, 10);
+  const ampm = hour >= 12 ? "PM" : "AM";
+  const displayHour = hour % 12 || 12;
+
+  return `${displayHour}:${minutes} ${ampm}`;
+};
 
   const handleSubmit = async () => {
     const validSessions = sessions.filter(
@@ -158,6 +189,58 @@ useEffect(() => {
       </option>
     ))}
   </select>
+
+{selectedDoctorId && (
+  <div className="mb-6 border border-blue-200 rounded-xl bg-blue-50/40 p-4">
+    <h4 className="font-semibold text-blue-700 mb-3">
+      Doctor Existing Sessions
+    </h4>
+
+    {selectedDoctorSessions.length === 0 ? (
+      <p className="text-sm text-gray-500">
+        No existing sessions found for this doctor.
+      </p>
+    ) : (
+      <div className="overflow-x-auto">
+        <table className="w-full text-sm border border-blue-200">
+          <thead className="bg-blue-600 text-white">
+            <tr>
+              <th className="text-left py-2 px-3">Day</th>
+              <th className="text-left py-2 px-3">Clinic</th>
+              <th className="text-left py-2 px-3">Start Time</th>
+              <th className="text-left py-2 px-3">End Time</th>
+            </tr>
+          </thead>
+
+          <tbody>
+            {selectedDoctorSessions.map((session) => (
+              <tr
+                key={session.id || session.session_id}
+                className="border-b border-blue-100"
+              >
+                <td className="py-2 px-3">
+                  {session.day || session.day_of_week}
+                </td>
+
+                <td className="py-2 px-3">
+                  {session.clinic || session.clinic_name || "N/A"}
+                </td>
+
+                <td className="py-2 px-3">
+                  {session.startTime || session.start_time}
+                </td>
+
+                <td className="py-2 px-3">
+                  {session.endTime || session.end_time}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    )}
+  </div>
+)}
 </div>
 
           {/* Days Selection */}
