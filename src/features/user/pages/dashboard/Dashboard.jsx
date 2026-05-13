@@ -273,11 +273,22 @@ export default function Dashboard() {
       ? Math.round((analytics.visit_types?.returning / actualPatients) * 100) 
       : 0;
 
+    const totalRevenue = analytics.clinic_revenue?.reduce((acc, curr) => acc + curr.value, 0) || 0;
+
     return (
       <div className="space-y-6 mb-8">
         
         {/* ROW 1: ADVANCED STAT CARDS */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+
+          {/* 1. TOTAL INCOME (New) */}
+        <div className="bg-white p-5 rounded-xl border border-gray-200 shadow-sm border-l-4 border-l-green-500">
+          <p className="text-sm font-medium text-gray-500 uppercase">Total Clinic Income</p>
+          <p className="text-3xl font-bold text-gray-900 mt-2">
+            ₱{(analytics.clinic_revenue?.reduce((acc, curr) => acc + curr.value, 0) || 0).toLocaleString()}
+          </p>
+          <p className="text-xs text-green-600 mt-1 font-medium">From all clinics</p>
+        </div>
 
           {/* NEW: Total Patients Card */}
           <div className="bg-white p-5 rounded-xl border border-gray-200 shadow-sm">
@@ -303,12 +314,7 @@ export default function Dashboard() {
             </div>
           </div>
 
-          {/* Busiest Day */}
-          <div className="bg-white p-5 rounded-xl border border-gray-200 shadow-sm">
-            <p className="text-sm font-medium text-gray-500 uppercase">Busiest Day</p>
-            <p className="text-2xl font-bold text-indigo-600 mt-2">{analytics.busiestDay}</p>
-            <p className="text-xs text-gray-400 mt-1 italic">Peak patient traffic</p>
-          </div>
+
 
           {/* Repeat Visit Rate */}
           <div className="bg-white p-5 rounded-xl border border-gray-200 shadow-sm">
