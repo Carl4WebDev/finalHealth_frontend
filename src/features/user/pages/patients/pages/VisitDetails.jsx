@@ -34,6 +34,23 @@ export default function VisitDetails() {
     [medicalRecordByAppointment]
   );
 
+  const requiresRecord = [
+    "vitals",
+    "prescription",
+    "lab-results",
+    "certificates",
+    "fees",
+  ];
+
+  const handleTabClick = (tabKey) => {
+    if (!recordId && requiresRecord.includes(tabKey)) {
+      setActiveTab("medical-record");
+      return;
+    }
+
+    setActiveTab(tabKey);
+  };
+
   const tabs = [
     { key: "medical-record", label: "Medical Record" },
     { key: "vitals", label: "Vitals" },
@@ -55,26 +72,34 @@ export default function VisitDetails() {
           </Link>
 
           <div className="text-sm text-gray-600">
-            <span className="font-semibold">Appointment ID:</span> {appointmentId}
+            <span className="font-semibold">Appointment ID:</span>{" "}
+            {appointmentId}
             {" • "}
-            <span className="font-semibold">Record ID:</span> {recordId || "No medical record yet"}
+            <span className="font-semibold">Record ID:</span>{" "}
+            {recordId || "No medical record yet"}
           </div>
         </div>
 
         <div className="flex flex-wrap gap-2">
-          {tabs.map((tab) => (
-            <button
-              key={tab.key}
-              onClick={() => setActiveTab(tab.key)}
-              className={`rounded-lg px-4 py-2 text-sm font-semibold transition ${
-                activeTab === tab.key
-                  ? "bg-blue-600 text-white"
-                  : "bg-gray-200 text-gray-700 hover:bg-gray-300"
-              }`}
-            >
-              {tab.label}
-            </button>
-          ))}
+          {tabs.map((tab) => {
+            const isLocked = !recordId && requiresRecord.includes(tab.key);
+
+            return (
+              <button
+                key={tab.key}
+                onClick={() => handleTabClick(tab.key)}
+                className={`rounded-lg px-4 py-2 text-sm font-semibold transition ${
+                  activeTab === tab.key
+                    ? "bg-blue-600 text-white"
+                    : isLocked
+                      ? "cursor-not-allowed bg-gray-100 text-gray-400"
+                      : "bg-gray-200 text-gray-700 hover:bg-gray-300"
+                }`}
+              >
+                {tab.label}
+              </button>
+            );
+          })}
         </div>
 
         {loadingMedicalRecordByAppointment ? (
@@ -84,11 +109,11 @@ export default function VisitDetails() {
         ) : (
           <div className="rounded-2xl bg-white p-6 shadow-sm">
             {activeTab === "medical-record" && (
-<MedicalRecordTab
-  appointmentId={appointmentId}
-  patientId={patientId}
-  medicalRecord={medicalRecordByAppointment}
-/>
+              <MedicalRecordTab
+                appointmentId={appointmentId}
+                patientId={patientId}
+                medicalRecord={medicalRecordByAppointment}
+              />
             )}
 
             {activeTab === "vitals" && (
@@ -112,10 +137,10 @@ export default function VisitDetails() {
             )}
 
             {activeTab === "fees" && (
-<FeesTab
-  recordId={recordId}
-  medicalRecord={medicalRecordByAppointment}
-/>
+              <FeesTab
+                recordId={recordId}
+                medicalRecord={medicalRecordByAppointment}
+              />
             )}
           </div>
         )}

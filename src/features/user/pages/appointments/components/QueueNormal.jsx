@@ -91,8 +91,7 @@ export default function QueueNormal({ data = [], loading }) {
                 <div className="flex flex-col gap-2 sm:flex-row md:flex-col lg:flex-row">
                   {sectionType === "waiting" && (
                     <button
-                      className="rounded bg-yellow-100 px-3 py-2 text-xs font-medium text-yellow-700 transition hover:bg-yellow-200"
-                      onClick={() =>
+className="rounded-xl bg-yellow-500 px-4 py-2 text-xs font-bold text-white shadow-sm transition hover:bg-yellow-600 active:scale-95"                      onClick={() =>
                         updateQueueStatus(q.queueEntryId, "in-progress")
                       }
                     >
@@ -102,8 +101,7 @@ export default function QueueNormal({ data = [], loading }) {
 
                   {sectionType === "in-progress" && (
                     <button
-                      className="rounded bg-green-100 px-3 py-2 text-xs font-medium text-green-700 transition hover:bg-green-200"
-                      onClick={() =>
+className="rounded-xl bg-green-600 px-4 py-2 text-xs font-bold text-white shadow-sm transition hover:bg-green-700 active:scale-95"                      onClick={() =>
                         updateQueueStatus(q.queueEntryId, "completed")
                       }
                     >

@@ -148,7 +148,7 @@ export default function CertificatesTab({ recordId, patientId }) {
 
             <button
               type="button"
-              onClick={() => navigate("/diagnosis-treatment-management")}
+              onClick={() => navigate("/user/patients/management")}
               className="rounded-lg bg-gray-100 px-3 py-2 text-sm font-bold text-blue-600 hover:bg-blue-100"
               title="Manage certificate options"
             >
@@ -259,7 +259,7 @@ export default function CertificatesTab({ recordId, patientId }) {
                         <button
                           type="button"
                           onClick={() =>
-                            navigate("/diagnosis-treatment-management")
+                            navigate("/user/patients/management")
                           }
                           className="rounded-lg bg-gray-100 px-3 py-2 text-sm font-bold text-blue-600 hover:bg-blue-100"
                           title="Manage certificate options"
