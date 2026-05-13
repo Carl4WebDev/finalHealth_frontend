@@ -120,10 +120,16 @@ export const getCertificatesByRecordApi = (recordId) =>
 export const getCertificateByIdApi = (certificateId) =>
   apiRequest(`/api/med-routes/certificates/${certificateId}`);
 
-export const createCertificateApi = (recordId, certificateData) =>
+export const createCertificateApi = (recordId, data) =>
   apiRequest(`/api/med-routes/record/${recordId}/certificates`, {
     method: "POST",
-    body: JSON.stringify(certificateData),
+    body: JSON.stringify(data),
+  });
+
+export const updateCertificateImageApi = (certificateId, formData) =>
+  apiFormRequest(`/api/med-routes/certificates/${certificateId}/image`, {
+    method: "PATCH",
+    body: formData,
   });
 
 export const updateCertificateApi = (certificateId, certificateData) =>

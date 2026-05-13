@@ -3,6 +3,8 @@ import { useNavigate } from "react-router-dom";
 import { useMedicalRecords } from "../../../../context/medical-records/useMedicalRecords.js";
 import { useCertificateMaster } from "../../../../context/certificate-master/useCertificateMaster.js";
 
+const API_BASE = import.meta.env.VITE_API_BASE;
+
 const REMARK_OPTIONS = [
   "Patient is fit to resume work.",
   "Patient advised to rest for 3 days.",
@@ -20,12 +22,11 @@ export default function CertificatesTab({ recordId, patientId }) {
     createCertificate,
     updateCertificate,
     deleteCertificate,
+    updateCertificateImage,
   } = useMedicalRecords();
 
-  const {
-    certificates: certificateOptions,
-    getAllCertificateMasters,
-  } = useCertificateMaster();
+  const { certificates: certificateOptions, getAllCertificateMasters } =
+    useCertificateMaster();
 
   const [form, setForm] = useState({
     certificate_type: "",
@@ -34,22 +35,17 @@ export default function CertificatesTab({ recordId, patientId }) {
   });
 
   const [editingId, setEditingId] = useState(null);
+  const [previewImage, setPreviewImage] = useState(null);
+
   const [editForm, setEditForm] = useState({
     certificate_type: "",
     remarks: "",
     certificates_img_path: "",
   });
 
-  const [previewImage, setPreviewImage] = useState(null);
-
   const certificateTypeOptions = certificateOptions.map(
     (item) => item.certificate_name
   );
-
-  const formatDate = (dateValue) => {
-    if (!dateValue) return new Date().toLocaleDateString();
-    return new Date(dateValue).toLocaleDateString();
-  };
 
   useEffect(() => {
     getAllCertificateMasters();
@@ -61,8 +57,19 @@ export default function CertificatesTab({ recordId, patientId }) {
     }
   }, [recordId]);
 
+  const formatDate = (dateValue) => {
+    if (!dateValue) return new Date().toLocaleDateString();
+    return new Date(dateValue).toLocaleDateString();
+  };
+
+  const getImageUrl = (imagePath) => {
+    if (!imagePath) return "";
+    if (imagePath.startsWith("http")) return imagePath;
+    return `${API_BASE}${imagePath}`;
+  };
+
   const handleCreate = async () => {
-    if (!form.certificate_type) return;
+    if (!recordId || !form.certificate_type) return;
 
     const res = await createCertificate(recordId, {
       patient_id: patientId,
@@ -75,7 +82,8 @@ export default function CertificatesTab({ recordId, patientId }) {
         remarks: "",
         certificates_img_path: "",
       });
-      getCertificatesByRecord(recordId);
+
+      await getCertificatesByRecord(recordId);
     }
   };
 
@@ -96,7 +104,7 @@ export default function CertificatesTab({ recordId, patientId }) {
 
     if (res?.ok !== false) {
       setEditingId(null);
-      getCertificatesByRecord(recordId);
+      await getCertificatesByRecord(recordId);
     }
   };
 
@@ -104,21 +112,23 @@ export default function CertificatesTab({ recordId, patientId }) {
     const res = await deleteCertificate(certificateId);
 
     if (res?.ok !== false) {
-      getCertificatesByRecord(recordId);
+      await getCertificatesByRecord(recordId);
     }
   };
 
-  const handleImagePlaceholder = () => {
-    alert("Image upload placeholder only. Implement actual upload later.");
+  const handleUploadExistingImage = async (certificateId, file) => {
+    if (!file) return;
+
+    const res = await updateCertificateImage(certificateId, recordId, file);
+
+    if (res?.ok !== false) {
+      await getCertificatesByRecord(recordId);
+    }
   };
 
   const handleViewImage = (imagePath) => {
-    if (!imagePath) {
-      alert("No image uploaded yet.");
-      return;
-    }
-
-    setPreviewImage(imagePath);
+    if (!imagePath) return;
+    setPreviewImage(getImageUrl(imagePath));
   };
 
   return (
@@ -126,7 +136,7 @@ export default function CertificatesTab({ recordId, patientId }) {
       <h2 className="text-lg font-semibold text-gray-800">Certificates</h2>
 
       <div className="rounded-xl bg-gray-50 p-4 space-y-4">
-        <div className="grid gap-3 md:grid-cols-3">
+        <div className="grid gap-3 md:grid-cols-2">
           <div className="flex gap-2">
             <select
               value={form.certificate_type}
@@ -139,6 +149,7 @@ export default function CertificatesTab({ recordId, patientId }) {
               className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm"
             >
               <option value="">Select Certificate Type</option>
+
               {certificateTypeOptions.map((option) => (
                 <option key={option} value={option}>
                   {option}
@@ -171,20 +182,7 @@ export default function CertificatesTab({ recordId, patientId }) {
               <option key={option} value={option} />
             ))}
           </datalist>
-
-          <button
-            type="button"
-            onClick={handleImagePlaceholder}
-            className="rounded-lg border border-dashed border-gray-400 bg-white px-4 py-2 text-sm font-semibold text-gray-600 hover:bg-gray-100"
-          >
-            Upload Certificate Image Placeholder
-          </button>
         </div>
-
-        <p className="text-sm text-gray-500">
-          Image Status:{" "}
-          <span className="font-semibold text-red-600">No image uploaded</span>
-        </p>
 
         <button
           onClick={handleCreate}
@@ -237,36 +235,24 @@ export default function CertificatesTab({ recordId, patientId }) {
                 >
                   <td className="px-4 py-4 text-center text-sm text-gray-800">
                     {editingId === item.certificates_id ? (
-                      <div className="flex gap-2">
-                        <select
-                          value={editForm.certificate_type}
-                          onChange={(e) =>
-                            setEditForm((prev) => ({
-                              ...prev,
-                              certificate_type: e.target.value,
-                            }))
-                          }
-                          className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm"
-                        >
-                          <option value="">Select Certificate Type</option>
-                          {certificateTypeOptions.map((option) => (
-                            <option key={option} value={option}>
-                              {option}
-                            </option>
-                          ))}
-                        </select>
+                      <select
+                        value={editForm.certificate_type}
+                        onChange={(e) =>
+                          setEditForm((prev) => ({
+                            ...prev,
+                            certificate_type: e.target.value,
+                          }))
+                        }
+                        className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm"
+                      >
+                        <option value="">Select Certificate Type</option>
 
-                        <button
-                          type="button"
-                          onClick={() =>
-                            navigate("/user/patients/management")
-                          }
-                          className="rounded-lg bg-gray-100 px-3 py-2 text-sm font-bold text-blue-600 hover:bg-blue-100"
-                          title="Manage certificate options"
-                        >
-                          +
-                        </button>
-                      </div>
+                        {certificateTypeOptions.map((option) => (
+                          <option key={option} value={option}>
+                            {option}
+                          </option>
+                        ))}
+                      </select>
                     ) : (
                       item.certificate_type
                     )}
@@ -310,12 +296,20 @@ export default function CertificatesTab({ recordId, patientId }) {
                         View Image
                       </button>
                     ) : (
-                      <button
-                        onClick={handleImagePlaceholder}
-                        className="font-semibold text-red-500 hover:text-red-700"
-                      >
+                      <label className="cursor-pointer font-semibold text-red-500 hover:text-red-700">
                         No Image - Upload
-                      </button>
+                        <input
+                          type="file"
+                          accept="image/*"
+                          hidden
+                          onChange={(e) =>
+                            handleUploadExistingImage(
+                              item.certificates_id,
+                              e.target.files?.[0]
+                            )
+                          }
+                        />
+                      </label>
                     )}
                   </td>
 
@@ -333,6 +327,7 @@ export default function CertificatesTab({ recordId, patientId }) {
                           >
                             Save
                           </button>
+
                           <button
                             onClick={() => setEditingId(null)}
                             className="text-sm font-semibold text-gray-600 hover:text-gray-800"
@@ -348,6 +343,7 @@ export default function CertificatesTab({ recordId, patientId }) {
                           >
                             Edit
                           </button>
+
                           <button
                             onClick={() => handleDelete(item.certificates_id)}
                             className="text-sm font-semibold text-red-500 hover:text-red-700"
@@ -366,8 +362,8 @@ export default function CertificatesTab({ recordId, patientId }) {
       )}
 
       {previewImage && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4">
-          <div className="w-full max-w-lg rounded-2xl bg-white p-5 shadow-xl">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4">
+          <div className="w-full max-w-5xl rounded-2xl bg-white p-5 shadow-xl">
             <div className="mb-4 flex items-center justify-between">
               <h3 className="text-lg font-semibold text-gray-800">
                 Certificate Image Preview
@@ -375,18 +371,17 @@ export default function CertificatesTab({ recordId, patientId }) {
 
               <button
                 onClick={() => setPreviewImage(null)}
-                className="text-xl text-gray-500 hover:text-gray-700"
+                className="text-2xl text-gray-500 hover:text-gray-700"
               >
                 ×
               </button>
             </div>
 
-            <div className="rounded-xl border border-gray-200 bg-gray-50 p-6 text-center text-sm text-gray-500">
-              Image preview placeholder:
-              <div className="mt-2 font-semibold text-gray-700">
-                {previewImage}
-              </div>
-            </div>
+            <img
+              src={previewImage}
+              alt="Certificate"
+              className="max-h-[75vh] w-full rounded-xl object-contain"
+            />
           </div>
         </div>
       )}

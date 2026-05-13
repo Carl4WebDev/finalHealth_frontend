@@ -34,6 +34,8 @@ import {
 
   updateLabResultImageApi,
 
+  updateCertificateImageApi,
+
   getMedicalRecordByAppointmentIdApi,
 } from "../../api/medicalRecordsApi.js";
 
@@ -82,6 +84,21 @@ const [loadingMedicalRecordByAppointment, setLoadingMedicalRecordByAppointment] 
   useState(false);
 
 
+
+  const updateCertificateImage = async (certificateId, recordId, file) => {
+  const formData = new FormData();
+  formData.append("certificate_image", file);
+
+  const res = await updateCertificateImageApi(certificateId, formData);
+
+  if (!res.ok) {
+    return false;
+  }
+
+  await getCertificatesByRecord(recordId);
+
+  return res;
+};
 const getPatientVisitHistory = async (patientId) => {
   setLoadingPatientVisitHistory(true);
   setError(null);
@@ -747,6 +764,7 @@ loadingMedicalRecordByAppointment,
 getMedicalRecordByAppointmentId,
 
 updateLabResultImage,
+updateCertificateImage
     
   }}
 >
