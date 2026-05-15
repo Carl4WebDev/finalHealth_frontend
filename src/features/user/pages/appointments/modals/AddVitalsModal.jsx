@@ -144,11 +144,12 @@ export default function AddVitalsModal({
       return;
     }
 
-    if (onSuccess) {
-      onSuccess(res);
-    }
+if (onSuccess) {
+  onSuccess(res);
+  return;
+}
 
-    onClose();
+onClose();
   };
 
   return (

@@ -9,6 +9,9 @@ import ViewPatientModal from "../modals/ViewPatientModal";
 import CancelAppointmentModal from "../modals/CancelAppointmentModal";
 import AddVitalsModal from "../modals/AddVitalsModal";
 
+import ConsultationMedicalRecordModal from "../modals/ConsultationMedicalRecordModal";
+import PreEmploymentMedicalRecordModal from "../modals/PreEmploymentMedicalRecordModal";
+
 export default function TodayAppointments({ data }) {
   const { loading, error, cancelAppointment, getAllAppointments } =
     useAppointments();
@@ -31,6 +34,11 @@ export default function TodayAppointments({ data }) {
   const [showView, setShowView] = useState(false);
   const [showCancel, setShowCancel] = useState(false);
   const [showAddVitals, setShowAddVitals] = useState(false);
+
+  const [showConsultationModal, setShowConsultationModal] = useState(false);
+
+const [showPreEmploymentModal, setShowPreEmploymentModal] =
+  useState(false);
 
   const [visibleAppointments, setVisibleAppointments] = useState(data);
 
@@ -169,16 +177,53 @@ export default function TodayAppointments({ data }) {
         onConfirm={handleCancelConfirm}
       />
 
-      <AddVitalsModal
-        isOpen={showAddVitals}
-        onClose={closeVitalsModal}
-        patient={queuedAppointmentForVitals}
-        appointmentId={queuedAppointmentForVitals?.appointment_id || ""}
-        onSuccess={() => {
-          setShowAddVitals(false);
-          setQueuedAppointmentForVitals(null);
-        }}
-      />
+<AddVitalsModal
+  isOpen={showAddVitals}
+  onClose={closeVitalsModal}
+  patient={queuedAppointmentForVitals}
+  appointmentId={queuedAppointmentForVitals?.appointment_id || ""}
+  onSuccess={() => {
+    const appointmentType =
+      queuedAppointmentForVitals?.appointment_type
+        ?.toLowerCase()
+        ?.trim();
+
+    setShowAddVitals(false);
+
+    if (
+      appointmentType === "pre-employment" ||
+      appointmentType === "pre employment"
+    ) {
+      setShowPreEmploymentModal(true);
+      return;
+    }
+
+    if (appointmentType === "consultation") {
+      setShowConsultationModal(true);
+      return;
+    }
+
+    setQueuedAppointmentForVitals(null);
+  }}
+/>
+
+<ConsultationMedicalRecordModal
+  isOpen={showConsultationModal}
+  appointment={queuedAppointmentForVitals}
+  onClose={() => {
+    setShowConsultationModal(false);
+    setQueuedAppointmentForVitals(null);
+  }}
+/>
+
+<PreEmploymentMedicalRecordModal
+  isOpen={showPreEmploymentModal}
+  appointment={queuedAppointmentForVitals}
+  onClose={() => {
+    setShowPreEmploymentModal(false);
+    setQueuedAppointmentForVitals(null);
+  }}
+/>
 
       {queueSuccessOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center px-4">
