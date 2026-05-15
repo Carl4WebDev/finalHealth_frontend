@@ -15,9 +15,8 @@ export default function SubscriptionModal({
       subtitle: "/forever",
       features: [
         "1 user access",
-        "Basic clinic tools",
+        "Basic clinic tools (appointments, queueing, doctor and clinic management)",
         "Limited support",
-        "No commitment",
       ],
       disabled: true,
     },
@@ -27,11 +26,11 @@ export default function SubscriptionModal({
       price: "₱499",
       subtitle: "/month",
       features: [
-        "5 user access",
+        "2 user access",
         "Full feature access",
         "Priority support",
         "Cancel anytime",
-        "Data backup",
+        "50 medical record each patient",
       ],
       popular: true,
     },
@@ -41,11 +40,9 @@ export default function SubscriptionModal({
       price: "₱4,999",
       subtitle: "/year",
       features: [
-        "Up to 10 users",
+        "more than 5 users",
         "Full feature + analytics",
         "24/7 support",
-        "2 months free",
-        "Dedicated manager",
       ],
     },
   ];

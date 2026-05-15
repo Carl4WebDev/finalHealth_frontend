@@ -2,10 +2,92 @@ import React, { useState, useEffect } from "react";
 import { loginUser, registerUser } from "../../user/api/userApi";
 import { useNavigate } from "react-router-dom";
 
+const AgreementModal = ({ onClose, onAccept }) => {
+  return (
+    <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center p-4 z-[60]">
+      <div className="bg-white rounded-2xl shadow-xl border border-blue-200 max-w-lg w-full max-h-[85vh] overflow-y-auto p-6">
+        <h2 className="text-xl font-bold text-blue-700 mb-2">
+          FinalHealth User Agreement
+        </h2>
+
+        <p className="text-sm text-gray-600 mb-4">
+          Before creating your account, please read and confirm that you
+          understand how FinalHealth protects your information and manages your
+          access.
+        </p>
+
+        <div className="space-y-4 text-sm text-gray-700 leading-relaxed">
+          <p>
+            By creating an account, you acknowledge that FinalHealth is a
+            healthcare management platform designed to help clinics manage
+            appointments, patient records, medical documents, and related clinic
+            operations securely.
+          </p>
+
+          <p>
+            Your personal information will be used only for account creation,
+            identity verification, clinic-related access, communication, and
+            system security purposes.
+          </p>
+
+          <p>
+            FinalHealth applies role-based access control, meaning users can only
+            access the information and features allowed for their assigned role.
+            This helps protect sensitive clinic and patient data.
+          </p>
+
+          <p>
+            You agree to provide accurate information and to keep your login
+            credentials confidential. You are responsible for activities made
+            using your account.
+          </p>
+
+          <p>
+            FinalHealth does not publicly share your personal information. Data
+            is handled with confidentiality and is used only for system-related
+            healthcare operations.
+          </p>
+
+          <p>
+            By clicking “I Agree”, you confirm that you have read, understood,
+            and accepted the Terms, Privacy Notice, and responsible use of the
+            FinalHealth platform.
+          </p>
+        </div>
+
+        <div className="mt-6 bg-blue-50 border border-blue-200 rounded-lg p-4 text-sm text-blue-800">
+          <p className="font-semibold mb-1">Your data is handled with care.</p>
+          <p>
+            FinalHealth is built to support secure account access, protected
+            medical records, and responsible clinic data management.
+          </p>
+        </div>
+
+        <div className="flex gap-3 mt-6">
+          <button
+            type="button"
+            onClick={onClose}
+            className="w-full py-3 rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-100 transition"
+          >
+            Cancel
+          </button>
+
+          <button
+            type="button"
+            onClick={onAccept}
+            className="w-full py-3 rounded-lg bg-blue-600 text-white hover:bg-blue-700 transition font-semibold"
+          >
+            I Agree
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
 const AuthModal = ({ mode, onClose, onSwitchMode }) => {
   const navigate = useNavigate();
 
-  // camelCase DTO-ready state
   const [formData, setFormData] = useState({
     fName: "",
     mName: "",
@@ -20,25 +102,33 @@ const AuthModal = ({ mode, onClose, onSwitchMode }) => {
 
   const [errors, setErrors] = useState({});
   const [loading, setLoading] = useState(false);
+  const [hasAcceptedAgreement, setHasAcceptedAgreement] = useState(false);
+  const [showAgreementModal, setShowAgreementModal] = useState(false);
 
-  // Close modal on Escape
   useEffect(() => {
     const handleEscape = (e) => {
       if (e.key === "Escape") onClose();
     };
+
     document.addEventListener("keydown", handleEscape);
     return () => document.removeEventListener("keydown", handleEscape);
   }, [onClose]);
 
-  // Lock scroll when modal is open
   useEffect(() => {
     document.body.style.overflow = "hidden";
+
     return () => {
       document.body.style.overflow = "unset";
     };
   }, []);
 
-  // Map IDs → camelCase DTO fields
+  useEffect(() => {
+    if (mode === "login") {
+      setHasAcceptedAgreement(false);
+      setShowAgreementModal(false);
+    }
+  }, [mode]);
+
   const handleInputChange = (e) => {
     const { id, value } = e.target;
 
@@ -53,18 +143,23 @@ const AuthModal = ({ mode, onClose, onSwitchMode }) => {
       lName: "lName",
       contactNum: "contactNum",
       birthDate: "birthDate",
+      address: "address",
+      confirmPassword: "confirmPassword",
     };
 
     const fieldKey = keyMap[id] || id;
 
     setFormData((prev) => ({ ...prev, [fieldKey]: value }));
 
-    if (errors[fieldKey]) {
-      setErrors((prev) => ({ ...prev, [fieldKey]: "" }));
+    if (errors[fieldKey] || errors.agreement) {
+      setErrors((prev) => ({
+        ...prev,
+        [fieldKey]: "",
+        agreement: "",
+      }));
     }
   };
 
-  // Validation aligned to camelCase
   const validateForm = () => {
     const newErrors = {};
 
@@ -76,75 +171,91 @@ const AuthModal = ({ mode, onClose, onSwitchMode }) => {
       if (!formData.mName) newErrors.mName = "Middle name is required";
       if (!formData.lName) newErrors.lName = "Last name is required";
 
-      if (!formData.email || !formData.email.includes("@"))
+      if (!formData.email || !formData.email.includes("@")) {
         newErrors.email = "Enter a valid email";
+      }
 
-      if (!formData.contactNum)
+      if (!formData.contactNum) {
         newErrors.contactNum = "Contact number is required";
+      }
 
       if (!formData.address) newErrors.address = "Address is required";
 
       if (!formData.birthDate) newErrors.birthDate = "Birth date is required";
 
-      if (formData.password.length < 8)
+      if (formData.password.length < 8) {
         newErrors.password = "Minimum 8 characters";
+      }
 
-      if (formData.password !== formData.confirmPassword)
+      if (formData.password !== formData.confirmPassword) {
         newErrors.confirmPassword = "Passwords do not match";
+      }
+
+      if (!hasAcceptedAgreement) {
+        newErrors.agreement =
+          "You must read and accept the FinalHealth agreement before creating an account.";
+      }
     }
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
-  // Submit handler for login/register
+  const handleAcceptAgreement = () => {
+    setHasAcceptedAgreement(true);
+    setShowAgreementModal(false);
+
+    setErrors((prev) => ({
+      ...prev,
+      agreement: "",
+    }));
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!validateForm()) return;
 
     setLoading(true);
 
-    // ---------- LOGIN ----------
-if (mode === "login") {
-  const res = await loginUser(formData.email, formData.password);
+    if (mode === "login") {
+      const res = await loginUser(formData.email, formData.password);
 
-  console.log("LOGIN RESPONSE:", res);
+      console.log("LOGIN RESPONSE:", res);
 
-  if (!res.ok) {
-    if (res.code === "INVALID_CREDENTIALS") {
-      setErrors({ password: "Invalid email or password" });
-    } else {
-      setErrors({ form: res.message });
+      if (!res.ok) {
+        if (res.code === "INVALID_CREDENTIALS") {
+          setErrors({ password: "Invalid email or password" });
+        } else {
+          setErrors({ form: res.message });
+        }
+
+        setLoading(false);
+        return;
+      }
+
+      localStorage.setItem("user_token", res.data.token);
+      localStorage.setItem("user", JSON.stringify(res.data.user));
+
+      if (res.data.subscriptionStatus === "expired") {
+        setLoading(false);
+        onClose();
+
+        navigate("/subscription-expired", {
+          state: {
+            message:
+              res.data.subscriptionMessage ||
+              "Your subscription has expired. Please renew to continue.",
+          },
+        });
+
+        return;
+      }
+
+      setLoading(false);
+      onClose();
+      navigate("/user/subscription");
     }
 
-    setLoading(false);
-    return;
-  }
-
-  localStorage.setItem("user_token", res.data.token);
-  localStorage.setItem("user", JSON.stringify(res.data.user));
-
-  // ✅ Redirect expired users immediately after login
-  if (res.data.subscriptionStatus === "expired") {
-    setLoading(false);
-    onClose();
-
-    navigate("/subscription-expired", {
-      state: {
-        message:
-          res.data.subscriptionMessage ||
-          "Your subscription has expired. Please renew to continue.",
-      },
-    });
-
-    return;
-  }
-
-  setLoading(false);
-  onClose();
-  navigate("/user/subscription");
-}
-    // ---------- REGISTER ----------
     if (mode === "register") {
       const payload = {
         fName: formData.fName,
@@ -171,6 +282,7 @@ if (mode === "login") {
       }
 
       setLoading(false);
+      setHasAcceptedAgreement(false);
       onSwitchMode("login");
       return;
     }
@@ -181,377 +293,403 @@ if (mode === "login") {
   };
 
   return (
-  <div
-    className="fixed inset-0 bg-blue-50/60 backdrop-blur-sm flex items-center justify-center p-4 z-50"
+    <>
+      <div
+        className="fixed inset-0 bg-blue-50/60 backdrop-blur-sm flex items-center justify-center p-4 z-50"
+        onClick={handleBackdropClick}
+      >
+        <div className="relative bg-white rounded-2xl border-4 border-blue-600 shadow-xl p-8 max-w-md w-full max-h-[90vh] overflow-y-auto">
+          <button
+            onClick={onClose}
+            className="absolute top-4 right-4 text-gray-500 hover:text-gray-700 text-2xl w-8 h-8 flex items-center justify-center rounded-full hover:bg-gray-100 transition-colors"
+          >
+            &times;
+          </button>
 
-      onClick={handleBackdropClick}
-    >
-      <div className="relative bg-white rounded-2xl border-4 border-blue-600 shadow-xl p-8 max-w-md w-full max-h-[90vh] overflow-y-auto">
-        {/* Close */}
-        <button
-          onClick={onClose}
-          className="absolute top-4 right-4 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 text-2xl w-8 h-8 flex items-center justify-center rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
-        >
-          &times;
-        </button>
-
-        {/* Logo */}
-        <div className="flex items-center justify-center mb-8">
-          <div className="w-8 h-8 bg-blue-600 rounded flex items-center justify-center mr-3">
-            <div className="w-4 h-5 bg-blue-600 border-2 border-white rounded-sm relative">
-              <div className="absolute w-1 h-1 bg-white rounded-full top-1 left-1/2 transform -translate-x-1/2 shadow-[0_-3px_0_white,0_-6px_0_white,0_3px_0_white]"></div>
+          <div className="flex items-center justify-center mb-8">
+            <div className="w-8 h-8 bg-blue-600 rounded flex items-center justify-center mr-3">
+              <div className="w-4 h-5 bg-blue-600 border-2 border-white rounded-sm relative">
+                <div className="absolute w-1 h-1 bg-white rounded-full top-1 left-1/2 transform -translate-x-1/2 shadow-[0_-3px_0_white,0_-6px_0_white,0_3px_0_white]"></div>
+              </div>
             </div>
+            <span className="text-2xl font-bold text-blue-600">
+              FinalHealth
+            </span>
           </div>
-          <span className="text-2xl font-bold text-blue-600 dark:text-blue-400">
-            FinalHealth
-          </span>
-        </div>
 
-        {/* ---------- LOGIN FORM ---------- */}
-        {mode === "login" && (
-          <form onSubmit={handleSubmit}>
-            {errors.form && (
-              <div className="bg-red-100 text-red-700 p-3 rounded mb-4 text-sm">
-                {errors.form}
-              </div>
-            )}
+          {mode === "login" && (
+            <form onSubmit={handleSubmit}>
+              {errors.form && (
+                <div className="bg-red-100 text-red-700 p-3 rounded mb-4 text-sm">
+                  {errors.form}
+                </div>
+              )}
 
-            <div className="space-y-4">
-              {/* Email */}
-              <div>
-                <label
-                  htmlFor="loginEmail"
-                  className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
-                >
-                  Email
-                </label>
-                <input
-                  type="text"
-                  id="loginEmail"
-                  value={formData.email}
-                  onChange={handleInputChange}
-                  className={`w-full px-4 py-3 border rounded-lg dark:bg-gray-700 dark:text-white ${
-                    errors.email
-                      ? "border-red-500"
-                      : "border-gray-300 dark:border-gray-600"
-                  }`}
-                  placeholder="Enter email"
-                />
-                {errors.email && (
-                  <p className="text-red-500 text-sm mt-1">{errors.email}</p>
-                )}
-              </div>
-
-              {/* Password */}
-              <div>
-                <label
-                  htmlFor="loginPassword"
-                  className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
-                >
-                  Password
-                </label>
-                <input
-                  type="password"
-                  id="loginPassword"
-                  value={formData.password}
-                  onChange={handleInputChange}
-                  className={`w-full px-4 py-3 border rounded-lg dark:bg-gray-700 dark:text-white ${
-                    errors.password
-                      ? "border-red-500"
-                      : "border-gray-300 dark:border-gray-600"
-                  }`}
-                  placeholder="Enter your password"
-                />
-                {errors.password && (
-                  <p className="text-red-500 text-sm mt-1">{errors.password}</p>
-                )}
-              </div>
-
-              <button
-                type="submit"
-                disabled={loading}
-                className="w-full bg-blue-600 text-white py-3 rounded-lg hover:bg-blue-700 transition-colors"
-              >
-                {loading ? "Logging in..." : "Login"}
-              </button>
-            </div>
-
-            <div className="text-center mt-6">
-              <span className="text-gray-600 dark:text-gray-400">
-                Don't have an account?{" "}
-                <button
-                  type="button"
-                  onClick={() => onSwitchMode("register")}
-                  className="text-blue-600 dark:text-blue-400 hover:underline font-semibold"
-                >
-                  Create Account
-                </button>
-              </span>
-              <br />
-              <span className="text-gray-600 dark:text-gray-400">
-                <button
-                  type="button"
-                  onClick={() => navigate("/admin/admin-login")}
-                  className="text-blue-600 dark:text-blue-400 hover:underline font-bold text-sm"
-                >
-                  Login as ADMIN
-                </button>
-              </span>
-            </div>
-          </form>
-        )}
-
-        {/* ---------- REGISTER FORM ---------- */}
-        {mode === "register" && (
-          <form onSubmit={handleSubmit}>
-            {errors.form && (
-              <div className="bg-red-100 text-red-700 p-3 rounded mb-4 text-sm">
-                {errors.form}
-              </div>
-            )}
-
-            <div className="space-y-4">
-              {/* First / Middle / Last Names */}
-              {[
-                {
-                  id: "fName",
-                  label: "First Name",
-                  hint: "Enter your given name.",
-                },
-                {
-                  id: "mName",
-                  label: "Middle Name",
-                  hint: "Use N/A if not applicable.",
-                },
-                {
-                  id: "lName",
-                  label: "Last Name",
-                  hint: "Your surname or family name.",
-                },
-              ].map((item) => (
-                <div key={item.id}>
+              <div className="space-y-4">
+                <div>
                   <label
-                    htmlFor={item.id}
-                    className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
+                    htmlFor="loginEmail"
+                    className="block text-sm font-medium text-gray-700 mb-2"
                   >
-                    {item.label}*
+                    Email
                   </label>
-                  <p className="text-xs text-gray-500 mb-1">{item.hint}</p>
                   <input
                     type="text"
-                    id={item.id}
-                    value={formData[item.id]}
+                    id="loginEmail"
+                    value={formData.email}
                     onChange={handleInputChange}
-                    className={`w-full px-4 py-3 border rounded-lg dark:bg-gray-700 dark:text-white ${
-                      errors[item.id]
-                        ? "border-red-500"
-                        : "border-gray-300 dark:border-gray-600"
+                    className={`w-full px-4 py-3 border rounded-lg ${
+                      errors.email ? "border-red-500" : "border-gray-300"
                     }`}
-                    placeholder={`Enter ${item.label.toLowerCase()}`}
+                    placeholder="Enter email"
                   />
-                  {errors[item.id] && (
+                  {errors.email && (
+                    <p className="text-red-500 text-sm mt-1">{errors.email}</p>
+                  )}
+                </div>
+
+                <div>
+                  <label
+                    htmlFor="loginPassword"
+                    className="block text-sm font-medium text-gray-700 mb-2"
+                  >
+                    Password
+                  </label>
+                  <input
+                    type="password"
+                    id="loginPassword"
+                    value={formData.password}
+                    onChange={handleInputChange}
+                    className={`w-full px-4 py-3 border rounded-lg ${
+                      errors.password ? "border-red-500" : "border-gray-300"
+                    }`}
+                    placeholder="Enter your password"
+                  />
+                  {errors.password && (
                     <p className="text-red-500 text-sm mt-1">
-                      {errors[item.id]}
+                      {errors.password}
                     </p>
                   )}
                 </div>
-              ))}
 
-              {/* Email */}
-              <div>
-                <label
-                  htmlFor="registerEmail"
-                  className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
-                >
-                  Email*
-                </label>
-                <p className="text-xs text-gray-500 mb-1">
-                  This will be your login email.
-                </p>
-                <input
-                  type="email"
-                  id="registerEmail"
-                  value={formData.email}
-                  onChange={handleInputChange}
-                  className={`w-full px-4 py-3 border rounded-lg dark:bg-gray-700 dark:text-white ${
-                    errors.email
-                      ? "border-red-500"
-                      : "border-gray-300 dark:border-gray-600"
-                  }`}
-                />
-                {errors.email && (
-                  <p className="text-red-500 text-sm mt-1">{errors.email}</p>
-                )}
-              </div>
-
-              {/* Contact Number */}
-              <div>
-                <label
-                  htmlFor="contactNum"
-                  className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
-                >
-                  Contact Number*
-                </label>
-                <p className="text-xs text-gray-500 mb-1">
-                  Use a valid phone number.
-                </p>
-                <input
-                  type="tel"
-                  id="contactNum"
-                  value={formData.contactNum}
-                  onChange={handleInputChange}
-                  className={`w-full px-4 py-3 border rounded-lg dark:bg-gray-700 dark:text-white ${
-                    errors.contactNum
-                      ? "border-red-500"
-                      : "border-gray-300 dark:border-gray-600"
-                  }`}
-                />
-                {errors.contactNum && (
-                  <p className="text-red-500 text-sm mt-1">
-                    {errors.contactNum}
-                  </p>
-                )}
-              </div>
-
-              {/* Address */}
-              <div>
-                <label
-                  htmlFor="address"
-                  className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
-                >
-                  Address*
-                </label>
-                <p className="text-xs text-gray-500 mb-1">
-                  Format: Street, City, Province.
-                </p>
-                <input
-                  type="text"
-                  id="address"
-                  value={formData.address}
-                  onChange={handleInputChange}
-                  className={`w-full px-4 py-3 border rounded-lg dark:bg-gray-700 dark:text-white ${
-                    errors.address
-                      ? "border-red-500"
-                      : "border-gray-300 dark:border-gray-600"
-                  }`}
-                />
-                {errors.address && (
-                  <p className="text-red-500 text-sm mt-1">{errors.address}</p>
-                )}
-              </div>
-
-              {/* Birth Date */}
-              <div>
-                <label
-                  htmlFor="birthDate"
-                  className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
-                >
-                  Birth Date*
-                </label>
-                <input
-                  type="date"
-                  id="birthDate"
-                  value={formData.birthDate}
-                  onChange={handleInputChange}
-                  className={`w-full px-4 py-3 border rounded-lg dark:bg-gray-700 dark:text-white ${
-                    errors.birthDate
-                      ? "border-red-500"
-                      : "border-gray-300 dark:border-gray-600"
-                  }`}
-                />
-                {errors.birthDate && (
-                  <p className="text-red-500 text-sm mt-1">
-                    {errors.birthDate}
-                  </p>
-                )}
-              </div>
-
-              {/* Password */}
-              <div>
-                <label
-                  htmlFor="registerPassword"
-                  className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
-                >
-                  Password*
-                </label>
-                <input
-                  type="password"
-                  id="registerPassword"
-                  value={formData.password}
-                  onChange={handleInputChange}
-                  className={`w-full px-4 py-3 border rounded-lg dark:bg-gray-700 dark:text-white ${
-                    errors.password
-                      ? "border-red-500"
-                      : "border-gray-300 dark:border-gray-600"
-                  }`}
-                />
-                {errors.password && (
-                  <p className="text-red-500 text-sm mt-1">{errors.password}</p>
-                )}
-              </div>
-
-              {/* Confirm Password */}
-              <div>
-                <label
-                  htmlFor="confirmPassword"
-                  className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
-                >
-                  Confirm Password*
-                </label>
-                <input
-                  type="password"
-                  id="confirmPassword"
-                  value={formData.confirmPassword}
-                  onChange={handleInputChange}
-                  className={`w-full px-4 py-3 border rounded-lg dark:bg-gray-700 dark:text-white ${
-                    errors.confirmPassword
-                      ? "border-red-500"
-                      : "border-gray-300 dark:border-gray-600"
-                  }`}
-                />
-                {errors.confirmPassword && (
-                  <p className="text-red-500 text-sm mt-1">
-                    {errors.confirmPassword}
-                  </p>
-                )}
-              </div>
-
-              <button
-                type="submit"
-                disabled={loading}
-                className="w-full bg-blue-600 text-white py-3 rounded-lg hover:bg-blue-700 transition-colors font-semibold"
-              >
-                {loading ? "Creating..." : "Create Account"}
-              </button>
-            </div>
-
-            {/* Switch to login */}
-            <div className="text-center mt-6">
-              <span className="text-gray-600 dark:text-gray-400">
-                Already have an account?{" "}
                 <button
-                  type="button"
-                  onClick={() => onSwitchMode("login")}
-                  className="text-blue-600 dark:text-blue-400 hover:underline font-semibold"
+                  type="submit"
+                  disabled={loading}
+                  className="w-full bg-blue-600 text-white py-3 rounded-lg hover:bg-blue-700 transition-colors"
                 >
-                  Login
+                  {loading ? "Logging in..." : "Login"}
                 </button>
-              </span>
-              <br />
-              <span className="text-gray-600 dark:text-gray-400">
+              </div>
+
+              <div className="text-center mt-6">
+                <span className="text-gray-600">
+                  Don't have an account?{" "}
+                  <button
+                    type="button"
+                    onClick={() => onSwitchMode("register")}
+                    className="text-blue-600 hover:underline font-semibold"
+                  >
+                    Create Account
+                  </button>
+                </span>
+                <br />
+                <span className="text-gray-600">
+                  <button
+                    type="button"
+                    onClick={() => navigate("/admin/admin-login")}
+                    className="text-blue-600 hover:underline font-bold text-sm"
+                  >
+                    Login as ADMIN
+                  </button>
+                </span>
+              </div>
+            </form>
+          )}
+
+          {mode === "register" && (
+            <form onSubmit={handleSubmit}>
+              {errors.form && (
+                <div className="bg-red-100 text-red-700 p-3 rounded mb-4 text-sm">
+                  {errors.form}
+                </div>
+              )}
+
+              <div className="space-y-4">
+                {[
+                  {
+                    id: "fName",
+                    label: "First Name",
+                    hint: "Enter your given name.",
+                  },
+                  {
+                    id: "mName",
+                    label: "Middle Name",
+                    hint: "Use N/A if not applicable.",
+                  },
+                  {
+                    id: "lName",
+                    label: "Last Name",
+                    hint: "Your surname or family name.",
+                  },
+                ].map((item) => (
+                  <div key={item.id}>
+                    <label
+                      htmlFor={item.id}
+                      className="block text-sm font-medium text-gray-700 mb-1"
+                    >
+                      {item.label}*
+                    </label>
+                    <p className="text-xs text-gray-500 mb-1">{item.hint}</p>
+                    <input
+                      type="text"
+                      id={item.id}
+                      value={formData[item.id]}
+                      onChange={handleInputChange}
+                      className={`w-full px-4 py-3 border rounded-lg ${
+                        errors[item.id] ? "border-red-500" : "border-gray-300"
+                      }`}
+                      placeholder={`Enter ${item.label.toLowerCase()}`}
+                    />
+                    {errors[item.id] && (
+                      <p className="text-red-500 text-sm mt-1">
+                        {errors[item.id]}
+                      </p>
+                    )}
+                  </div>
+                ))}
+
+                <div>
+                  <label
+                    htmlFor="registerEmail"
+                    className="block text-sm font-medium text-gray-700 mb-1"
+                  >
+                    Email*
+                  </label>
+                  <p className="text-xs text-gray-500 mb-1">
+                    This will be your login email.
+                  </p>
+                  <input
+                    type="email"
+                    id="registerEmail"
+                    value={formData.email}
+                    onChange={handleInputChange}
+                    className={`w-full px-4 py-3 border rounded-lg ${
+                      errors.email ? "border-red-500" : "border-gray-300"
+                    }`}
+                  />
+                  {errors.email && (
+                    <p className="text-red-500 text-sm mt-1">{errors.email}</p>
+                  )}
+                </div>
+
+                <div>
+                  <label
+                    htmlFor="contactNum"
+                    className="block text-sm font-medium text-gray-700 mb-1"
+                  >
+                    Contact Number*
+                  </label>
+                  <p className="text-xs text-gray-500 mb-1">
+                    Use a valid phone number.
+                  </p>
+                  <input
+                    type="tel"
+                    id="contactNum"
+                    value={formData.contactNum}
+                    onChange={handleInputChange}
+                    className={`w-full px-4 py-3 border rounded-lg ${
+                      errors.contactNum ? "border-red-500" : "border-gray-300"
+                    }`}
+                  />
+                  {errors.contactNum && (
+                    <p className="text-red-500 text-sm mt-1">
+                      {errors.contactNum}
+                    </p>
+                  )}
+                </div>
+
+                <div>
+                  <label
+                    htmlFor="address"
+                    className="block text-sm font-medium text-gray-700 mb-1"
+                  >
+                    Address*
+                  </label>
+                  <p className="text-xs text-gray-500 mb-1">
+                    Format: Street, City, Province.
+                  </p>
+                  <input
+                    type="text"
+                    id="address"
+                    value={formData.address}
+                    onChange={handleInputChange}
+                    className={`w-full px-4 py-3 border rounded-lg ${
+                      errors.address ? "border-red-500" : "border-gray-300"
+                    }`}
+                  />
+                  {errors.address && (
+                    <p className="text-red-500 text-sm mt-1">
+                      {errors.address}
+                    </p>
+                  )}
+                </div>
+
+                <div>
+                  <label
+                    htmlFor="birthDate"
+                    className="block text-sm font-medium text-gray-700 mb-1"
+                  >
+                    Birth Date*
+                  </label>
+                  <input
+                    type="date"
+                    id="birthDate"
+                    value={formData.birthDate}
+                    onChange={handleInputChange}
+                    className={`w-full px-4 py-3 border rounded-lg ${
+                      errors.birthDate ? "border-red-500" : "border-gray-300"
+                    }`}
+                  />
+                  {errors.birthDate && (
+                    <p className="text-red-500 text-sm mt-1">
+                      {errors.birthDate}
+                    </p>
+                  )}
+                </div>
+
+                <div>
+                  <label
+                    htmlFor="registerPassword"
+                    className="block text-sm font-medium text-gray-700 mb-1"
+                  >
+                    Password*
+                  </label>
+                  <input
+                    type="password"
+                    id="registerPassword"
+                    value={formData.password}
+                    onChange={handleInputChange}
+                    className={`w-full px-4 py-3 border rounded-lg ${
+                      errors.password ? "border-red-500" : "border-gray-300"
+                    }`}
+                  />
+                  {errors.password && (
+                    <p className="text-red-500 text-sm mt-1">
+                      {errors.password}
+                    </p>
+                  )}
+                </div>
+
+                <div>
+                  <label
+                    htmlFor="confirmPassword"
+                    className="block text-sm font-medium text-gray-700 mb-1"
+                  >
+                    Confirm Password*
+                  </label>
+                  <input
+                    type="password"
+                    id="confirmPassword"
+                    value={formData.confirmPassword}
+                    onChange={handleInputChange}
+                    className={`w-full px-4 py-3 border rounded-lg ${
+                      errors.confirmPassword
+                        ? "border-red-500"
+                        : "border-gray-300"
+                    }`}
+                  />
+                  {errors.confirmPassword && (
+                    <p className="text-red-500 text-sm mt-1">
+                      {errors.confirmPassword}
+                    </p>
+                  )}
+                </div>
+
+                <div className="border border-blue-200 bg-blue-50 rounded-xl p-4">
+                  <div className="flex items-start gap-3">
+                    <input
+                      type="checkbox"
+                      checked={hasAcceptedAgreement}
+                      readOnly
+                      className="mt-1"
+                    />
+
+                    <div>
+                      <p className="text-sm text-gray-700">
+                        I have read and agree to the FinalHealth Terms, Privacy
+                        Notice, and responsible use agreement.
+                      </p>
+
+                      <button
+                        type="button"
+                        onClick={() => setShowAgreementModal(true)}
+                        className="text-blue-600 hover:underline text-sm font-semibold mt-1"
+                      >
+                        Read agreement
+                      </button>
+                    </div>
+                  </div>
+
+                  {hasAcceptedAgreement && (
+                    <p className="text-green-700 text-sm mt-2 font-medium">
+                      Agreement accepted.
+                    </p>
+                  )}
+
+                  {errors.agreement && (
+                    <p className="text-red-500 text-sm mt-2">
+                      {errors.agreement}
+                    </p>
+                  )}
+                </div>
+
                 <button
-                  type="button"
-                  onClick={() => navigate("/admin/admin-register")}
-                  className="text-blue-600 dark:text-blue-400 hover:underline font-bold text-sm"
+                  type="submit"
+                  disabled={loading || !hasAcceptedAgreement}
+                  className={`w-full py-3 rounded-lg transition-colors font-semibold ${
+                    loading || !hasAcceptedAgreement
+                      ? "bg-gray-300 text-gray-500 cursor-not-allowed"
+                      : "bg-blue-600 text-white hover:bg-blue-700"
+                  }`}
                 >
-                  Register as ADMIN
+                  {loading ? "Creating..." : "Create Account"}
                 </button>
-              </span>
-            </div>
-          </form>
-        )}
+              </div>
+
+              <div className="text-center mt-6">
+                <span className="text-gray-600">
+                  Already have an account?{" "}
+                  <button
+                    type="button"
+                    onClick={() => onSwitchMode("login")}
+                    className="text-blue-600 hover:underline font-semibold"
+                  >
+                    Login
+                  </button>
+                </span>
+                <br />
+                <span className="text-gray-600">
+                  <button
+                    type="button"
+                    onClick={() => navigate("/admin/admin-register")}
+                    className="text-blue-600 hover:underline font-bold text-sm"
+                  >
+                    Register as ADMIN
+                  </button>
+                </span>
+              </div>
+            </form>
+          )}
+        </div>
       </div>
-    </div>
+
+      {showAgreementModal && (
+        <AgreementModal
+          onClose={() => setShowAgreementModal(false)}
+          onAccept={handleAcceptAgreement}
+        />
+      )}
+    </>
   );
 };
 
