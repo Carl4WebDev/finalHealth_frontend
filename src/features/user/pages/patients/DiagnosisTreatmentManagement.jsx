@@ -10,6 +10,177 @@ import { usePrescriptionMaster } from "../../context/prescriptions-master/usePre
 import { useLabResultMaster } from "../../context/lab-result-master/useLabResultMaster";
 import { useCertificateMaster } from "../../context/certificate-master/useCertificateMaster";
 
+const DIAGNOSIS_STANDARD_OPTIONS = [
+  {
+    category: "Certain Infectious or Parasitic Diseases",
+    options: ["COVID-19", "Tuberculosis", "Dengue fever", "Malaria", "HIV/AIDS", "Influenza", "Hepatitis B", "Cholera", "Typhoid fever", "Rabies"],
+  },
+  {
+    category: "Neoplasms",
+    options: ["Breast cancer", "Lung cancer", "Leukemia", "Brain tumor", "Cervical cancer", "Prostate cancer", "Skin cancer", "Lymphoma", "Colon cancer", "Ovarian cancer"],
+  },
+  {
+    category: "Diseases of the Circulatory System",
+    options: ["Hypertension", "Heart attack", "Heart failure", "Coronary artery disease", "Arrhythmia", "Stroke", "Deep vein thrombosis", "Atherosclerosis", "Cardiomyopathy", "Peripheral artery disease"],
+  },
+  {
+    category: "Diseases of the Respiratory System",
+    options: ["Asthma", "Pneumonia", "Chronic bronchitis", "COPD", "Sinusitis", "Tuberculosis", "Lung fibrosis", "Pulmonary embolism", "Laryngitis", "Bronchiectasis"],
+  },
+  {
+    category: "Diseases of the Digestive System",
+    options: ["Gastritis", "Peptic ulcer", "GERD", "Appendicitis", "Hepatitis", "Irritable bowel syndrome", "Crohn disease", "Ulcerative colitis", "Gallstones", "Pancreatitis"],
+  },
+  {
+    category: "Symptoms, Signs, or Clinical Findings",
+    options: ["Fever", "Fatigue", "Chest pain", "Dizziness", "Weight loss", "Headache", "Nausea", "Abdominal pain", "Fainting", "Swelling"],
+  },
+];
+
+const TREATMENT_STANDARD_OPTIONS = [
+  {
+    category: "General Treatment",
+    options: [
+      "Medication",
+      "Observation",
+      "Follow-up consultation",
+      "Lifestyle modification",
+      "Rest and hydration",
+      "Dietary advice",
+    ],
+  },
+  {
+    category: "Respiratory Treatment",
+    options: [
+      "Nebulization",
+      "Oxygen therapy",
+      "Inhaler therapy",
+      "Antibiotics",
+      "Cough suppressant",
+    ],
+  },
+  {
+    category: "Pain / Injury Treatment",
+    options: [
+      "Pain reliever",
+      "Wound cleaning",
+      "Dressing change",
+      "Immobilization",
+      "Physical therapy",
+    ],
+  },
+];
+
+const PRESCRIPTION_STANDARD_OPTIONS = [
+  {
+    category: "Common Medicines",
+    options: [
+      "Paracetamol",
+      "Ibuprofen",
+      "Amoxicillin",
+      "Cetirizine",
+      "Loperamide",
+      "Omeprazole",
+    ],
+  },
+  {
+    category: "Respiratory Medicines",
+    options: [
+      "Salbutamol",
+      "Ambroxol",
+      "Carbocisteine",
+      "Montelukast",
+      "Antihistamine",
+    ],
+  },
+  {
+    category: "Maintenance Medicines",
+    options: [
+      "Losartan",
+      "Amlodipine",
+      "Metformin",
+      "Atorvastatin",
+      "Insulin",
+    ],
+  },
+];
+
+const LAB_RESULT_STANDARD_OPTIONS = [
+  {
+    category: "Blood Tests",
+    options: [
+      "Complete Blood Count",
+      "Blood Chemistry",
+      "Fasting Blood Sugar",
+      "HbA1c",
+      "Lipid Profile",
+    ],
+  },
+  {
+    category: "Urine / Stool Tests",
+    options: [
+      "Urinalysis",
+      "Stool Exam",
+      "Pregnancy Test",
+      "Drug Test",
+    ],
+  },
+  {
+    category: "Imaging / Diagnostic Tests",
+    options: [
+      "X-ray",
+      "Ultrasound",
+      "ECG",
+      "CT Scan",
+      "MRI",
+    ],
+  },
+];
+
+const CERTIFICATE_STANDARD_OPTIONS = [
+  {
+    category: "Medical Certificates",
+    options: [
+      "Medical Certificate",
+      "Fit to Work Certificate",
+      "Fit to Study Certificate",
+      "Return to Work Certificate",
+      "Excuse Letter",
+    ],
+  },
+  {
+    category: "Clearance",
+    options: [
+      "Health Clearance",
+      "Pre-employment Clearance",
+      "Travel Clearance",
+      "Sports Clearance",
+    ],
+  },
+];
+
+const FEE_STANDARD_OPTIONS = [
+  {
+    category: "Consultation Fees",
+    options: [
+      "Consultation Fee",
+      "Follow-up Consultation Fee",
+      "Emergency Consultation Fee",
+      "Specialist Consultation Fee",
+    ],
+  },
+  {
+    category: "Service Fees",
+    options: [
+      "Medical Certificate Fee",
+      "Laboratory Fee",
+      "Procedure Fee",
+      "Injection Fee",
+      "Dressing Fee",
+    ],
+  },
+];
+
 export default function DiagnosisTreatmentManagement() {
   const navigate = useNavigate();
 
@@ -607,19 +778,20 @@ export default function DiagnosisTreatmentManagement() {
 </div>
         </div>
 
-        <AddTextModal
+<AddTextModal
   isOpen={isAddDiagnosisOpen}
   title="Add Diagnosis"
-  placeholder="Enter diagnosis name"
+  placeholder="Choose or enter diagnosis name"
   loading={diagnosisActionLoading}
   onClose={() => setIsAddDiagnosisOpen(false)}
   onSubmit={createDiagnosis}
+  categorizedOptions={DIAGNOSIS_STANDARD_OPTIONS}
 />
 
 <EditTextModal
   isOpen={isEditDiagnosisOpen}
   title="Edit Diagnosis"
-  placeholder="Enter diagnosis name"
+  placeholder="Choose or enter diagnosis name"
   item={selectedDiagnosis}
   value={selectedDiagnosis?.diagnosis_name}
   loading={diagnosisActionLoading}
@@ -630,21 +802,23 @@ export default function DiagnosisTreatmentManagement() {
   onSubmit={(value) =>
     updateDiagnosis(selectedDiagnosis.diagnosis_id, value)
   }
+  categorizedOptions={DIAGNOSIS_STANDARD_OPTIONS}
 />
 
 <AddTextModal
   isOpen={isAddTreatmentOpen}
   title="Add Treatment"
-  placeholder="Enter treatment name"
+  placeholder="Choose or enter treatment name"
   loading={treatmentActionLoading}
   onClose={() => setIsAddTreatmentOpen(false)}
   onSubmit={createTreatment}
+  categorizedOptions={TREATMENT_STANDARD_OPTIONS}
 />
 
 <EditTextModal
   isOpen={isEditTreatmentOpen}
   title="Edit Treatment"
-  placeholder="Enter treatment name"
+  placeholder="Choose or enter treatment name"
   item={selectedTreatment}
   value={selectedTreatment?.treatment_name}
   loading={treatmentActionLoading}
@@ -655,6 +829,7 @@ export default function DiagnosisTreatmentManagement() {
   onSubmit={(value) =>
     updateTreatment(selectedTreatment.treatment_id, value)
   }
+  categorizedOptions={TREATMENT_STANDARD_OPTIONS}
 />
 
 <AddFeeModal
@@ -662,6 +837,7 @@ export default function DiagnosisTreatmentManagement() {
   loading={feeActionLoading}
   onClose={() => setIsAddFeeOpen(false)}
   onSubmit={createFee}
+  categorizedOptions={FEE_STANDARD_OPTIONS}
 />
 
 <EditFeeModal
@@ -673,21 +849,21 @@ export default function DiagnosisTreatmentManagement() {
     setSelectedFee(null);
   }}
   onSubmit={(data) => updateFee(selectedFee.fee_id, data)}
+  categorizedOptions={FEE_STANDARD_OPTIONS}
 />
-
 <AddTextModal
   isOpen={isAddPrescriptionOpen}
   title="Add Prescription"
-  placeholder="Enter prescription name"
+  placeholder="Choose or enter prescription name"
   loading={prescriptionActionLoading}
   onClose={() => setIsAddPrescriptionOpen(false)}
   onSubmit={createPrescriptionMaster}
+  categorizedOptions={PRESCRIPTION_STANDARD_OPTIONS}
 />
-
 <EditTextModal
   isOpen={isEditPrescriptionOpen}
   title="Edit Prescription"
-  placeholder="Enter prescription name"
+  placeholder="Choose or enter prescription name"
   item={selectedPrescription}
   value={selectedPrescription?.prescription_name}
   loading={prescriptionActionLoading}
@@ -698,21 +874,22 @@ export default function DiagnosisTreatmentManagement() {
   onSubmit={(value) =>
     updatePrescriptionMaster(selectedPrescription.prescription_id, value)
   }
+  categorizedOptions={PRESCRIPTION_STANDARD_OPTIONS}
 />
 
 <AddTextModal
   isOpen={isAddLabResultOpen}
   title="Add Lab Result"
-  placeholder="Enter lab result name"
+  placeholder="Choose or enter lab result name"
   loading={labResultActionLoading}
   onClose={() => setIsAddLabResultOpen(false)}
   onSubmit={createLabResultMaster}
+  categorizedOptions={LAB_RESULT_STANDARD_OPTIONS}
 />
-
 <EditTextModal
   isOpen={isEditLabResultOpen}
   title="Edit Lab Result"
-  placeholder="Enter lab result name"
+  placeholder="Choose or enter lab result name"
   item={selectedLabResult}
   value={selectedLabResult?.lab_result_name}
   loading={labResultActionLoading}
@@ -723,21 +900,23 @@ export default function DiagnosisTreatmentManagement() {
   onSubmit={(value) =>
     updateLabResultMaster(selectedLabResult.lab_result_id, value)
   }
+  categorizedOptions={LAB_RESULT_STANDARD_OPTIONS}
 />
 
 <AddTextModal
   isOpen={isAddCertificateOpen}
   title="Add Certificate"
-  placeholder="Enter certificate name"
+  placeholder="Choose or enter certificate name"
   loading={certificateActionLoading}
   onClose={() => setIsAddCertificateOpen(false)}
   onSubmit={createCertificateMaster}
+  categorizedOptions={CERTIFICATE_STANDARD_OPTIONS}
 />
 
 <EditTextModal
   isOpen={isEditCertificateOpen}
   title="Edit Certificate"
-  placeholder="Enter certificate name"
+  placeholder="Choose or enter certificate name"
   item={selectedCertificate}
   value={selectedCertificate?.certificate_name}
   loading={certificateActionLoading}
@@ -748,6 +927,7 @@ export default function DiagnosisTreatmentManagement() {
   onSubmit={(value) =>
     updateCertificateMaster(selectedCertificate.certificate_id, value)
   }
+  categorizedOptions={CERTIFICATE_STANDARD_OPTIONS}
 />
 
 
@@ -765,30 +945,71 @@ function AddTextModal({
   loading,
   onClose,
   onSubmit,
+  categorizedOptions = [],
 }) {
   const [value, setValue] = useState("");
+  const [selectedCategory, setSelectedCategory] = useState("");
 
   if (!isOpen) return null;
 
+  const selectedOptions =
+    categorizedOptions.find((item) => item.category === selectedCategory)
+      ?.options || [];
+
   const handleSave = async () => {
     if (!value.trim()) return;
+const normalizedValue = value
+  .trim()
+  .replace(/\s+/g, " ");
 
-    const ok = await onSubmit(value.trim());
+const ok = await onSubmit(normalizedValue);
 
     if (ok) {
       setValue("");
+      setSelectedCategory("");
       onClose();
     }
   };
 
   return (
     <ModalShell title={title} onClose={onClose}>
-      <input
-        value={value}
-        onChange={(e) => setValue(e.target.value)}
-        placeholder={placeholder}
-        className="w-full border rounded-lg px-3 py-2"
-      />
+      <div className="space-y-3">
+        {categorizedOptions.length > 0 && (
+          <select
+            value={selectedCategory}
+            onChange={(e) => {
+              setSelectedCategory(e.target.value);
+              setValue("");
+            }}
+            className="w-full border rounded-lg px-3 py-2 bg-white"
+          >
+            <option value="">Select category</option>
+            {categorizedOptions.map((item) => (
+              <option key={item.category} value={item.category}>
+                {item.category}
+              </option>
+            ))}
+          </select>
+        )}
+
+        <input
+          list={`${title}-options`}
+          value={value}
+          onChange={(e) => setValue(e.target.value)}
+          placeholder={placeholder}
+          className="w-full border rounded-lg px-3 py-2"
+        />
+
+        <datalist id={`${title}-options`}>
+          {selectedOptions.map((option) => (
+            <option key={option} value={option} />
+          ))}
+        </datalist>
+
+        <p className="text-xs text-gray-500">
+          You can choose from the dropdown or type your own custom value.
+        </p>
+      </div>
 
       <ModalActions
         onClose={onClose}
@@ -808,8 +1029,10 @@ function EditTextModal({
   loading,
   onClose,
   onSubmit,
+  categorizedOptions = [],
 }) {
   const [inputValue, setInputValue] = useState("");
+  const [selectedCategory, setSelectedCategory] = useState("");
 
   useEffect(() => {
     setInputValue(value || "");
@@ -817,24 +1040,60 @@ function EditTextModal({
 
   if (!isOpen || !item) return null;
 
+  const selectedOptions =
+    categorizedOptions.find((item) => item.category === selectedCategory)
+      ?.options || [];
+
   const handleSave = async () => {
     if (!inputValue.trim()) return;
 
     const ok = await onSubmit(inputValue.trim());
 
     if (ok) {
+      setSelectedCategory("");
       onClose();
     }
   };
 
   return (
     <ModalShell title={title} onClose={onClose}>
-      <input
-        value={inputValue}
-        onChange={(e) => setInputValue(e.target.value)}
-        placeholder={placeholder}
-        className="w-full border rounded-lg px-3 py-2"
-      />
+      <div className="space-y-3">
+        {categorizedOptions.length > 0 && (
+          <select
+            value={selectedCategory}
+            onChange={(e) => {
+              setSelectedCategory(e.target.value);
+              setInputValue("");
+            }}
+            className="w-full border rounded-lg px-3 py-2 bg-white"
+          >
+            <option value="">Select category</option>
+            {categorizedOptions.map((item) => (
+              <option key={item.category} value={item.category}>
+                {item.category}
+              </option>
+            ))}
+          </select>
+        )}
+
+        <input
+          list={`${title}-options`}
+          value={inputValue}
+          onChange={(e) => setInputValue(e.target.value)}
+          placeholder={placeholder}
+          className="w-full border rounded-lg px-3 py-2"
+        />
+
+        <datalist id={`${title}-options`}>
+          {selectedOptions.map((option) => (
+            <option key={option} value={option} />
+          ))}
+        </datalist>
+
+        <p className="text-xs text-gray-500">
+          You can choose from the dropdown or type your own custom value.
+        </p>
+      </div>
 
       <ModalActions
         onClose={onClose}
@@ -844,8 +1103,13 @@ function EditTextModal({
     </ModalShell>
   );
 }
-
-function AddFeeModal({ isOpen, loading, onClose, onSubmit }) {
+function AddFeeModal({
+  isOpen,
+  loading,
+  onClose,
+  onSubmit,
+  categorizedOptions = [],
+}) {
   const [feeName, setFeeName] = useState("");
   const [amount, setAmount] = useState("");
 
@@ -869,13 +1133,37 @@ function AddFeeModal({ isOpen, loading, onClose, onSubmit }) {
   return (
     <ModalShell title="Add Fee" onClose={onClose}>
       <div className="space-y-3">
-        <input
-          value={feeName}
-          onChange={(e) => setFeeName(e.target.value)}
-          placeholder="Enter fee name"
-          className="w-full border rounded-lg px-3 py-2"
-        />
+<select
+  onChange={(e) => setFeeName(e.target.value)}
+  className="w-full border rounded-lg px-3 py-2 bg-white"
+>
+  <option value="">Select fee category/value</option>
+  {categorizedOptions.map((group) => (
+    <optgroup key={group.category} label={group.category}>
+      {group.options.map((option) => (
+        <option key={option} value={option}>
+          {option}
+        </option>
+      ))}
+    </optgroup>
+  ))}
+</select>
 
+<input
+  list="fee-options"
+  value={feeName}
+  onChange={(e) => setFeeName(e.target.value)}
+  placeholder="Choose or enter fee name"
+  className="w-full border rounded-lg px-3 py-2"
+/>
+
+<datalist id="fee-options">
+  {categorizedOptions.flatMap((group) =>
+    group.options.map((option) => (
+      <option key={option} value={option} />
+    ))
+  )}
+</datalist>
         <input
           type="number"
           value={amount}
@@ -894,7 +1182,14 @@ function AddFeeModal({ isOpen, loading, onClose, onSubmit }) {
   );
 }
 
-function EditFeeModal({ isOpen, fee, loading, onClose, onSubmit }) {
+function EditFeeModal({
+  isOpen,
+  fee,
+  loading,
+  onClose,
+  onSubmit,
+  categorizedOptions = [],
+}) {
   const [feeName, setFeeName] = useState("");
   const [amount, setAmount] = useState("");
 
@@ -923,12 +1218,47 @@ function EditFeeModal({ isOpen, fee, loading, onClose, onSubmit }) {
   return (
     <ModalShell title="Edit Fee" onClose={onClose}>
       <div className="space-y-3">
-        <input
-          value={feeName}
-          onChange={(e) => setFeeName(e.target.value)}
-          placeholder="Enter fee name"
-          className="w-full border rounded-lg px-3 py-2"
-        />
+<select
+  onChange={(e) => setFeeName(e.target.value)}
+  className="w-full border rounded-lg px-3 py-2 bg-white"
+>
+  <option value="">Select fee option</option>
+
+  {categorizedOptions.map((group) => (
+    <optgroup
+      key={group.category}
+      label={group.category}
+    >
+      {group.options.map((option) => (
+        <option
+          key={option}
+          value={option}
+        >
+          {option}
+        </option>
+      ))}
+    </optgroup>
+  ))}
+</select>
+
+<input
+  list="fee-options-edit"
+  value={feeName}
+  onChange={(e) => setFeeName(e.target.value)}
+  placeholder="Choose or enter fee name"
+  className="w-full border rounded-lg px-3 py-2"
+/>
+
+<datalist id="fee-options-edit">
+  {categorizedOptions.flatMap((group) =>
+    group.options.map((option) => (
+      <option
+        key={option}
+        value={option}
+      />
+    ))
+  )}
+</datalist>
 
         <input
           type="number"
