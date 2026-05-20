@@ -4,12 +4,18 @@ import {
   getPatientOfDoctorInClinicApi,
   createPatientApi,
   updatePatientInfoApi,
+  uploadPatientImageApi,
 } from "../../api/patientApi.js";
 
 export const PatientProvider = ({ children }) => {
   const [patients, setPatients] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [uploadImageLoading, setUploadImageLoading] = useState(false);
   const [error, setError] = useState(null);
+
+  const clearPatients = () => {
+    setPatients([]);
+  };
 
   const getPatientOfDoctorInClinic = async (doctorId, clinicId) => {
     setLoading(true);
@@ -18,15 +24,12 @@ export const PatientProvider = ({ children }) => {
     try {
       const res = await getPatientOfDoctorInClinicApi(doctorId, clinicId);
 
-      console.log(!res.ok);
       if (!res.ok) {
-        console.log("inside the error");
         setError(res.message);
-        setLoading(false);
+        setPatients([]);
         return;
       }
 
-      console.log(res.data);
       setPatients(res.data.patients || []);
     } catch (err) {
       setError("Something went wrong");
@@ -42,12 +45,10 @@ export const PatientProvider = ({ children }) => {
 
     const res = await createPatientApi(patientData);
 
-    console.log(!res.ok);
     if (!res.ok) {
-      console.log("inside the error");
       setError(res.message);
       setLoading(false);
-      return;
+      return false;
     }
 
     await getPatientOfDoctorInClinic(
@@ -56,6 +57,7 @@ export const PatientProvider = ({ children }) => {
     );
 
     setLoading(false);
+    return true;
   };
 
   const updatePatientInfo = async (patientId, patientData) => {
@@ -67,9 +69,39 @@ export const PatientProvider = ({ children }) => {
     if (!res.ok) {
       setError(res.message);
       setLoading(false);
-      return;
+      return false;
     }
+
     setLoading(false);
+    return true;
+  };
+
+  const uploadPatientImage = async (patientId, imageFile) => {
+    setUploadImageLoading(true);
+    setError(null);
+
+    const res = await uploadPatientImageApi(patientId, imageFile);
+
+    if (!res.ok) {
+      setError(res.message);
+      setUploadImageLoading(false);
+      return false;
+    }
+
+const updatedPatient = res.data.patient;
+
+setPatients((prev) =>
+  prev.map((p) =>
+    Number(p.patient_id) === Number(updatedPatient.patient_id)
+      ? {
+          ...p,
+          patient_img_path: updatedPatient.patient_img_path,
+        }
+      : p
+  )
+);
+
+    setUploadImageLoading(false);
     return true;
   };
 
@@ -78,10 +110,13 @@ export const PatientProvider = ({ children }) => {
       value={{
         patients,
         loading,
+        uploadImageLoading,
         error,
+        clearPatients,
         getPatientOfDoctorInClinic,
         createPatient,
         updatePatientInfo,
+        uploadPatientImage,
       }}
     >
       {children}

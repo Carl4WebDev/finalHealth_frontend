@@ -4,8 +4,13 @@ import { useState, useEffect } from "react";
 import Layout from "../../../components/Layout";
 import { useMedicalRecords } from "../../../context/medical-records/useMedicalRecords.js";
 
+
+import { usePatients } from "../../../context/patients/usePatients.js";
+
 import EditPatientModal from "../modal/EditPatientModal.jsx";
 import AddPreEmploymentModal from "../modal/AddPreEmploymentModal.jsx";
+
+
 
 const DIAGNOSIS_OPTIONS = [
   "Upper Respiratory Infection",
@@ -197,6 +202,21 @@ const removeTreatment = (id) => {
   setTreatmentList((prev) => prev.filter((t) => t.id !== id));
 };
 
+const { uploadPatientImage } = usePatients();
+
+const handleUploadPatientImage = async (e, patientId) => {
+  const file = e.target.files?.[0];
+  if (!file) return;
+
+  const success = await uploadPatientImage(patientId, file);
+
+  if (success) {
+    await getPatientInfo(patientId);
+  }
+
+  e.target.value = "";
+};
+
 const filteredVisitHistory = patientVisitHistory?.filter((visit) => {
   const visitDate = new Date(visit.date);
 
@@ -268,6 +288,30 @@ const filteredVisitHistory = patientVisitHistory?.filter((visit) => {
                   Basic patient profile and contact information
                 </p>
               </div>
+
+              <div className="mb-8 flex flex-col items-center justify-center">
+  {patientsInfo.patient_img_path ? (
+    <img
+      src={`${import.meta.env.VITE_API_BASE}${patientsInfo.patient_img_path}`}
+      alt={patientsInfo.full_name}
+className="h-72 w-72 rounded-full border-4 border-white object-cover shadow-2xl"
+    />
+  ) : (
+    <div className="flex h-72 w-72 items-center justify-center rounded-full border-2 border-dashed border-red-300 bg-red-50 text-center text-lg font-semibold text-red-500">
+      No Image
+    </div>
+  )}
+
+  <label className="mt-4 cursor-pointer rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-blue-700">
+    Upload Image
+    <input
+      type="file"
+      accept="image/*"
+      hidden
+      onChange={(e) => handleUploadPatientImage(e, patientId)}
+    />
+  </label>
+</div>
 
               <div className="flex flex-wrap justify-center gap-4">
                 <div className="w-full rounded-xl border border-gray-100 bg-gray-50 p-4 text-center sm:w-[48%] lg:w-[30%]">

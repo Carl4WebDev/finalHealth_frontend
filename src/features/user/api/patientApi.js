@@ -1,4 +1,5 @@
 import { apiRequest } from "../../../api/httpClient/httpClient";
+import { apiFormRequest } from "../../../api/httpClient/apiFormRequest";
 
 export const getPatientOfDoctorInClinicApi = (doctorId, clinicId) =>
   apiRequest(
@@ -14,3 +15,16 @@ export const updatePatientInfoApi = (patientId, patientData) =>
     method: "PUT",
     body: JSON.stringify(patientData),
   });
+
+export const uploadPatientImageApi = async (patientId, imageFile) => {
+  const formData = new FormData();
+  formData.append("patient_image", imageFile);
+
+  return await apiFormRequest(
+    `/api/patient-routes/patients/${patientId}/image`,
+    {
+      method: "PATCH",
+      body: formData,
+    },
+  );
+};
