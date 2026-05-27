@@ -73,14 +73,14 @@ export async function getSubscriptionPlans() {
 // CANCEL MY SUBSCRIPTION (hard cancel)
 // ---------------------------
 export async function cancelMySubscription() {
-  const res = await fetch(`${API_BASE}/api/subscription-routes/cancel`, {
+  const res = await fetch(`${API_BASE}/api/subscription-routes-v2/payments/cancel`, {
     method: "POST",
     headers: authHeaders(),
   });
 
   const data = await res.json();
-  if (!data.success)
-    throw new Error(data.error || "Failed to cancel subscription");
+  if (data.status !== "success")
+    throw new Error(data.message || "Failed to cancel subscription");
 
-  return data.subscription;
+  return data.data.subscription;
 }

@@ -18,7 +18,7 @@ export const getPaymentHistoryApi = () =>
 
 // Cancel subscription
 export const cancelMySubscriptionApi = () =>
-  apiRequest("/api/subscription-routes/cancel", {
+  apiRequest("/api/subscription-routes-v2/payments/cancel", {
     method: "POST",
   });
 

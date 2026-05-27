@@ -16,6 +16,7 @@
     "@stripe/stripe-js": "^8.6.1",
     "@tailwindcss/vite": "^4.1.17",
     "axios": "^1.15.1",
+    "docx": "^9.7.0",
     "jspdf": "^3.0.4",
     "lucide-react": "^1.8.0",
     "react": "^19.2.0",

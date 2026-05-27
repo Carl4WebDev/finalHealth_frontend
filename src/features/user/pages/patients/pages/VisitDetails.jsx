@@ -220,6 +220,7 @@ export default function VisitDetails() {
                 <FeesTab
                   recordId={recordId}
                   medicalRecord={medicalRecordByAppointment}
+                  patientInfo={patientsInfo}
                 />
               )}
             </div>
