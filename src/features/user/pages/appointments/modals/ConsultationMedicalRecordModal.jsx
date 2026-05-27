@@ -166,10 +166,10 @@ const payload = {
   clinic_id: appointment.clinic_id,
   record_date: new Date().toISOString().split("T")[0],
 
-  diagnosis: "Consultation patient history recorded",
+  diagnosis: "",
   treatment: "",
-  medications: form.currentMedications || "",
-  assessment: "Patient consultation history completed by secretary.",
+  medications: "",
+  assessment: "",
 
   is_contagious: false,
   contagious_description: "",
