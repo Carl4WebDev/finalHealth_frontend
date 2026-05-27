@@ -24,6 +24,8 @@ export default function VisitDetails() {
   const [emailNote, setEmailNote] = useState("");
   const [isSendingEmail, setIsSendingEmail] = useState(false);
   const [showEmailForm, setShowEmailForm] = useState(false);
+  const [editingFollowUp, setEditingFollowUp] = useState(false);
+  const [followUpInput, setFollowUpInput] = useState("");
 
   const {
     medicalRecordByAppointment,
@@ -51,6 +53,8 @@ export default function VisitDetails() {
     [medicalRecordByAppointment]
   );
 
+  const followUpDate = medicalRecordByAppointment?.follow_up_date || "";
+
   useEffect(() => {
     if (recordId) {
       getMedicalRecordsFullDetails(recordId);
@@ -65,6 +69,24 @@ export default function VisitDetails() {
       await getPatientInfo(patientId);
     }
     e.target.value = "";
+  };
+
+  const handleSaveFollowUp = async () => {
+    if (!recordId) return;
+    try {
+      await apiRequest(`/api/med-routes/medical-records/${recordId}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          ...medicalRecordByAppointment,
+          follow_up_date: followUpInput || null,
+        }),
+      });
+      await getMedicalRecordByAppointmentId(appointmentId);
+      setEditingFollowUp(false);
+    } catch (err) {
+      console.error("Failed to save follow-up date:", err);
+    }
   };
 
   const requiresRecord = [
@@ -109,7 +131,7 @@ export default function VisitDetails() {
             user_email: patientsInfo.email,
             user_name: patientsInfo.full_name,
             subject: `Visit Follow-Up — ${formattedDate}`,
-            message: `Dear ${patientsInfo.full_name},\n\nDate: ${formattedDate}\n\n${emailNote}\n\nThank you,\nFinalHealth`,
+            message: `Dear ${patientsInfo.full_name},\n\nDate: ${formattedDate}\n\n${emailNote}${followUpDate ? `\n\nRecommended follow-up visit: ${new Date(followUpDate).toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" })}` : ""}\n\nThank you,\nFinalHealth`,
           },
         }),
       });
@@ -821,6 +843,72 @@ export default function VisitDetails() {
                       )}
                     </button>
                   </div>
+                )}
+              </div>
+
+              {/* Follow-Up Recommendation Card */}
+              <div className="rounded-2xl border border-gray-200 bg-white p-4 shadow-sm">
+                <div className="flex items-center justify-between mb-3">
+                  <h3 className="text-base font-semibold text-gray-800">Follow-Up Recommendation</h3>
+                  {!editingFollowUp && recordId && (
+                    <button
+                      onClick={() => {
+                        setFollowUpInput(followUpDate ? followUpDate.split("T")[0] : "");
+                        setEditingFollowUp(true);
+                      }}
+                      className="text-xs text-[#2133ff] hover:underline"
+                    >
+                      {followUpDate ? "Edit" : "Set"}
+                    </button>
+                  )}
+                </div>
+
+                {editingFollowUp ? (
+                  <div className="space-y-2">
+                    <label className="block text-xs font-medium text-gray-600">
+                      Recommended return date
+                    </label>
+                    <input
+                      type="date"
+                      value={followUpInput}
+                      onChange={(e) => setFollowUpInput(e.target.value)}
+                      min={new Date().toISOString().split("T")[0]}
+                      className="w-full rounded-lg border border-gray-200 px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#2133ff] focus:border-transparent"
+                    />
+                    <div className="flex gap-2">
+                      <button
+                        onClick={handleSaveFollowUp}
+                        className="flex-1 rounded-lg bg-[#2133ff] px-3 py-1.5 text-xs font-medium text-white hover:bg-blue-700"
+                      >
+                        Save
+                      </button>
+                      <button
+                        onClick={() => setEditingFollowUp(false)}
+                        className="flex-1 rounded-lg bg-gray-100 px-3 py-1.5 text-xs font-medium text-gray-600 hover:bg-gray-200"
+                      >
+                        Cancel
+                      </button>
+                    </div>
+                  </div>
+                ) : followUpDate ? (
+                  <div className="rounded-lg bg-blue-50 border border-blue-100 p-3">
+                    <div className="flex items-center gap-2">
+                      <svg className="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                      </svg>
+                      <p className="text-sm font-medium text-blue-800">
+                        {new Date(followUpDate).toLocaleDateString("en-US", {
+                          weekday: "long",
+                          year: "numeric",
+                          month: "long",
+                          day: "numeric",
+                        })}
+                      </p>
+                    </div>
+                    <p className="text-xs text-blue-600 mt-1 ml-6">Patient recommended to return on this date</p>
+                  </div>
+                ) : (
+                  <p className="text-xs text-gray-400">No follow-up date set for this visit</p>
                 )}
               </div>
             </div>

@@ -40,6 +40,7 @@ const DEFAULT_RECORD = {
   contagiousDescription: "",
   formType: "general",
   status: "Scheduled",
+  followUpDate: "",
 };
 
 /* ================= HELPERS ================= */
@@ -531,6 +532,7 @@ export default function MedicalRecordTab({
       contagiousDescription: medicalRecord.contagious_description || "",
       formType: medicalRecord.form_type || "general",
       status: medicalRecord.status || "Scheduled",
+      followUpDate: medicalRecord.follow_up_date || "",
     });
     setDiagnosis(
       parseList(medicalRecord.diagnosis).map((item) => ({
@@ -605,6 +607,7 @@ export default function MedicalRecordTab({
       other_fee: medicalRecord?.other_fee ?? 0,
       doctor_id: medicalRecord?.doctor_id ?? 1,
       clinic_id: medicalRecord?.clinic_id ?? 1,
+      follow_up_date: record.followUpDate || null,
     };
 
     // Only include form data fields on create — updates preserve existing values via COALESCE
@@ -712,6 +715,22 @@ export default function MedicalRecordTab({
             ))}
           </select>
         </div>
+      </div>
+
+      {/* Follow-Up Date */}
+      <div className="rounded-2xl border border-gray-200 bg-white p-4 shadow-sm">
+        <label className="text-xs font-semibold uppercase tracking-wide text-gray-500">
+          Recommended Follow-Up Date
+        </label>
+        <p className="text-xs text-gray-400 mb-2">When should the patient come back?</p>
+        <input
+          type="date"
+          value={record.followUpDate}
+          onChange={(e) =>
+            setRecord((prev) => ({ ...prev, followUpDate: e.target.value }))
+          }
+          className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm"
+        />
       </div>
 
       {/* Assessment */}
