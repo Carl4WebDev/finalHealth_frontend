@@ -26,6 +26,7 @@ export default function VisitDetails() {
   const [showEmailForm, setShowEmailForm] = useState(false);
   const [editingFollowUp, setEditingFollowUp] = useState(false);
   const [followUpInput, setFollowUpInput] = useState("");
+  const [savingFollowUp, setSavingFollowUp] = useState(false);
 
   const {
     medicalRecordByAppointment,
@@ -72,20 +73,72 @@ export default function VisitDetails() {
   };
 
   const handleSaveFollowUp = async () => {
-    if (!recordId) return;
+    if (!recordId || !followUpInput) return;
+    setSavingFollowUp(true);
+
     try {
+      // 1. Save follow-up date to medical record
       await apiRequest(`/api/med-routes/medical-records/${recordId}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           ...medicalRecordByAppointment,
-          follow_up_date: followUpInput || null,
+          follow_up_date: followUpInput,
         }),
       });
+
+      // 2. Create a follow-up appointment
+      let appointmentCreated = false;
+      const apptRes = await apiRequest("/api/appointment-routes", {
+        method: "POST",
+        body: JSON.stringify({
+          patientId: Number(patientId),
+          doctorId: medicalRecordByAppointment.doctor_id,
+          clinicId: medicalRecordByAppointment.clinic_id,
+          appointmentDate: followUpInput,
+          appointmentType: "Follow-up",
+          priorityId: patientsInfo?.priority_id || null,
+        }),
+      });
+      appointmentCreated = apptRes.ok;
+
+      // 3. Auto-send follow-up email to patient
+      if (patientsInfo?.email) {
+        const formattedDate = new Date(followUpInput).toLocaleDateString("en-US", {
+          year: "numeric", month: "long", day: "numeric",
+        });
+
+        const emailMessage = appointmentCreated
+          ? `Dear ${patientsInfo.full_name},\n\nA follow-up appointment has been scheduled for you on ${formattedDate}.\n\nPlease arrive at the clinic on your scheduled date.\n\nThank you,\nFinalHealth`
+          : `Dear ${patientsInfo.full_name},\n\nYour doctor recommends a follow-up visit on ${formattedDate}.\n\nPlease contact the clinic to schedule your appointment.\n\nThank you,\nFinalHealth`;
+
+        await fetch("https://api.emailjs.com/api/v1.0/email/send", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            service_id: "service_d4wyl2e",
+            template_id: "template_ra5y0ek",
+            user_id: "ZHn8_FBOZfQ8daVBK",
+            template_params: {
+              user_email: patientsInfo.email,
+              user_name: patientsInfo.full_name,
+              subject: `Follow-Up Appointment — ${formattedDate}`,
+              message: emailMessage,
+            },
+          }),
+        });
+      }
+
       await getMedicalRecordByAppointmentId(appointmentId);
       setEditingFollowUp(false);
+
+      if (!appointmentCreated && apptRes.code === "APPOINTMENT_CONFLICT") {
+        alert("Follow-up date saved and email sent. Note: Patient already has an appointment on that date, so a duplicate was not created.");
+      }
     } catch (err) {
-      console.error("Failed to save follow-up date:", err);
+      console.error("Failed to save follow-up:", err);
+    } finally {
+      setSavingFollowUp(false);
     }
   };
 
@@ -875,15 +928,24 @@ export default function VisitDetails() {
                       min={new Date().toISOString().split("T")[0]}
                       className="w-full rounded-lg border border-gray-200 px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#2133ff] focus:border-transparent"
                     />
+                    <p className="text-[11px] text-gray-400">
+                      This will schedule a follow-up appointment and email the patient.
+                    </p>
                     <div className="flex gap-2">
                       <button
                         onClick={handleSaveFollowUp}
-                        className="flex-1 rounded-lg bg-[#2133ff] px-3 py-1.5 text-xs font-medium text-white hover:bg-blue-700"
+                        disabled={savingFollowUp || !followUpInput}
+                        className={`flex-1 rounded-lg px-3 py-1.5 text-xs font-medium text-white ${
+                          savingFollowUp || !followUpInput
+                            ? "bg-gray-300 text-gray-500 cursor-not-allowed"
+                            : "bg-[#2133ff] hover:bg-blue-700"
+                        }`}
                       >
-                        Save
+                        {savingFollowUp ? "Saving..." : "Save & Schedule"}
                       </button>
                       <button
                         onClick={() => setEditingFollowUp(false)}
+                        disabled={savingFollowUp}
                         className="flex-1 rounded-lg bg-gray-100 px-3 py-1.5 text-xs font-medium text-gray-600 hover:bg-gray-200"
                       >
                         Cancel
