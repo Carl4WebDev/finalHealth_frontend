@@ -78,11 +78,34 @@ export default function ManageDoctorPage() {
 
   const doctor = doctors.find((d) => d.doctor_id === Number(doctorId));
 
+  /* ================= MODALS (rendered above early returns to avoid unmount/remount loop) ================= */
+
+  const modals = (
+    <>
+      <EditDoctorModal
+        isOpen={showEdit}
+        onClose={() => setShowEdit(false)}
+        doctorId={doctorId}
+      />
+      <CreateDoctorSessionModal
+        isOpen={showCreateSessionModal}
+        onClose={() => setShowCreateSessionModal(false)}
+        doctorId={doctorId}
+      />
+      <AffiliateClinicModal
+        isOpen={showAffiliateModal}
+        onClose={() => setShowAffiliateModal(false)}
+        doctorId={doctorId}
+      />
+    </>
+  );
+
   /* ================= STATES ================= */
 
   if (doctorsLoading || clinicsLoading) {
     return (
       <Layout>
+        {modals}
         <p className="p-6">Loading…</p>
       </Layout>
     );
@@ -91,6 +114,7 @@ export default function ManageDoctorPage() {
   if (!doctor) {
     return (
       <Layout>
+        {modals}
         <div className="p-6">
           <p className="text-red-600">Doctor not found.</p>
           <button
@@ -109,16 +133,7 @@ export default function ManageDoctorPage() {
   return (
     <Layout>
       <div className="p-6 space-y-6">
-        <EditDoctorModal
-          isOpen={showEdit}
-          onClose={() => setShowEdit(false)}
-          doctorId={doctorId}
-        />
-        <CreateDoctorSessionModal
-          isOpen={showCreateSessionModal}
-          onClose={() => setShowCreateSessionModal(false)}
-          doctorId={doctorId}
-        />
+        {modals}
 
         {/* Back Button */}
         <button
@@ -166,12 +181,6 @@ export default function ManageDoctorPage() {
             </p>
           </div>
         </div>
-
-        <AffiliateClinicModal
-          isOpen={showAffiliateModal}
-          onClose={() => setShowAffiliateModal(false)}
-          doctorId={doctorId}
-        />
 
         {/* ================= AFFILIATED CLINICS ================= */}
         <div className="bg-white rounded-xl shadow p-6">
