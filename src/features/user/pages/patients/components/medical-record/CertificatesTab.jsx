@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useMedicalRecords } from "../../../../context/medical-records/useMedicalRecords.js";
 import { useCertificateMaster } from "../../../../context/certificate-master/useCertificateMaster.js";
+import { AddTextModal, CERTIFICATE_STANDARD_OPTIONS } from "../shared/AddItemModal.jsx";
 
 const API_BASE = import.meta.env.VITE_API_BASE;
 
@@ -25,8 +26,10 @@ export default function CertificatesTab({ recordId, patientId }) {
     updateCertificateImage,
   } = useMedicalRecords();
 
-  const { certificates: certificateOptions, getAllCertificateMasters } =
+  const { certificates: certificateOptions, getAllCertificateMasters, createCertificateMaster } =
     useCertificateMaster();
+
+  const [isAddCertificateOpen, setIsAddCertificateOpen] = useState(false);
 
   const [form, setForm] = useState({
     certificate_type: "",
@@ -159,7 +162,7 @@ export default function CertificatesTab({ recordId, patientId }) {
 
             <button
               type="button"
-              onClick={() => navigate("/user/patients/management")}
+              onClick={() => setIsAddCertificateOpen(true)}
               className="rounded-lg bg-gray-100 px-3 py-2 text-sm font-bold text-blue-600 hover:bg-blue-100"
               title="Manage certificate options"
             >
@@ -385,6 +388,22 @@ export default function CertificatesTab({ recordId, patientId }) {
           </div>
         </div>
       )}
+
+      <AddTextModal
+        isOpen={isAddCertificateOpen}
+        title="Add Certificate Type"
+        placeholder="Choose or type certificate"
+        onClose={() => setIsAddCertificateOpen(false)}
+        onSubmit={async (value) => {
+          const res = await createCertificateMaster(value);
+          if (res?.ok !== false) {
+            await getAllCertificateMasters();
+            return true;
+          }
+          return false;
+        }}
+        categorizedOptions={CERTIFICATE_STANDARD_OPTIONS}
+      />
     </div>
   );
 }

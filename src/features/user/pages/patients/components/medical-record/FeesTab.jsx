@@ -17,6 +17,7 @@ import {
 import { useMedicalRecords } from "../../../../context/medical-records/useMedicalRecords.js";
 import { useFeeMaster } from "../../../../context/fee-master/useFeeMaster.js";
 import { apiRequest } from "../../../../../../api/httpClient/httpClient.js";
+import { AddFeeModal, FEE_STANDARD_OPTIONS } from "../shared/AddItemModal.jsx";
 
 const PAYMENT_STATUS_OPTIONS = ["Unpaid", "Partial", "Paid"];
 
@@ -61,7 +62,9 @@ export default function FeesTab({ medicalRecord, patientInfo }) {
   const { updateMedicalRecord, getMedicalRecordByAppointmentId } =
     useMedicalRecords();
 
-  const { fees, getAllFees } = useFeeMaster();
+  const { fees, getAllFees, createFee } = useFeeMaster();
+
+  const [isAddFeeOpen, setIsAddFeeOpen] = useState(false);
 
   const [feesList, setFeesList] = useState([]);
   const [selectedFeeType, setSelectedFeeType] = useState("");
@@ -1028,7 +1031,7 @@ export default function FeesTab({ medicalRecord, patientInfo }) {
 
           <button
             type="button"
-            onClick={() => navigate("/user/patients/management")}
+            onClick={() => setIsAddFeeOpen(true)}
             className="rounded-lg bg-gray-100 px-3 py-2 text-sm font-bold text-blue-600 hover:bg-blue-100"
             title="Manage fee options"
           >
@@ -1159,6 +1162,20 @@ export default function FeesTab({ medicalRecord, patientInfo }) {
           </button>
         </div>
       )}
+
+      <AddFeeModal
+        isOpen={isAddFeeOpen}
+        onClose={() => setIsAddFeeOpen(false)}
+        onSubmit={async (data) => {
+          const res = await createFee(data);
+          if (res?.ok !== false) {
+            await getAllFees();
+            return true;
+          }
+          return false;
+        }}
+        categorizedOptions={FEE_STANDARD_OPTIONS}
+      />
     </div>
   );
 }

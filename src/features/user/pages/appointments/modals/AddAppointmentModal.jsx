@@ -244,6 +244,7 @@ export default function AddAppointmentModal({
           <datalist id="appointment-types">
             <option value="general" label="Consultation"/>
             <option value="pre-employment" />
+            <option value="Follow-up" />
           </datalist>
         </div>
 

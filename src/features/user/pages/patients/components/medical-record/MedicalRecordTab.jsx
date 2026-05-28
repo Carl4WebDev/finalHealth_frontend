@@ -4,10 +4,16 @@ import { useMedicalRecords } from "../../../../context/medical-records/useMedica
 import { useNavigate } from "react-router-dom";
 import { useDiagnosisTreatment } from "../../../../context/diagnosis-treatments/useDiagnosisTreatment.js";
 import { usePrescriptionMaster } from "../../../../context/prescriptions-master/usePrescriptionMaster.js";
+import {
+  AddTextModal,
+  DIAGNOSIS_STANDARD_OPTIONS,
+  TREATMENT_STANDARD_OPTIONS,
+  PRESCRIPTION_STANDARD_OPTIONS,
+} from "../shared/AddItemModal.jsx";
 
 /* ================= OPTIONS ================= */
 
-const FORM_TYPE_OPTIONS = ["general", "pre-employment"];
+const FORM_TYPE_OPTIONS = ["general", "pre-employment", "follow-up"];
 const STATUS_OPTIONS = ["Scheduled", "Completed", "Cancelled"];
 
 const RECORD_DATE_OPTIONS = [
@@ -111,14 +117,22 @@ const parseList = (value) => {
 const SKIP_KEYS = new Set(["filledBy", "section", "doctorEvaluation"]);
 
 const formatLabel = (key) =>
-  key.replace(/([A-Z])/g, " $1").replace(/_/g, " ").replace(/^./, (c) => c.toUpperCase()).trim();
+  key
+    .replace(/([A-Z])/g, " $1")
+    .replace(/_/g, " ")
+    .replace(/^./, (c) => c.toUpperCase())
+    .trim();
 
 function unwrapData(raw) {
   if (!raw) return null;
   const data = typeof raw === "string" ? JSON.parse(raw) : raw;
   // Unwrap single-key wrappers like { consultation_history: {...} }
   const keys = Object.keys(data);
-  if (keys.length === 1 && typeof data[keys[0]] === "object" && !Array.isArray(data[keys[0]])) {
+  if (
+    keys.length === 1 &&
+    typeof data[keys[0]] === "object" &&
+    !Array.isArray(data[keys[0]])
+  ) {
     return data[keys[0]];
   }
   return data;
@@ -170,7 +184,9 @@ function ArrayField({ label, items }) {
 
 function ObjectField({ label, obj }) {
   if (!obj || typeof obj !== "object") return null;
-  const entries = Object.entries(obj).filter(([, v]) => v !== null && v !== "" && v !== undefined);
+  const entries = Object.entries(obj).filter(
+    ([, v]) => v !== null && v !== "" && v !== undefined,
+  );
   if (entries.length === 0) return null;
 
   return (
@@ -180,7 +196,10 @@ function ObjectField({ label, obj }) {
       </p>
       <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
         {entries.map(([k, v]) => (
-          <div key={k} className="rounded-lg border border-blue-100 bg-white p-2.5">
+          <div
+            key={k}
+            className="rounded-lg border border-blue-100 bg-white p-2.5"
+          >
             <p className="text-[11px] font-bold uppercase tracking-wider text-gray-400">
               {formatLabel(k)}
             </p>
@@ -197,7 +216,8 @@ function ObjectField({ label, obj }) {
 function DoctorEvaluationCard({ data }) {
   if (!data) return null;
   const entries = Object.entries(data).filter(
-    ([k, v]) => k !== "evaluatedAt" && v !== null && v !== "" && v !== undefined
+    ([k, v]) =>
+      k !== "evaluatedAt" && v !== null && v !== "" && v !== undefined,
   );
   if (entries.length === 0) return null;
 
@@ -211,7 +231,10 @@ function DoctorEvaluationCard({ data }) {
       </div>
       <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
         {entries.map(([k, v]) => (
-          <div key={k} className="rounded-lg border border-emerald-100 bg-white p-2.5">
+          <div
+            key={k}
+            className="rounded-lg border border-emerald-100 bg-white p-2.5"
+          >
             <p className="text-[11px] font-bold uppercase tracking-wider text-gray-400">
               {formatLabel(k)}
             </p>
@@ -232,12 +255,20 @@ function FormDataContent({ data }) {
     <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
       {entries.map(([key, value]) => {
         if (Array.isArray(value)) {
-          return <ArrayField key={key} label={formatLabel(key)} items={value} />;
+          return (
+            <ArrayField key={key} label={formatLabel(key)} items={value} />
+          );
         }
         if (typeof value === "object" && value !== null) {
           return <ObjectField key={key} label={formatLabel(key)} obj={value} />;
         }
-        return <ValueField key={key} label={formatLabel(key)} value={String(value ?? "-")} />;
+        return (
+          <ValueField
+            key={key}
+            label={formatLabel(key)}
+            value={String(value ?? "-")}
+          />
+        );
       })}
 
       {data.doctorEvaluation && (
@@ -249,7 +280,8 @@ function FormDataContent({ data }) {
 
 function FormDataSection({ medicalRecord }) {
   const formType = (medicalRecord?.form_type || "general").toLowerCase();
-  const isPreEmployment = formType.includes("pre_employment") || formType.includes("pre-employment");
+  const isPreEmployment =
+    formType.includes("pre_employment") || formType.includes("pre-employment");
   const preEmploymentData = unwrapData(medicalRecord?.pre_employment_data);
   const formData = unwrapData(medicalRecord?.form_data);
 
@@ -260,8 +292,18 @@ function FormDataSection({ medicalRecord }) {
       <div className="rounded-2xl border border-dashed border-gray-300 bg-gray-50 p-6">
         <div className="flex items-center gap-3">
           <div className="flex h-10 w-10 items-center justify-center rounded-full bg-gray-200">
-            <svg className="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m2.25 0H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z" />
+            <svg
+              className="h-5 w-5 text-gray-400"
+              fill="none"
+              viewBox="0 0 24 24"
+              strokeWidth={1.5}
+              stroke="currentColor"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m2.25 0H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z"
+              />
             </svg>
           </div>
           <div>
@@ -269,7 +311,8 @@ function FormDataSection({ medicalRecord }) {
               {isPreEmployment ? "Pre-Employment Data" : "Consultation Data"}
             </h3>
             <p className="text-xs text-gray-400">
-              No {isPreEmployment ? "pre-employment" : "consultation"} data recorded for this visit.
+              No {isPreEmployment ? "pre-employment" : "consultation"} data
+              recorded for this visit.
             </p>
           </div>
         </div>
@@ -278,12 +321,26 @@ function FormDataSection({ medicalRecord }) {
   }
 
   const accent = isPreEmployment
-    ? { border: "border-amber-200", bg: "bg-amber-50", badge: "bg-amber-100 text-amber-700", dot: "bg-amber-400" }
-    : { border: "border-blue-200", bg: "bg-blue-50", badge: "bg-blue-100 text-blue-700", dot: "bg-blue-400" };
+    ? {
+        border: "border-amber-200",
+        bg: "bg-amber-50",
+        badge: "bg-amber-100 text-amber-700",
+        dot: "bg-amber-400",
+      }
+    : {
+        border: "border-blue-200",
+        bg: "bg-blue-50",
+        badge: "bg-blue-100 text-blue-700",
+        dot: "bg-blue-400",
+      };
 
   return (
-    <div className={`rounded-2xl border ${accent.border} bg-white shadow-sm overflow-hidden`}>
-      <div className={`flex items-center justify-between border-b ${accent.border} px-5 py-3 ${accent.bg}`}>
+    <div
+      className={`rounded-2xl border ${accent.border} bg-white shadow-sm overflow-hidden`}
+    >
+      <div
+        className={`flex items-center justify-between border-b ${accent.border} px-5 py-3 ${accent.bg}`}
+      >
         <div className="flex items-center gap-3">
           <div className={`h-2 w-2 rounded-full ${accent.dot}`} />
           <h3 className="text-sm font-semibold text-gray-800">
@@ -490,12 +547,12 @@ export default function MedicalRecordTab({
     treatments,
     getAllDiagnoses,
     getAllTreatments,
+    createDiagnosis,
+    createTreatment,
   } = useDiagnosisTreatment();
 
-  const {
-    prescriptions,
-    getAllPrescriptionMasters,
-  } = usePrescriptionMaster();
+  const { prescriptions, getAllPrescriptionMasters, createPrescriptionMaster } =
+    usePrescriptionMaster();
 
   const [record, setRecord] = useState(DEFAULT_RECORD);
   const [diagnosis, setDiagnosis] = useState([]);
@@ -505,6 +562,10 @@ export default function MedicalRecordTab({
   const [selectedDiagnosis, setSelectedDiagnosis] = useState("");
   const [selectedTreatment, setSelectedTreatment] = useState("");
   const [selectedMedication, setSelectedMedication] = useState("");
+
+  const [isAddDiagnosisOpen, setIsAddDiagnosisOpen] = useState(false);
+  const [isAddTreatmentOpen, setIsAddTreatmentOpen] = useState(false);
+  const [isAddMedicationOpen, setIsAddMedicationOpen] = useState(false);
 
   const hasRecord = !!medicalRecord?.record_id;
 
@@ -538,21 +599,21 @@ export default function MedicalRecordTab({
       parseList(medicalRecord.diagnosis).map((item) => ({
         ...item,
         createdAt: item.createdAt || new Date().toISOString(),
-      }))
+      })),
     );
 
     setTreatment(
       parseList(medicalRecord.treatment).map((item) => ({
         ...item,
         createdAt: item.createdAt || new Date().toISOString(),
-      }))
+      })),
     );
 
     setMedications(
       parseList(medicalRecord.medications).map((item) => ({
         ...item,
         createdAt: item.createdAt || new Date().toISOString(),
-      }))
+      })),
     );
   }, [medicalRecord]);
 
@@ -580,8 +641,8 @@ export default function MedicalRecordTab({
   const updateItem = (id, newValue, setList) => {
     setList((prev) =>
       prev.map((item) =>
-        item.id === id ? { ...item, value: newValue } : item
-      )
+        item.id === id ? { ...item, value: newValue } : item,
+      ),
     );
   };
 
@@ -641,7 +702,9 @@ export default function MedicalRecordTab({
       {/* Header */}
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h2 className="text-lg font-semibold text-gray-800">Medical Record</h2>
+          <h2 className="text-lg font-semibold text-gray-800">
+            Medical Record
+          </h2>
           <p className="mt-1 text-sm text-gray-500">
             {hasRecord
               ? "Existing medical record loaded."
@@ -722,7 +785,9 @@ export default function MedicalRecordTab({
         <label className="text-xs font-semibold uppercase tracking-wide text-gray-500">
           Recommended Follow-Up Date
         </label>
-        <p className="text-xs text-gray-400 mb-2">When should the patient come back?</p>
+        <p className="text-xs text-gray-400 mb-2">
+          When should the patient come back?
+        </p>
         <input
           type="date"
           value={record.followUpDate}
@@ -832,12 +897,17 @@ export default function MedicalRecordTab({
       <TableSection
         title="Diagnosis"
         options={diagnosisOptions}
-        onManageOptions={() => navigate("/user/patients/management")}
+        onManageOptions={() => setIsAddDiagnosisOpen(true)}
         selectedValue={selectedDiagnosis}
         setSelectedValue={setSelectedDiagnosis}
         rows={diagnosis}
         onAdd={() =>
-          addItem(selectedDiagnosis, diagnosis, setDiagnosis, setSelectedDiagnosis)
+          addItem(
+            selectedDiagnosis,
+            diagnosis,
+            setDiagnosis,
+            setSelectedDiagnosis,
+          )
         }
         onEdit={(id, value) => updateItem(id, value, setDiagnosis)}
         onRemove={(id) => removeItem(id, setDiagnosis)}
@@ -847,12 +917,17 @@ export default function MedicalRecordTab({
       <TableSection
         title="Treatment"
         options={treatmentOptions}
-        onManageOptions={() => navigate("/user/patients/management")}
+        onManageOptions={() => setIsAddTreatmentOpen(true)}
         selectedValue={selectedTreatment}
         setSelectedValue={setSelectedTreatment}
         rows={treatment}
         onAdd={() =>
-          addItem(selectedTreatment, treatment, setTreatment, setSelectedTreatment)
+          addItem(
+            selectedTreatment,
+            treatment,
+            setTreatment,
+            setSelectedTreatment,
+          )
         }
         onEdit={(id, value) => updateItem(id, value, setTreatment)}
         onRemove={(id) => removeItem(id, setTreatment)}
@@ -862,12 +937,17 @@ export default function MedicalRecordTab({
       <TableSection
         title="Medication"
         options={medicationOptions}
-        onManageOptions={() => navigate("/user/patients/management")}
+        onManageOptions={() => setIsAddMedicationOpen(true)}
         selectedValue={selectedMedication}
         setSelectedValue={setSelectedMedication}
         rows={medications}
         onAdd={() =>
-          addItem(selectedMedication, medications, setMedications, setSelectedMedication)
+          addItem(
+            selectedMedication,
+            medications,
+            setMedications,
+            setSelectedMedication,
+          )
         }
         onEdit={(id, value) => updateItem(id, value, setMedications)}
         onRemove={(id) => removeItem(id, setMedications)}
@@ -875,6 +955,55 @@ export default function MedicalRecordTab({
 
       {/* BOTTOM — Form Data History */}
       <FormDataSection medicalRecord={medicalRecord} />
+
+      {/* Add Modals */}
+      <AddTextModal
+        isOpen={isAddDiagnosisOpen}
+        title="Add Diagnosis"
+        placeholder="Choose or type diagnosis"
+        onClose={() => setIsAddDiagnosisOpen(false)}
+        onSubmit={async (value) => {
+          const res = await createDiagnosis(value);
+          if (res?.ok !== false) {
+            await getAllDiagnoses();
+            return true;
+          }
+          return false;
+        }}
+        categorizedOptions={DIAGNOSIS_STANDARD_OPTIONS}
+      />
+
+      <AddTextModal
+        isOpen={isAddTreatmentOpen}
+        title="Add Treatment"
+        placeholder="Choose or type treatment"
+        onClose={() => setIsAddTreatmentOpen(false)}
+        onSubmit={async (value) => {
+          const res = await createTreatment(value);
+          if (res?.ok !== false) {
+            await getAllTreatments();
+            return true;
+          }
+          return false;
+        }}
+        categorizedOptions={TREATMENT_STANDARD_OPTIONS}
+      />
+
+      <AddTextModal
+        isOpen={isAddMedicationOpen}
+        title="Add Medication"
+        placeholder="Choose or type medication"
+        onClose={() => setIsAddMedicationOpen(false)}
+        onSubmit={async (value) => {
+          const res = await createPrescriptionMaster(value);
+          if (res?.ok !== false) {
+            await getAllPrescriptionMasters();
+            return true;
+          }
+          return false;
+        }}
+        categorizedOptions={PRESCRIPTION_STANDARD_OPTIONS}
+      />
     </div>
   );
 }

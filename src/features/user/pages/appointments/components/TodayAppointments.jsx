@@ -11,6 +11,7 @@ import AddVitalsModal from "../modals/AddVitalsModal";
 
 import ConsultationMedicalRecordModal from "../modals/ConsultationMedicalRecordModal";
 import PreEmploymentMedicalRecordModal from "../modals/PreEmploymentMedicalRecordModal";
+import FollowupMedicalRecordModal from "../modals/FollowupMedicalRecordModal";
 
 export default function TodayAppointments({ data }) {
   const { loading, error, cancelAppointment, getAllAppointments } =
@@ -39,6 +40,8 @@ export default function TodayAppointments({ data }) {
 
 const [showPreEmploymentModal, setShowPreEmploymentModal] =
   useState(false);
+
+const [showFollowupModal, setShowFollowupModal] = useState(false);
 
   const [visibleAppointments, setVisibleAppointments] = useState(data);
 
@@ -203,6 +206,11 @@ const [showPreEmploymentModal, setShowPreEmploymentModal] =
       return;
     }
 
+    if (appointmentType === "follow-up") {
+      setShowFollowupModal(true);
+      return;
+    }
+
     setQueuedAppointmentForVitals(null);
   }}
 />
@@ -221,6 +229,15 @@ const [showPreEmploymentModal, setShowPreEmploymentModal] =
   appointment={queuedAppointmentForVitals}
   onClose={() => {
     setShowPreEmploymentModal(false);
+    setQueuedAppointmentForVitals(null);
+  }}
+/>
+
+<FollowupMedicalRecordModal
+  isOpen={showFollowupModal}
+  appointment={queuedAppointmentForVitals}
+  onClose={() => {
+    setShowFollowupModal(false);
     setQueuedAppointmentForVitals(null);
   }}
 />

@@ -198,6 +198,7 @@ export default function ManageDoctorPage() {
                     <th className="p-2 text-left whitespace-nowrap">Open Hours</th>
                     <th className="p-2 text-left whitespace-nowrap">Open Days</th>
                     <th className="p-2 text-left whitespace-nowrap">Owner</th>
+                    <th className="p-2 text-left whitespace-nowrap">Affiliation Code</th>
                     <th className="p-2 text-left whitespace-nowrap">Action</th>
                   </tr>
                 </thead>
@@ -211,8 +212,7 @@ export default function ManageDoctorPage() {
                       <td className="p-2 whitespace-nowrap">{c.open_hours}</td>
                       <td className="p-2 whitespace-nowrap">{c.open_days}</td>
                       <td className="p-2 whitespace-nowrap">{c.owner_name}</td>
-
-                    
+                      <td className="p-2 whitespace-nowrap font-mono text-xs text-gray-500">{c.affiliation_code || "—"}</td>
 
                       <td className="p-2 whitespace-nowrap">
                         <button

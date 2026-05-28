@@ -101,21 +101,22 @@ export const ClinicProvider = ({ children }) => {
     setLoadingClinicSessions(false);
   };
 
-  const createAffiliationDoctorToClinic = async (doctorId, clinicId) => {
+  const createAffiliationDoctorToClinic = async (doctorId, clinicId, affiliationCode) => {
     setLoading(true);
     setError(null);
 
-    const res = await createAffiliationDoctorToClinicApi(doctorId, clinicId);
+    const res = await createAffiliationDoctorToClinicApi(doctorId, clinicId, affiliationCode);
 
     if (!res.ok) {
       setError(res.message);
       setLoading(false);
-      return;
+      return res;
     }
 
     await getAllClinicsOfDoctor(doctorId);
 
     setLoading(false);
+    return res;
   };
 
   const deleteClinicAffiliation = async (doctorId, clinicId) => {

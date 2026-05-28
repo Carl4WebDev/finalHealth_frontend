@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useMedicalRecords } from "../../../../context/medical-records/useMedicalRecords.js";
 import { useLabResultMaster } from "../../../../context/lab-result-master/useLabResultMaster.js";
+import { AddTextModal, LAB_RESULT_STANDARD_OPTIONS } from "../shared/AddItemModal.jsx";
 
 const API_BASE = import.meta.env.VITE_API_BASE;
 
@@ -18,8 +19,10 @@ export default function LabResultsTab({ recordId, patientId }) {
     updateLabResultImage,
   } = useMedicalRecords();
 
-  const { labResults: labResultOptions, getAllLabResultMasters } =
+  const { labResults: labResultOptions, getAllLabResultMasters, createLabResultMaster } =
     useLabResultMaster();
+
+  const [isAddLabResultOpen, setIsAddLabResultOpen] = useState(false);
 
   const [form, setForm] = useState({
     test_type: "",
@@ -151,7 +154,7 @@ export default function LabResultsTab({ recordId, patientId }) {
 
             <button
               type="button"
-              onClick={() => navigate("/user/patients/management")}
+              onClick={() => setIsAddLabResultOpen(true)}
               className="rounded-lg bg-gray-100 px-3 py-2 text-sm font-bold text-blue-600 hover:bg-blue-100"
               title="Manage lab result options"
             >
@@ -341,6 +344,22 @@ export default function LabResultsTab({ recordId, patientId }) {
           </div>
         </div>
       )}
+
+      <AddTextModal
+        isOpen={isAddLabResultOpen}
+        title="Add Lab Result Type"
+        placeholder="Choose or type lab result"
+        onClose={() => setIsAddLabResultOpen(false)}
+        onSubmit={async (value) => {
+          const res = await createLabResultMaster(value);
+          if (res?.ok !== false) {
+            await getAllLabResultMasters();
+            return true;
+          }
+          return false;
+        }}
+        categorizedOptions={LAB_RESULT_STANDARD_OPTIONS}
+      />
     </div>
   );
 }

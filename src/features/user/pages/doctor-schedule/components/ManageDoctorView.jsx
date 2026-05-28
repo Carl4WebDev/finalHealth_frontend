@@ -303,6 +303,13 @@ const ManageDoctorView = ({
                     darkMode ? "text-gray-400" : "text-gray-500"
                   }`}
                 >
+                  Affiliation Code
+                </th>
+                <th
+                  className={`text-left py-3 px-4 text-sm font-medium ${
+                    darkMode ? "text-gray-400" : "text-gray-500"
+                  }`}
+                >
                   Actions
                 </th>
               </tr>
@@ -311,7 +318,7 @@ const ManageDoctorView = ({
               {affiliatedClinics.length === 0 ? (
                 <tr>
                   <td
-                    colSpan={6}
+                    colSpan={7}
                     className={`py-6 text-center text-sm ${
                       darkMode ? "text-gray-400" : "text-gray-600"
                     }`}
@@ -361,6 +368,13 @@ const ManageDoctorView = ({
                       }`}
                     >
                       {clinic.contact}
+                    </td>
+                    <td
+                      className={`py-3 px-4 font-mono text-xs ${
+                        darkMode ? "text-gray-400" : "text-gray-500"
+                      }`}
+                    >
+                      {clinic.affiliation_code || "—"}
                     </td>
                     <td className="py-3 px-4">
                       <button

@@ -19,11 +19,12 @@ export const deleteClinicSessionApi = (sessionClinicId) =>
     method: "DELETE",
   });
 
-export const createAffiliationDoctorToClinicApi = (doctorId, clinicId) =>
+export const createAffiliationDoctorToClinicApi = (doctorId, clinicId, affiliationCode) =>
   apiRequest(
     `/api/clinic-routes/doctor/${doctorId}/clinic/${clinicId}/affiliate-clinic`,
     {
       method: "POST",
+      body: JSON.stringify({ affiliation_code: affiliationCode }),
     }
   );
 
