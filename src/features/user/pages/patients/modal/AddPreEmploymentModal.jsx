@@ -51,9 +51,11 @@ export default function AddPreEmploymentModal({
 
 
   useEffect(() => {
-  getAllDiagnoses();
-  getAllTreatments();
-}, []);
+    if (isOpen) {
+      getAllDiagnoses();
+      getAllTreatments();
+    }
+  }, [isOpen]);
 
 const [form, setForm] = useState({
   record_date: "",

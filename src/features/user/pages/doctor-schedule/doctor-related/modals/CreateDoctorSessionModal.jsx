@@ -22,8 +22,10 @@ export default function CreateDoctorSessionModal({
   const [selectedSchedules, setSelectedSchedules] = useState([]);
 
   useEffect(() => {
-    getAllClinicsOfDoctor(Number(doctorId));
-  }, []);
+    if (isOpen) {
+      getAllClinicsOfDoctor(Number(doctorId));
+    }
+  }, [isOpen, doctorId]);
 
   if (!isOpen) return null;
 

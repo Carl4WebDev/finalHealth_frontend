@@ -1,16 +1,15 @@
-import { useState } from "react";
+import { useState, useCallback, useMemo } from "react";
 import { AdminContext } from "./AdminContext.jsx";
-// 1. ADD getCustomerRevenueApi to your imports
-import { getAllSubscribersApi, getCustomerRevenueApi, getDashboardSummaryApi} from "../api/adminApi.js"; 
+import { getAllSubscribersApi, getCustomerRevenueApi, getDashboardSummaryApi } from "../api/adminApi.js";
 
 export const AdminProvider = ({ children }) => {
   const [subscribers, setSubscribers] = useState([]);
-  const [revenue, setRevenue] = useState([]); 
-  const [dashboard, setDashboard] = useState(null); // For dashboard summary
+  const [revenue, setRevenue] = useState([]);
+  const [dashboard, setDashboard] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
-  const getAllSubscribers = async () => {
+  const getAllSubscribers = useCallback(async () => {
     setLoading(true);
     setError(null);
     const res = await getAllSubscribersApi();
@@ -21,14 +20,13 @@ export const AdminProvider = ({ children }) => {
     }
     setSubscribers(res.data.subscribers || []);
     setLoading(false);
-  };
+  }, []);
 
-  const clearSubscribers = () => {
+  const clearSubscribers = useCallback(() => {
     setSubscribers([]);
-  };
+  }, []);
 
-  // Your Revenue function
-  const getRevenue = async () => {
+  const getRevenue = useCallback(async () => {
     setLoading(true);
     setError(null);
 
@@ -40,41 +38,50 @@ export const AdminProvider = ({ children }) => {
       return;
     }
 
-    setRevenue(res.data || []); 
+    setRevenue(res.data || []);
     setLoading(false);
-  };
+  }, []);
 
-  const getDashboardData = async () => {
+  const getDashboardData = useCallback(async () => {
     setLoading(true);
     setError(null);
-    
+
     const res = await getDashboardSummaryApi();
-    
+
     if (!res.ok) {
       setError(res.message || "Failed to load dashboard stats");
       setLoading(false);
       return;
     }
-    
-    // This saves the counts (users, doctors, etc.) into state
+
     setDashboard(res.data || null);
     setLoading(false);
-  };
+  }, []);
+
+  const value = useMemo(() => ({
+    subscribers,
+    revenue,
+    dashboard,
+    loading,
+    error,
+    getAllSubscribers,
+    getRevenue,
+    getDashboardData,
+    clearSubscribers,
+  }), [
+    subscribers,
+    revenue,
+    dashboard,
+    loading,
+    error,
+    getAllSubscribers,
+    getRevenue,
+    getDashboardData,
+    clearSubscribers,
+  ]);
 
   return (
-    <AdminContext.Provider
-      value={{
-        subscribers,
-        revenue,          
-        dashboard,        
-        loading,
-        error,
-        getAllSubscribers,
-        getRevenue,       
-        getDashboardData,
-        clearSubscribers,
-      }}
-    >
+    <AdminContext.Provider value={value}>
       {children}
     </AdminContext.Provider>
   );

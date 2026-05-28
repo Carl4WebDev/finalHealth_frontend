@@ -19,7 +19,6 @@ export async function apiRequest(url, options = {}) {
     });
 
     const body = await res.json();
-    console.log(body);
     if (!res.ok) {
       // ✅ Handle expired subscription globally
       if (

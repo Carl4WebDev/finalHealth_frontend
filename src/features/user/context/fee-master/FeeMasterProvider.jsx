@@ -1,5 +1,4 @@
-import { useState } from "react";
-
+import { useState, useCallback, useMemo } from "react";
 import { FeeMasterContext } from "./FeeMasterContext.jsx";
 
 import {
@@ -11,14 +10,11 @@ import {
 
 export const FeeMasterProvider = ({ children }) => {
   const [fees, setFees] = useState([]);
-
   const [loadingFees, setLoadingFees] = useState(false);
-
   const [feeActionLoading, setFeeActionLoading] = useState(false);
-
   const [feeError, setFeeError] = useState(null);
 
-  const getAllFees = async () => {
+  const getAllFees = useCallback(async () => {
     setLoadingFees(true);
     setFeeError(null);
 
@@ -31,18 +27,14 @@ export const FeeMasterProvider = ({ children }) => {
     }
 
     setFees(res.data.fees || []);
-
     setLoadingFees(false);
-  };
+  }, []);
 
-  const createFee = async ({ fee_name, amount }) => {
+  const createFee = useCallback(async ({ fee_name, amount }) => {
     setFeeActionLoading(true);
     setFeeError(null);
 
-    const res = await createFeeApi({
-      fee_name,
-      amount,
-    });
+    const res = await createFeeApi({ fee_name, amount });
 
     if (!res.ok) {
       setFeeError(res.message);
@@ -51,23 +43,15 @@ export const FeeMasterProvider = ({ children }) => {
     }
 
     await getAllFees();
-
     setFeeActionLoading(false);
-
     return true;
-  };
+  }, [getAllFees]);
 
-  const updateFee = async (
-    feeId,
-    { fee_name, amount },
-  ) => {
+  const updateFee = useCallback(async (feeId, { fee_name, amount }) => {
     setFeeActionLoading(true);
     setFeeError(null);
 
-    const res = await updateFeeApi(feeId, {
-      fee_name,
-      amount,
-    });
+    const res = await updateFeeApi(feeId, { fee_name, amount });
 
     if (!res.ok) {
       setFeeError(res.message);
@@ -76,13 +60,11 @@ export const FeeMasterProvider = ({ children }) => {
     }
 
     await getAllFees();
-
     setFeeActionLoading(false);
-
     return true;
-  };
+  }, [getAllFees]);
 
-  const deleteFee = async (feeId) => {
+  const deleteFee = useCallback(async (feeId) => {
     setFeeActionLoading(true);
     setFeeError(null);
 
@@ -95,28 +77,32 @@ export const FeeMasterProvider = ({ children }) => {
     }
 
     await getAllFees();
-
     setFeeActionLoading(false);
-
     return true;
-  };
+  }, [getAllFees]);
+
+  const value = useMemo(() => ({
+    fees,
+    loadingFees,
+    feeActionLoading,
+    feeError,
+    getAllFees,
+    createFee,
+    updateFee,
+    deleteFee,
+  }), [
+    fees,
+    loadingFees,
+    feeActionLoading,
+    feeError,
+    getAllFees,
+    createFee,
+    updateFee,
+    deleteFee,
+  ]);
 
   return (
-    <FeeMasterContext.Provider
-      value={{
-        fees,
-
-        loadingFees,
-        feeActionLoading,
-
-        feeError,
-
-        getAllFees,
-        createFee,
-        updateFee,
-        deleteFee,
-      }}
-    >
+    <FeeMasterContext.Provider value={value}>
       {children}
     </FeeMasterContext.Provider>
   );

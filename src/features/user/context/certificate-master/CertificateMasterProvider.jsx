@@ -1,5 +1,4 @@
-import { useState } from "react";
-
+import { useState, useCallback, useMemo } from "react";
 import { CertificateMasterContext } from "./CertificateMasterContext.jsx";
 
 import {
@@ -11,15 +10,11 @@ import {
 
 export const CertificateMasterProvider = ({ children }) => {
   const [certificates, setCertificates] = useState([]);
-
   const [loadingCertificates, setLoadingCertificates] = useState(false);
-
-  const [certificateActionLoading, setCertificateActionLoading] =
-    useState(false);
-
+  const [certificateActionLoading, setCertificateActionLoading] = useState(false);
   const [certificateError, setCertificateError] = useState(null);
 
-  const getAllCertificateMasters = async () => {
+  const getAllCertificateMasters = useCallback(async () => {
     setLoadingCertificates(true);
     setCertificateError(null);
 
@@ -32,17 +27,14 @@ export const CertificateMasterProvider = ({ children }) => {
     }
 
     setCertificates(res.data.certificates || []);
-
     setLoadingCertificates(false);
-  };
+  }, []);
 
-  const createCertificateMaster = async (certificate_name) => {
+  const createCertificateMaster = useCallback(async (certificate_name) => {
     setCertificateActionLoading(true);
     setCertificateError(null);
 
-    const res = await createCertificateMasterApi({
-      certificate_name,
-    });
+    const res = await createCertificateMasterApi({ certificate_name });
 
     if (!res.ok) {
       setCertificateError(res.message);
@@ -51,22 +43,15 @@ export const CertificateMasterProvider = ({ children }) => {
     }
 
     await getAllCertificateMasters();
-
     setCertificateActionLoading(false);
-
     return true;
-  };
+  }, [getAllCertificateMasters]);
 
-  const updateCertificateMaster = async (
-    certificateId,
-    certificate_name,
-  ) => {
+  const updateCertificateMaster = useCallback(async (certificateId, certificate_name) => {
     setCertificateActionLoading(true);
     setCertificateError(null);
 
-    const res = await updateCertificateMasterApi(certificateId, {
-      certificate_name,
-    });
+    const res = await updateCertificateMasterApi(certificateId, { certificate_name });
 
     if (!res.ok) {
       setCertificateError(res.message);
@@ -75,13 +60,11 @@ export const CertificateMasterProvider = ({ children }) => {
     }
 
     await getAllCertificateMasters();
-
     setCertificateActionLoading(false);
-
     return true;
-  };
+  }, [getAllCertificateMasters]);
 
-  const deleteCertificateMaster = async (certificateId) => {
+  const deleteCertificateMaster = useCallback(async (certificateId) => {
     setCertificateActionLoading(true);
     setCertificateError(null);
 
@@ -94,28 +77,32 @@ export const CertificateMasterProvider = ({ children }) => {
     }
 
     await getAllCertificateMasters();
-
     setCertificateActionLoading(false);
-
     return true;
-  };
+  }, [getAllCertificateMasters]);
+
+  const value = useMemo(() => ({
+    certificates,
+    loadingCertificates,
+    certificateActionLoading,
+    certificateError,
+    getAllCertificateMasters,
+    createCertificateMaster,
+    updateCertificateMaster,
+    deleteCertificateMaster,
+  }), [
+    certificates,
+    loadingCertificates,
+    certificateActionLoading,
+    certificateError,
+    getAllCertificateMasters,
+    createCertificateMaster,
+    updateCertificateMaster,
+    deleteCertificateMaster,
+  ]);
 
   return (
-    <CertificateMasterContext.Provider
-      value={{
-        certificates,
-
-        loadingCertificates,
-        certificateActionLoading,
-
-        certificateError,
-
-        getAllCertificateMasters,
-        createCertificateMaster,
-        updateCertificateMaster,
-        deleteCertificateMaster,
-      }}
-    >
+    <CertificateMasterContext.Provider value={value}>
       {children}
     </CertificateMasterContext.Provider>
   );

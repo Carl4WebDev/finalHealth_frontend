@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useCallback, useMemo } from "react";
 import { PrescriptionMasterContext } from "./PrescriptionMasterContext.jsx";
 
 import {
@@ -10,15 +10,11 @@ import {
 
 export const PrescriptionMasterProvider = ({ children }) => {
   const [prescriptions, setPrescriptions] = useState([]);
-
   const [loadingPrescriptions, setLoadingPrescriptions] = useState(false);
-
-  const [prescriptionActionLoading, setPrescriptionActionLoading] =
-    useState(false);
-
+  const [prescriptionActionLoading, setPrescriptionActionLoading] = useState(false);
   const [prescriptionError, setPrescriptionError] = useState(null);
 
-  const getAllPrescriptionMasters = async () => {
+  const getAllPrescriptionMasters = useCallback(async () => {
     setLoadingPrescriptions(true);
     setPrescriptionError(null);
 
@@ -32,15 +28,13 @@ export const PrescriptionMasterProvider = ({ children }) => {
 
     setPrescriptions(res.data.prescriptions || []);
     setLoadingPrescriptions(false);
-  };
+  }, []);
 
-  const createPrescriptionMaster = async (prescription_name) => {
+  const createPrescriptionMaster = useCallback(async (prescription_name) => {
     setPrescriptionActionLoading(true);
     setPrescriptionError(null);
 
-    const res = await createPrescriptionMasterApi({
-      prescription_name,
-    });
+    const res = await createPrescriptionMasterApi({ prescription_name });
 
     if (!res.ok) {
       setPrescriptionError(res.message);
@@ -49,22 +43,15 @@ export const PrescriptionMasterProvider = ({ children }) => {
     }
 
     await getAllPrescriptionMasters();
-
     setPrescriptionActionLoading(false);
-
     return true;
-  };
+  }, [getAllPrescriptionMasters]);
 
-  const updatePrescriptionMaster = async (
-    prescriptionId,
-    prescription_name,
-  ) => {
+  const updatePrescriptionMaster = useCallback(async (prescriptionId, prescription_name) => {
     setPrescriptionActionLoading(true);
     setPrescriptionError(null);
 
-    const res = await updatePrescriptionMasterApi(prescriptionId, {
-      prescription_name,
-    });
+    const res = await updatePrescriptionMasterApi(prescriptionId, { prescription_name });
 
     if (!res.ok) {
       setPrescriptionError(res.message);
@@ -73,13 +60,11 @@ export const PrescriptionMasterProvider = ({ children }) => {
     }
 
     await getAllPrescriptionMasters();
-
     setPrescriptionActionLoading(false);
-
     return true;
-  };
+  }, [getAllPrescriptionMasters]);
 
-  const deletePrescriptionMaster = async (prescriptionId) => {
+  const deletePrescriptionMaster = useCallback(async (prescriptionId) => {
     setPrescriptionActionLoading(true);
     setPrescriptionError(null);
 
@@ -92,28 +77,32 @@ export const PrescriptionMasterProvider = ({ children }) => {
     }
 
     await getAllPrescriptionMasters();
-
     setPrescriptionActionLoading(false);
-
     return true;
-  };
+  }, [getAllPrescriptionMasters]);
+
+  const value = useMemo(() => ({
+    prescriptions,
+    loadingPrescriptions,
+    prescriptionActionLoading,
+    prescriptionError,
+    getAllPrescriptionMasters,
+    createPrescriptionMaster,
+    updatePrescriptionMaster,
+    deletePrescriptionMaster,
+  }), [
+    prescriptions,
+    loadingPrescriptions,
+    prescriptionActionLoading,
+    prescriptionError,
+    getAllPrescriptionMasters,
+    createPrescriptionMaster,
+    updatePrescriptionMaster,
+    deletePrescriptionMaster,
+  ]);
 
   return (
-    <PrescriptionMasterContext.Provider
-      value={{
-        prescriptions,
-
-        loadingPrescriptions,
-        prescriptionActionLoading,
-
-        prescriptionError,
-
-        getAllPrescriptionMasters,
-        createPrescriptionMaster,
-        updatePrescriptionMaster,
-        deletePrescriptionMaster,
-      }}
-    >
+    <PrescriptionMasterContext.Provider value={value}>
       {children}
     </PrescriptionMasterContext.Provider>
   );

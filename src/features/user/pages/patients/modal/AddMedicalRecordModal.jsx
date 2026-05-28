@@ -100,9 +100,11 @@ const [form, setForm] = useState({
 
 
 useEffect(() => {
-  getAllDiagnoses();
-  getAllTreatments();
-}, []);
+  if (isOpen) {
+    getAllDiagnoses();
+    getAllTreatments();
+  }
+}, [isOpen]);
 
   if (!isOpen) return null;
 

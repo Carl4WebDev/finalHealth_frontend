@@ -49,10 +49,10 @@ useEffect(() => {
 }, [allDoctorSessions]);
 
 useEffect(() => {
-  if (clinicId) {
+  if (isOpen && clinicId) {
     getDoctorsByClinic(clinicId);
   }
-}, []);
+}, [isOpen, clinicId]);
 
 
   const [sessions, setSessions] = useState(
