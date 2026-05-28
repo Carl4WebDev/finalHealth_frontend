@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useCallback, useMemo } from "react";
 import { QueueContext } from "./QueueContext.jsx";
 import {
   getQueueOfDoctorInClinicApi,
@@ -15,15 +15,12 @@ export const QueueProvider = ({ children }) => {
 
   const [activeDoctorId, setActiveDoctorId] = useState(null);
   const [activeClinicId, setActiveClinicId] = useState(null);
-  
+
   const [addQueueLoading, setAddQueueLoading] = useState(null);
   const [addQueueError, setAddQueueError] = useState(null);
 
-
-
-  const getQueueOfDoctorInClinic = async (doctorId, clinicId) => {
+  const getQueueOfDoctorInClinic = useCallback(async (doctorId, clinicId) => {
     if (!doctorId || !clinicId) {
-      // 🔥 RESET STATE
       setNormalQueues([]);
       setPriorityQueues([]);
       setActiveDoctorId(null);
@@ -49,9 +46,9 @@ export const QueueProvider = ({ children }) => {
     setNormalQueues(res.data.normalQueue || []);
     setPriorityQueues(res.data.priorityQueue || []);
     setLoading(false);
-  };
+  }, []);
 
-  const updateQueueStatus = async (queueEntryId, status) => {
+  const updateQueueStatus = useCallback(async (queueEntryId, status) => {
     if (!activeDoctorId || !activeClinicId) return false;
 
     setLoading(true);
@@ -70,9 +67,9 @@ export const QueueProvider = ({ children }) => {
 
     setLoading(false);
     return true;
-  };
+  }, [activeDoctorId, activeClinicId, getQueueOfDoctorInClinic]);
 
-  const addQueue = async (queueData) => {
+  const addQueue = useCallback(async (queueData) => {
     setAddQueueLoading(true);
     setAddQueueError(null);
 
@@ -89,32 +86,42 @@ export const QueueProvider = ({ children }) => {
 
     setAddQueueLoading(false);
     return true;
-  };
+  }, [activeDoctorId, activeClinicId, getQueueOfDoctorInClinic]);
 
-  const clearQueues = () => {
+  const clearQueues = useCallback(() => {
     setNormalQueues([]);
     setPriorityQueues([]);
     setActiveDoctorId(null);
     setActiveClinicId(null);
     setError(null);
-  };
+  }, []);
+
+  const value = useMemo(() => ({
+    normalQueues,
+    priorityQueues,
+    loading,
+    error,
+    addQueueError,
+    addQueueLoading,
+    getQueueOfDoctorInClinic,
+    updateQueueStatus,
+    addQueue,
+    clearQueues,
+  }), [
+    normalQueues,
+    priorityQueues,
+    loading,
+    error,
+    addQueueError,
+    addQueueLoading,
+    getQueueOfDoctorInClinic,
+    updateQueueStatus,
+    addQueue,
+    clearQueues,
+  ]);
 
   return (
-    <QueueContext.Provider
-      value={{
-        normalQueues,
-        priorityQueues,
-        loading,
-        error,
-
-        addQueueError,
-        addQueueLoading,
-        getQueueOfDoctorInClinic,
-        updateQueueStatus,
-        addQueue,
-        clearQueues,
-      }}
-    >
+    <QueueContext.Provider value={value}>
       {children}
     </QueueContext.Provider>
   );

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useCallback, useMemo } from "react";
 import { PatientContext } from "./PatientContext.jsx";
 import {
   getPatientOfDoctorInClinicApi,
@@ -13,11 +13,11 @@ export const PatientProvider = ({ children }) => {
   const [uploadImageLoading, setUploadImageLoading] = useState(false);
   const [error, setError] = useState(null);
 
-  const clearPatients = () => {
+  const clearPatients = useCallback(() => {
     setPatients([]);
-  };
+  }, []);
 
-  const getPatientOfDoctorInClinic = async (doctorId, clinicId) => {
+  const getPatientOfDoctorInClinic = useCallback(async (doctorId, clinicId) => {
     setLoading(true);
     setError(null);
 
@@ -37,9 +37,9 @@ export const PatientProvider = ({ children }) => {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
-  const createPatient = async (patientData) => {
+  const createPatient = useCallback(async (patientData) => {
     setLoading(true);
     setError(null);
 
@@ -58,9 +58,9 @@ export const PatientProvider = ({ children }) => {
 
     setLoading(false);
     return true;
-  };
+  }, [getPatientOfDoctorInClinic]);
 
-  const updatePatientInfo = async (patientId, patientData) => {
+  const updatePatientInfo = useCallback(async (patientId, patientData) => {
     setLoading(true);
     setError(null);
 
@@ -74,9 +74,9 @@ export const PatientProvider = ({ children }) => {
 
     setLoading(false);
     return true;
-  };
+  }, []);
 
-  const uploadPatientImage = async (patientId, imageFile) => {
+  const uploadPatientImage = useCallback(async (patientId, imageFile) => {
     setUploadImageLoading(true);
     setError(null);
 
@@ -88,37 +88,47 @@ export const PatientProvider = ({ children }) => {
       return false;
     }
 
-const updatedPatient = res.data.patient;
+    const updatedPatient = res.data.patient;
 
-setPatients((prev) =>
-  prev.map((p) =>
-    Number(p.patient_id) === Number(updatedPatient.patient_id)
-      ? {
-          ...p,
-          patient_img_path: updatedPatient.patient_img_path,
-        }
-      : p
-  )
-);
+    setPatients((prev) =>
+      prev.map((p) =>
+        Number(p.patient_id) === Number(updatedPatient.patient_id)
+          ? {
+              ...p,
+              patient_img_path: updatedPatient.patient_img_path,
+            }
+          : p
+      )
+    );
 
     setUploadImageLoading(false);
     return true;
-  };
+  }, []);
+
+  const value = useMemo(() => ({
+    patients,
+    loading,
+    uploadImageLoading,
+    error,
+    clearPatients,
+    getPatientOfDoctorInClinic,
+    createPatient,
+    updatePatientInfo,
+    uploadPatientImage,
+  }), [
+    patients,
+    loading,
+    uploadImageLoading,
+    error,
+    clearPatients,
+    getPatientOfDoctorInClinic,
+    createPatient,
+    updatePatientInfo,
+    uploadPatientImage,
+  ]);
 
   return (
-    <PatientContext.Provider
-      value={{
-        patients,
-        loading,
-        uploadImageLoading,
-        error,
-        clearPatients,
-        getPatientOfDoctorInClinic,
-        createPatient,
-        updatePatientInfo,
-        uploadPatientImage,
-      }}
-    >
+    <PatientContext.Provider value={value}>
       {children}
     </PatientContext.Provider>
   );

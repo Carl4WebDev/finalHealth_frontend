@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useCallback, useMemo } from "react";
 import { AppointmentContext } from "./AppointmentContext";
 import {
   getAllAppointmentsApi,
@@ -13,9 +13,7 @@ export const AppointmentProvider = ({ children }) => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
-
-
-  const getAllAppointments = async (doctorId, clinicId) => {
+  const getAllAppointments = useCallback(async (doctorId, clinicId) => {
     setLoading(true);
     setError(null);
 
@@ -30,9 +28,9 @@ export const AppointmentProvider = ({ children }) => {
     setAllAppointments(res.data.allAppointments || []);
     setTodayAppointments(res.data.todayAppointments || []);
     setLoading(false);
-  };
+  }, []);
 
-  const rescheduleAppointment = async (
+  const rescheduleAppointment = useCallback(async (
     appointmentId,
     appointmentDate,
     appointmentType,
@@ -61,9 +59,9 @@ export const AppointmentProvider = ({ children }) => {
     }
 
     setLoading(false);
-  };
+  }, [getAllAppointments]);
 
-  const cancelAppointment = async (appointmentId, reason) => {
+  const cancelAppointment = useCallback(async (appointmentId, reason) => {
     setLoading(true);
     setError(null);
 
@@ -75,9 +73,9 @@ export const AppointmentProvider = ({ children }) => {
       return;
     }
     setLoading(false);
-  };
+  }, []);
 
-  const createAppointment = async (appointmentData) => {
+  const createAppointment = useCallback(async (appointmentData) => {
     setLoading(true);
     setError(null);
 
@@ -89,34 +87,43 @@ export const AppointmentProvider = ({ children }) => {
       return;
     }
 
-    // 🔥 REFRESH appointments immediately
     await getAllAppointments(
       appointmentData.doctorId,
       appointmentData.clinicId
     );
 
     setLoading(false);
-  };
+  }, [getAllAppointments]);
 
-  const clearAppointments = () => {
+  const clearAppointments = useCallback(() => {
     setAllAppointments([]);
     setTodayAppointments([]);
-  };
+  }, []);
+
+  const value = useMemo(() => ({
+    allAppointments,
+    todayAppointments,
+    loading,
+    error,
+    getAllAppointments,
+    clearAppointments,
+    rescheduleAppointment,
+    cancelAppointment,
+    createAppointment,
+  }), [
+    allAppointments,
+    todayAppointments,
+    loading,
+    error,
+    getAllAppointments,
+    clearAppointments,
+    rescheduleAppointment,
+    cancelAppointment,
+    createAppointment,
+  ]);
 
   return (
-    <AppointmentContext.Provider
-      value={{
-        allAppointments,
-        todayAppointments,
-        loading,
-        error,
-        getAllAppointments,
-        clearAppointments,
-        rescheduleAppointment,
-        cancelAppointment,
-        createAppointment,
-      }}
-    >
+    <AppointmentContext.Provider value={value}>
       {children}
     </AppointmentContext.Provider>
   );

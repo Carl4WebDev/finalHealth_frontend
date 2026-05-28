@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useCallback, useMemo } from "react";
 import { SubscriptionContext } from "./SubscriptionContext";
 
 import {
@@ -13,7 +13,7 @@ import {
 
 export const SubscriptionProvider = ({ children }) => {
   const [subscriptionHistory, setSubscriptionHistory] = useState([]);
-const [paymentHistory, setPaymentHistory] = useState([]);
+  const [paymentHistory, setPaymentHistory] = useState([]);
 
   const [plans, setPlans] = useState([]);
   const [subscription, setSubscription] = useState(null);
@@ -22,30 +22,26 @@ const [paymentHistory, setPaymentHistory] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
+  const activateSubscription = useCallback(async (payload) => {
+    setLoading(true);
+    setError(null);
 
+    const res = await activateSubscriptionApi(payload);
 
-  const activateSubscription = async (payload) => {
-  setLoading(true);
-  setError(null);
+    if (!res.ok) {
+      setError(res.message);
+      setLoading(false);
+      return null;
+    }
 
-  const res = await activateSubscriptionApi(payload);
+    setSubscription(res.data.subscription || null);
+    setPlan(res.data.plan || null);
 
-  if (!res.ok) {
-    setError(res.message);
     setLoading(false);
-    return null;
-  }
+    return res.data;
+  }, []);
 
-  setSubscription(res.data.subscription || null);
-  setPlan(res.data.plan || null);
-
-  setLoading(false);
-  return res.data;
-};
-  // -----------------------------
-  // Load plans
-  // -----------------------------
-  const loadPlans = async () => {
+  const loadPlans = useCallback(async () => {
     setLoading(true);
     setError(null);
 
@@ -59,12 +55,9 @@ const [paymentHistory, setPaymentHistory] = useState([]);
 
     setPlans(res.data.plans || []);
     setLoading(false);
-  };
+  }, []);
 
-  // -----------------------------
-  // Load my subscription (/me)
-  // -----------------------------
-  const loadMySubscription = async () => {
+  const loadMySubscription = useCallback(async () => {
     setLoading(true);
     setError(null);
 
@@ -79,12 +72,9 @@ const [paymentHistory, setPaymentHistory] = useState([]);
     setSubscription(res.data.subscription || null);
     setPlan(res.data.plan || null);
     setLoading(false);
-  };
+  }, []);
 
-  // -----------------------------
-  // Create Stripe PaymentIntent
-  // -----------------------------
-  const createPaymentIntent = async (planId) => {
+  const createPaymentIntent = useCallback(async (planId) => {
     setLoading(true);
     setError(null);
 
@@ -98,12 +88,9 @@ const [paymentHistory, setPaymentHistory] = useState([]);
 
     setLoading(false);
     return res.data.clientSecret;
-  };
+  }, []);
 
-  // -----------------------------
-  // Cancel subscription
-  // -----------------------------
-  const cancelSubscription = async () => {
+  const cancelSubscription = useCallback(async () => {
     setLoading(true);
     setError(null);
 
@@ -117,70 +104,82 @@ const [paymentHistory, setPaymentHistory] = useState([]);
 
     await loadMySubscription();
     setLoading(false);
-  };
+  }, [loadMySubscription]);
 
-  const getSubscriptionHistory = async () => {
-  setLoading(true);
-  setError(null);
+  const getSubscriptionHistory = useCallback(async () => {
+    setLoading(true);
+    setError(null);
 
-  const res = await getSubscriptionHistoryApi();
+    const res = await getSubscriptionHistoryApi();
 
-  if (!res.ok) {
-    setError(res.message);
+    if (!res.ok) {
+      setError(res.message);
+      setLoading(false);
+      return;
+    }
+
+    setSubscriptionHistory(res.data.subscriptions || []);
     setLoading(false);
-    return;
-  }
+  }, []);
 
-  setSubscriptionHistory(res.data.subscriptions || []);
-  setLoading(false);
-};
+  const getPaymentHistory = useCallback(async () => {
+    setLoading(true);
+    setError(null);
 
-const getPaymentHistory = async () => {
-  setLoading(true);
-  setError(null);
+    const res = await getPaymentHistoryApi();
 
-  const res = await getPaymentHistoryApi();
+    if (!res.ok) {
+      setError(res.message);
+      setLoading(false);
+      return;
+    }
 
-  if (!res.ok) {
-    setError(res.message);
+    setPaymentHistory(res.data.payments || []);
     setLoading(false);
-    return;
-  }
+  }, []);
 
-  setPaymentHistory(res.data.payments || []);
-  setLoading(false);
-};
-
-  // -----------------------------
-  // Clear (logout / switch user)
-  // -----------------------------
-  const clearSubscription = () => {
+  const clearSubscription = useCallback(() => {
     setSubscription(null);
     setPlan(null);
     setPlans([]);
-  };
-  
+  }, []);
+
+  const value = useMemo(() => ({
+    plans,
+    subscription,
+    plan,
+    loading,
+    error,
+    subscriptionHistory,
+    paymentHistory,
+    loadPlans,
+    loadMySubscription,
+    createPaymentIntent,
+    cancelSubscription,
+    clearSubscription,
+    getSubscriptionHistory,
+    getPaymentHistory,
+    activateSubscription,
+  }), [
+    plans,
+    subscription,
+    plan,
+    loading,
+    error,
+    subscriptionHistory,
+    paymentHistory,
+    loadPlans,
+    loadMySubscription,
+    createPaymentIntent,
+    cancelSubscription,
+    clearSubscription,
+    getSubscriptionHistory,
+    getPaymentHistory,
+    activateSubscription,
+  ]);
 
   return (
-    <SubscriptionContext.Provider
-      value={{
-        plans,
-        subscription,
-        plan,
-        loading,
-        error,
-        subscriptionHistory,
-        paymentHistory,
-        loadPlans,
-        loadMySubscription,
-        createPaymentIntent,
-        cancelSubscription,
-        clearSubscription,
-        getSubscriptionHistory,
-        getPaymentHistory,
-        activateSubscription,
-      }}
-    >
+    <SubscriptionContext.Provider value={value}>
       {children}
     </SubscriptionContext.Provider>
   );

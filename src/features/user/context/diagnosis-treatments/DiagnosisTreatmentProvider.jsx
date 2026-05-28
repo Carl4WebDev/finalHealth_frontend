@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useCallback, useMemo } from "react";
 import { DiagnosisTreatmentContext } from "./DiagnosisTreatmentContext.jsx";
 import {
   getAllDiagnosesApi,
@@ -24,7 +24,7 @@ export const DiagnosisTreatmentProvider = ({ children }) => {
   const [diagnosisActionLoading, setDiagnosisActionLoading] = useState(false);
   const [treatmentActionLoading, setTreatmentActionLoading] = useState(false);
 
-  const getAllDiagnoses = async () => {
+  const getAllDiagnoses = useCallback(async () => {
     setLoadingDiagnoses(true);
     setDiagnosisError(null);
 
@@ -38,9 +38,9 @@ export const DiagnosisTreatmentProvider = ({ children }) => {
 
     setDiagnoses(res.data.diagnoses || []);
     setLoadingDiagnoses(false);
-  };
+  }, []);
 
-  const createDiagnosis = async (diagnosisName) => {
+  const createDiagnosis = useCallback(async (diagnosisName) => {
     setDiagnosisActionLoading(true);
     setDiagnosisError(null);
 
@@ -55,9 +55,9 @@ export const DiagnosisTreatmentProvider = ({ children }) => {
     await getAllDiagnoses();
     setDiagnosisActionLoading(false);
     return true;
-  };
+  }, [getAllDiagnoses]);
 
-  const updateDiagnosis = async (diagnosisId, diagnosisName) => {
+  const updateDiagnosis = useCallback(async (diagnosisId, diagnosisName) => {
     setDiagnosisActionLoading(true);
     setDiagnosisError(null);
 
@@ -72,9 +72,9 @@ export const DiagnosisTreatmentProvider = ({ children }) => {
     await getAllDiagnoses();
     setDiagnosisActionLoading(false);
     return true;
-  };
+  }, [getAllDiagnoses]);
 
-  const deleteDiagnosis = async (diagnosisId) => {
+  const deleteDiagnosis = useCallback(async (diagnosisId) => {
     setDiagnosisActionLoading(true);
     setDiagnosisError(null);
 
@@ -89,9 +89,9 @@ export const DiagnosisTreatmentProvider = ({ children }) => {
     await getAllDiagnoses();
     setDiagnosisActionLoading(false);
     return true;
-  };
+  }, [getAllDiagnoses]);
 
-  const getAllTreatments = async () => {
+  const getAllTreatments = useCallback(async () => {
     setLoadingTreatments(true);
     setTreatmentError(null);
 
@@ -105,9 +105,9 @@ export const DiagnosisTreatmentProvider = ({ children }) => {
 
     setTreatments(res.data.treatments || []);
     setLoadingTreatments(false);
-  };
+  }, []);
 
-  const createTreatment = async (treatmentName) => {
+  const createTreatment = useCallback(async (treatmentName) => {
     setTreatmentActionLoading(true);
     setTreatmentError(null);
 
@@ -122,9 +122,9 @@ export const DiagnosisTreatmentProvider = ({ children }) => {
     await getAllTreatments();
     setTreatmentActionLoading(false);
     return true;
-  };
+  }, [getAllTreatments]);
 
-  const updateTreatment = async (treatmentId, treatmentName) => {
+  const updateTreatment = useCallback(async (treatmentId, treatmentName) => {
     setTreatmentActionLoading(true);
     setTreatmentError(null);
 
@@ -139,9 +139,9 @@ export const DiagnosisTreatmentProvider = ({ children }) => {
     await getAllTreatments();
     setTreatmentActionLoading(false);
     return true;
-  };
+  }, [getAllTreatments]);
 
-  const deleteTreatment = async (treatmentId) => {
+  const deleteTreatment = useCallback(async (treatmentId) => {
     setTreatmentActionLoading(true);
     setTreatmentError(null);
 
@@ -156,42 +156,55 @@ export const DiagnosisTreatmentProvider = ({ children }) => {
     await getAllTreatments();
     setTreatmentActionLoading(false);
     return true;
-  };
+  }, [getAllTreatments]);
 
-  const clearDiagnosisTreatment = () => {
+  const clearDiagnosisTreatment = useCallback(() => {
     setDiagnoses([]);
     setTreatments([]);
     setDiagnosisError(null);
     setTreatmentError(null);
-  };
+  }, []);
+
+  const value = useMemo(() => ({
+    diagnoses,
+    treatments,
+    loadingDiagnoses,
+    loadingTreatments,
+    diagnosisActionLoading,
+    treatmentActionLoading,
+    diagnosisError,
+    treatmentError,
+    getAllDiagnoses,
+    createDiagnosis,
+    updateDiagnosis,
+    deleteDiagnosis,
+    getAllTreatments,
+    createTreatment,
+    updateTreatment,
+    deleteTreatment,
+    clearDiagnosisTreatment,
+  }), [
+    diagnoses,
+    treatments,
+    loadingDiagnoses,
+    loadingTreatments,
+    diagnosisActionLoading,
+    treatmentActionLoading,
+    diagnosisError,
+    treatmentError,
+    getAllDiagnoses,
+    createDiagnosis,
+    updateDiagnosis,
+    deleteDiagnosis,
+    getAllTreatments,
+    createTreatment,
+    updateTreatment,
+    deleteTreatment,
+    clearDiagnosisTreatment,
+  ]);
 
   return (
-    <DiagnosisTreatmentContext.Provider
-      value={{
-        diagnoses,
-        treatments,
-
-        loadingDiagnoses,
-        loadingTreatments,
-        diagnosisActionLoading,
-        treatmentActionLoading,
-
-        diagnosisError,
-        treatmentError,
-
-        getAllDiagnoses,
-        createDiagnosis,
-        updateDiagnosis,
-        deleteDiagnosis,
-
-        getAllTreatments,
-        createTreatment,
-        updateTreatment,
-        deleteTreatment,
-
-        clearDiagnosisTreatment,
-      }}
-    >
+    <DiagnosisTreatmentContext.Provider value={value}>
       {children}
     </DiagnosisTreatmentContext.Provider>
   );

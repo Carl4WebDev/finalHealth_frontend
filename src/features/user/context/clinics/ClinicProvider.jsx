@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useCallback, useMemo } from "react";
 import { ClinicContext } from "./ClinicContext.jsx";
 import {
   getAllClinicsOfDoctorApi,
@@ -23,19 +23,16 @@ export const ClinicProvider = ({ children }) => {
 
   const [loading, setLoading] = useState(false);
   const [loadingClinicSessions, setLoadingClinicSessions] = useState(false);
-  const [loadingDeleteAffiliation, setLoadingDeleteAffiliation] =
-    useState(false);
+  const [loadingDeleteAffiliation, setLoadingDeleteAffiliation] = useState(false);
   const [loadingAllClinics, setLoadingAllClinics] = useState(false);
   const [loadingClinicsInfo, setLoadingClinicsInfo] = useState(false);
-  const [loadingCreateClinicSession, setLoadingCreateClinicSession] =
-    useState(false);
-  const [loadingDeleteClinicSession, setLoadingDeleteClinicSession] =
-    useState(false);
+  const [loadingCreateClinicSession, setLoadingCreateClinicSession] = useState(false);
+  const [loadingDeleteClinicSession, setLoadingDeleteClinicSession] = useState(false);
   const [loadingCreateClinic, setLoadingCreateClinic] = useState(false);
 
   const [error, setError] = useState(null);
 
-  const getAllClinicsOfDoctor = async (doctorId) => {
+  const getAllClinicsOfDoctor = useCallback(async (doctorId) => {
     setLoading(true);
     setError(null);
 
@@ -49,10 +46,10 @@ export const ClinicProvider = ({ children }) => {
 
     setClinics(res.data || []);
     setLoading(false);
-  };
+  }, []);
 
   //to get all the unaffilated clinics and approved clinics
-  const getAllClinicsOfUserNotAffiliated = async (doctorId) => {
+  const getAllClinicsOfUserNotAffiliated = useCallback(async (doctorId) => {
     setLoading(true);
     setError(null);
 
@@ -66,10 +63,10 @@ export const ClinicProvider = ({ children }) => {
 
     setAllClinicsOfUser(res.data || []);
     setLoading(false);
-  };
+  }, []);
 
   //To get all clinics pending and approved clinics of the users account
-  const getAllClinicsOfUser = async () => {
+  const getAllClinicsOfUser = useCallback(async () => {
     setLoadingAllClinics(true);
     setError(null);
 
@@ -83,9 +80,9 @@ export const ClinicProvider = ({ children }) => {
 
     setAllClinics(res.data.clinics || []);
     setLoadingAllClinics(false);
-  };
+  }, []);
 
-  const getClinicSessions = async (clinicId) => {
+  const getClinicSessions = useCallback(async (clinicId) => {
     setLoadingClinicSessions(true);
     setError(null);
 
@@ -99,9 +96,9 @@ export const ClinicProvider = ({ children }) => {
 
     setClinicSessions(res.data || []);
     setLoadingClinicSessions(false);
-  };
+  }, []);
 
-  const createAffiliationDoctorToClinic = async (doctorId, clinicId, affiliationCode) => {
+  const createAffiliationDoctorToClinic = useCallback(async (doctorId, clinicId, affiliationCode) => {
     setLoading(true);
     setError(null);
 
@@ -117,9 +114,9 @@ export const ClinicProvider = ({ children }) => {
 
     setLoading(false);
     return res;
-  };
+  }, [getAllClinicsOfDoctor]);
 
-  const deleteClinicAffiliation = async (doctorId, clinicId) => {
+  const deleteClinicAffiliation = useCallback(async (doctorId, clinicId) => {
     setLoadingDeleteAffiliation(true);
     setError(null);
 
@@ -132,9 +129,9 @@ export const ClinicProvider = ({ children }) => {
     }
 
     setLoadingDeleteAffiliation(false);
-  };
+  }, []);
 
-  const getClinicInfo = async (clinicId) => {
+  const getClinicInfo = useCallback(async (clinicId) => {
     setLoadingClinicsInfo(true);
     setError(null);
 
@@ -149,9 +146,9 @@ export const ClinicProvider = ({ children }) => {
     setClinicInfo(res.data.clinic || []);
     console.log(res.data.clinic);
     setLoadingClinicsInfo(false);
-  };
+  }, []);
 
-  const deleteClinicSession = async (sessionClinicId) => {
+  const deleteClinicSession = useCallback(async (sessionClinicId) => {
     setLoadingDeleteClinicSession(true);
     setError(null);
 
@@ -164,9 +161,9 @@ export const ClinicProvider = ({ children }) => {
     }
 
     setLoadingDeleteClinicSession(false);
-  };
+  }, []);
 
-  const createClinicSession = async (clinicId, clinicSessionData) => {
+  const createClinicSession = useCallback(async (clinicId, clinicSessionData) => {
     setLoadingCreateClinicSession(true);
     setError(null);
 
@@ -179,25 +176,25 @@ export const ClinicProvider = ({ children }) => {
     }
 
     setLoadingCreateClinicSession(false);
-  };
+  }, []);
 
-const createClinic = async (clinicData) => {
-  setLoadingCreateClinic(true);
-  setError(null);
+  const createClinic = useCallback(async (clinicData) => {
+    setLoadingCreateClinic(true);
+    setError(null);
 
-  const res = await createClinicApi(clinicData);
+    const res = await createClinicApi(clinicData);
 
-  if (!res.ok) {
-    setError(res.message);
+    if (!res.ok) {
+      setError(res.message);
+      setLoadingCreateClinic(false);
+      return res;
+    }
+
     setLoadingCreateClinic(false);
-    return res; // return the failed response
-  }
+    return res;
+  }, []);
 
-  setLoadingCreateClinic(false);
-  return res; // return the success response too
-};
-
-  const updateClinic = async (clinicId, clinicData) => {
+  const updateClinic = useCallback(async (clinicId, clinicData) => {
     setLoadingCreateClinicSession(true);
     setError(null);
 
@@ -210,34 +207,52 @@ const createClinic = async (clinicData) => {
     }
 
     setLoadingCreateClinicSession(false);
-  };
+  }, []);
+
+  const value = useMemo(() => ({
+    clinics,
+    allClinicsOfUser,
+    allClinics,
+    clinicInfo,
+    clinicSessions,
+    loadingClinicSessions,
+    loading,
+    error,
+    getAllClinicsOfDoctor,
+    getAllClinicsOfUserNotAffiliated,
+    getClinicSessions,
+    getAllClinicsOfUser,
+    getClinicInfo,
+    deleteClinicAffiliation,
+    createAffiliationDoctorToClinic,
+    createClinicSession,
+    updateClinic,
+    deleteClinicSession,
+    createClinic,
+  }), [
+    clinics,
+    allClinicsOfUser,
+    allClinics,
+    clinicInfo,
+    clinicSessions,
+    loadingClinicSessions,
+    loading,
+    error,
+    getAllClinicsOfDoctor,
+    getAllClinicsOfUserNotAffiliated,
+    getClinicSessions,
+    getAllClinicsOfUser,
+    getClinicInfo,
+    deleteClinicAffiliation,
+    createAffiliationDoctorToClinic,
+    createClinicSession,
+    updateClinic,
+    deleteClinicSession,
+    createClinic,
+  ]);
 
   return (
-    <ClinicContext.Provider
-      value={{
-        clinics,
-        allClinicsOfUser,
-        allClinics,
-        clinicInfo,
-        clinicSessions,
-
-        loadingClinicSessions,
-        loading,
-        error,
-
-        getAllClinicsOfDoctor,
-        getAllClinicsOfUserNotAffiliated,
-        getClinicSessions,
-        getAllClinicsOfUser,
-        getClinicInfo,
-        deleteClinicAffiliation,
-        createAffiliationDoctorToClinic,
-        createClinicSession,
-        updateClinic,
-        deleteClinicSession,
-        createClinic,
-      }}
-    >
+    <ClinicContext.Provider value={value}>
       {children}
     </ClinicContext.Provider>
   );

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useCallback, useMemo } from "react";
 import { MedicalRecordsContext } from "./MedicalRecordsContext.jsx";
 import {
   getPatientOfDoctorInClinicApi,
@@ -83,23 +83,7 @@ const [error, setError] = useState(null);
 const [loadingMedicalRecordByAppointment, setLoadingMedicalRecordByAppointment] =
   useState(false);
 
-
-
-  const updateCertificateImage = async (certificateId, recordId, file) => {
-  const formData = new FormData();
-  formData.append("certificate_image", file);
-
-  const res = await updateCertificateImageApi(certificateId, formData);
-
-  if (!res.ok) {
-    return false;
-  }
-
-  await getCertificatesByRecord(recordId);
-
-  return res;
-};
-const getPatientVisitHistory = async (patientId) => {
+const getPatientVisitHistory = useCallback(async (patientId) => {
   setLoadingPatientVisitHistory(true);
   setError(null);
 
@@ -121,9 +105,9 @@ const getPatientVisitHistory = async (patientId) => {
   } finally {
     setLoadingPatientVisitHistory(false);
   }
-};
+}, []);
 
-  const getPatientVitalSigns = async (patientId) => {
+  const getPatientVitalSigns = useCallback(async (patientId) => {
   setLoadingPatientVitalSigns(true);
   setError(null);
 
@@ -145,9 +129,9 @@ const getPatientVisitHistory = async (patientId) => {
   } finally {
     setLoadingPatientVitalSigns(false);
   }
-};
+}, []);
 
-const createVitalSign = async (patientId, vitalSignData) => {
+const createVitalSign = useCallback(async (patientId, vitalSignData) => {
   setError(null);
 
   try {
@@ -166,9 +150,9 @@ const createVitalSign = async (patientId, vitalSignData) => {
     setError("Something went wrong");
     return { ok: false, message: "Something went wrong" };
   }
-};
+}, []);
 
-  const getPatientOfDoctorInClinic = async (doctorId, clinicId) => {
+  const getPatientOfDoctorInClinic = useCallback(async (doctorId, clinicId) => {
     setLoading(true);
     setError(null);
 
@@ -188,9 +172,9 @@ const createVitalSign = async (patientId, vitalSignData) => {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
-  const getPatientInfo = async (patientId) => {
+  const getPatientInfo = useCallback(async (patientId) => {
     setLoadingPatientInfo(true);
     setError(null);
 
@@ -210,9 +194,9 @@ const createVitalSign = async (patientId, vitalSignData) => {
     } finally {
       setLoadingPatientInfo(false);
     }
-  };
+  }, []);
 
-  const getPatientMedRecord = async (patientId) => {
+  const getPatientMedRecord = useCallback(async (patientId) => {
     setLoadingPatientMedRecord(true);
     setError(null);
 
@@ -232,9 +216,9 @@ const createVitalSign = async (patientId, vitalSignData) => {
     } finally {
       setLoadingPatientMedRecord(false);
     }
-  };
+  }, []);
 
-  const getMedicalRecordsFullDetails = async (recordId) => {
+  const getMedicalRecordsFullDetails = useCallback(async (recordId) => {
     setLoadingMedicalRecordsFullDetails(true);
     setError(null);
 
@@ -272,9 +256,9 @@ if (!res.ok) {
     } finally {
       setLoadingMedicalRecordsFullDetails(false);
     }
-  };
+  }, []);
 
-const createMedicalRecord = async (patientId, medicalRecordData) => {
+const createMedicalRecord = useCallback(async (patientId, medicalRecordData) => {
   setError(null);
 
   try {
@@ -293,8 +277,9 @@ const createMedicalRecord = async (patientId, medicalRecordData) => {
     setError("Something went wrong");
     return { ok: false, message: "Something went wrong" };
   }
-};
-const uploadMedicalRecordDocument = async (recordId, file) => {
+}, []);
+
+const uploadMedicalRecordDocument = useCallback(async (recordId, file) => {
   setError(null);
 
   try {
@@ -310,14 +295,14 @@ const uploadMedicalRecordDocument = async (recordId, file) => {
     setError("Something went wrong");
     return { ok: false, message: "Something went wrong" };
   }
-};
+}, []);
 
-  const clearPatients = () => {
+  const clearPatients = useCallback(() => {
     setPatients([]);
-  };
+  }, []);
 
     // medical record
-  const updateMedicalRecord = async (recordId, medicalRecordData) => {
+  const updateMedicalRecord = useCallback(async (recordId, medicalRecordData) => {
     setError(null);
 
     try {
@@ -336,9 +321,9 @@ const uploadMedicalRecordDocument = async (recordId, file) => {
       setError("Something went wrong");
       return { ok: false, message: "Something went wrong" };
     }
-  };
+  }, []);
 
-  const deleteMedicalRecord = async (recordId) => {
+  const deleteMedicalRecord = useCallback(async (recordId) => {
     setError(null);
 
     try {
@@ -354,10 +339,10 @@ const uploadMedicalRecordDocument = async (recordId, file) => {
       setError("Something went wrong");
       return { ok: false, message: "Something went wrong" };
     }
-  };
+  }, []);
 
   // prescriptions
-  const getPrescriptionsByRecord = async (recordId) => {
+  const getPrescriptionsByRecord = useCallback(async (recordId) => {
     setLoadingPrescriptions(true);
     setError(null);
 
@@ -379,9 +364,9 @@ const uploadMedicalRecordDocument = async (recordId, file) => {
     } finally {
       setLoadingPrescriptions(false);
     }
-  };
+  }, []);
 
-  const getPrescriptionById = async (prescriptionId) => {
+  const getPrescriptionById = useCallback(async (prescriptionId) => {
     setError(null);
 
     try {
@@ -400,9 +385,9 @@ const uploadMedicalRecordDocument = async (recordId, file) => {
       setSelectedPrescription(null);
       return { ok: false, message: "Something went wrong" };
     }
-  };
+  }, []);
 
-  const createPrescription = async (recordId, prescriptionData) => {
+  const createPrescription = useCallback(async (recordId, prescriptionData) => {
     setError(null);
 
     try {
@@ -421,24 +406,9 @@ const uploadMedicalRecordDocument = async (recordId, file) => {
       setError("Something went wrong");
       return { ok: false, message: "Something went wrong" };
     }
-  };
+  }, []);
 
-  const updateLabResultImage = async (labResultId, recordId, file) => {
-  const formData = new FormData();
-  formData.append("lab_image", file);
-
-  const res = await updateLabResultImageApi(labResultId, formData);
-
-  if (!res.ok) {
-    return false;
-  }
-
-  await getLabResultsByRecord(recordId);
-
-  return res;
-};
-
-  const updatePrescription = async (prescriptionId, prescriptionData) => {
+  const updatePrescription = useCallback(async (prescriptionId, prescriptionData) => {
     setError(null);
 
     try {
@@ -457,9 +427,9 @@ const uploadMedicalRecordDocument = async (recordId, file) => {
       setError("Something went wrong");
       return { ok: false, message: "Something went wrong" };
     }
-  };
+  }, []);
 
-  const deletePrescription = async (prescriptionId) => {
+  const deletePrescription = useCallback(async (prescriptionId) => {
     setError(null);
 
     try {
@@ -475,10 +445,10 @@ const uploadMedicalRecordDocument = async (recordId, file) => {
       setError("Something went wrong");
       return { ok: false, message: "Something went wrong" };
     }
-  };
+  }, []);
 
   // lab results
-  const getLabResultsByRecord = async (recordId) => {
+  const getLabResultsByRecord = useCallback(async (recordId) => {
     setLoadingLabResults(true);
     setError(null);
 
@@ -500,9 +470,24 @@ const uploadMedicalRecordDocument = async (recordId, file) => {
     } finally {
       setLoadingLabResults(false);
     }
-  };
+  }, []);
 
-  const getLabResultById = async (resultId) => {
+  const updateLabResultImage = useCallback(async (labResultId, recordId, file) => {
+  const formData = new FormData();
+  formData.append("lab_image", file);
+
+  const res = await updateLabResultImageApi(labResultId, formData);
+
+  if (!res.ok) {
+    return false;
+  }
+
+  await getLabResultsByRecord(recordId);
+
+  return res;
+}, [getLabResultsByRecord]);
+
+  const getLabResultById = useCallback(async (resultId) => {
     setError(null);
 
     try {
@@ -521,9 +506,9 @@ const uploadMedicalRecordDocument = async (recordId, file) => {
       setSelectedLabResult(null);
       return { ok: false, message: "Something went wrong" };
     }
-  };
+  }, []);
 
-const createLabResult = async (recordId, formData) => {
+const createLabResult = useCallback(async (recordId, formData) => {
   const res = await createLabResultApi(recordId, formData);
 
   if (!res.ok) {
@@ -533,9 +518,9 @@ const createLabResult = async (recordId, formData) => {
   await getLabResultsByRecord(recordId);
 
   return res;
-};
+}, [getLabResultsByRecord]);
 
-  const updateLabResult = async (resultId, labResultData) => {
+  const updateLabResult = useCallback(async (resultId, labResultData) => {
     setError(null);
 
     try {
@@ -554,9 +539,9 @@ const createLabResult = async (recordId, formData) => {
       setError("Something went wrong");
       return { ok: false, message: "Something went wrong" };
     }
-  };
+  }, []);
 
-  const deleteLabResult = async (resultId) => {
+  const deleteLabResult = useCallback(async (resultId) => {
     setError(null);
 
     try {
@@ -572,10 +557,10 @@ const createLabResult = async (recordId, formData) => {
       setError("Something went wrong");
       return { ok: false, message: "Something went wrong" };
     }
-  };
+  }, []);
 
   // certificates
-  const getCertificatesByRecord = async (recordId) => {
+  const getCertificatesByRecord = useCallback(async (recordId) => {
     setLoadingCertificates(true);
     setError(null);
 
@@ -597,9 +582,24 @@ const createLabResult = async (recordId, formData) => {
     } finally {
       setLoadingCertificates(false);
     }
-  };
+  }, []);
 
-  const getCertificateById = async (certificateId) => {
+const updateCertificateImage = useCallback(async (certificateId, recordId, file) => {
+  const formData = new FormData();
+  formData.append("certificate_image", file);
+
+  const res = await updateCertificateImageApi(certificateId, formData);
+
+  if (!res.ok) {
+    return false;
+  }
+
+  await getCertificatesByRecord(recordId);
+
+  return res;
+}, [getCertificatesByRecord]);
+
+  const getCertificateById = useCallback(async (certificateId) => {
     setError(null);
 
     try {
@@ -618,9 +618,9 @@ const createLabResult = async (recordId, formData) => {
       setSelectedCertificate(null);
       return { ok: false, message: "Something went wrong" };
     }
-  };
+  }, []);
 
-  const createCertificate = async (recordId, certificateData) => {
+  const createCertificate = useCallback(async (recordId, certificateData) => {
     setError(null);
 
     try {
@@ -639,9 +639,9 @@ const createLabResult = async (recordId, formData) => {
       setError("Something went wrong");
       return { ok: false, message: "Something went wrong" };
     }
-  };
+  }, []);
 
-  const updateCertificate = async (certificateId, certificateData) => {
+  const updateCertificate = useCallback(async (certificateId, certificateData) => {
     setError(null);
 
     try {
@@ -660,9 +660,9 @@ const createLabResult = async (recordId, formData) => {
       setError("Something went wrong");
       return { ok: false, message: "Something went wrong" };
     }
-  };
+  }, []);
 
-  const deleteCertificate = async (certificateId) => {
+  const deleteCertificate = useCallback(async (certificateId) => {
     setError(null);
 
     try {
@@ -678,9 +678,9 @@ const createLabResult = async (recordId, formData) => {
       setError("Something went wrong");
       return { ok: false, message: "Something went wrong" };
     }
-  };
+  }, []);
 
-  const getMedicalRecordByAppointmentId = async (appointmentId) => {
+  const getMedicalRecordByAppointmentId = useCallback(async (appointmentId) => {
   setLoadingMedicalRecordByAppointment(true);
   setError(null);
 
@@ -702,11 +702,9 @@ const createLabResult = async (recordId, formData) => {
   } finally {
     setLoadingMedicalRecordByAppointment(false);
   }
-};
+}, []);
 
-  return (
-<MedicalRecordsContext.Provider
-  value={{
+  const contextValue = useMemo(() => ({
     getPatientOfDoctorInClinic,
     getPatientInfo,
     clearPatients,
@@ -765,9 +763,61 @@ getMedicalRecordByAppointmentId,
 
 updateLabResultImage,
 updateCertificateImage
-    
-  }}
->
+  }), [
+    getPatientOfDoctorInClinic,
+    getPatientInfo,
+    clearPatients,
+    getPatientMedRecord,
+    getMedicalRecordsFullDetails,
+    createMedicalRecord,
+    uploadMedicalRecordDocument,
+    getPatientVitalSigns,
+    createVitalSign,
+    loading,
+    error,
+    patients,
+    patientsInfo,
+    patientMedRecords,
+    patientVitalSigns,
+    medicalRecordsFullDetails,
+    loadingPatientVitalSigns,
+    patientVisitHistory,
+    getPatientVisitHistory,
+    updateMedicalRecord,
+    deleteMedicalRecord,
+    prescriptions,
+    selectedPrescription,
+    loadingPrescriptions,
+    getPrescriptionsByRecord,
+    getPrescriptionById,
+    createPrescription,
+    updatePrescription,
+    deletePrescription,
+    labResults,
+    selectedLabResult,
+    loadingLabResults,
+    getLabResultsByRecord,
+    getLabResultById,
+    createLabResult,
+    updateLabResult,
+    deleteLabResult,
+    certificates,
+    selectedCertificate,
+    loadingCertificates,
+    getCertificatesByRecord,
+    getCertificateById,
+    createCertificate,
+    updateCertificate,
+    deleteCertificate,
+    medicalRecordByAppointment,
+    loadingMedicalRecordByAppointment,
+    getMedicalRecordByAppointmentId,
+    updateLabResultImage,
+    updateCertificateImage
+  ]);
+
+  return (
+<MedicalRecordsContext.Provider value={contextValue}>
       {children}
     </MedicalRecordsContext.Provider>
   );

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useCallback, useMemo } from "react";
 import { UserContext } from "./UserContext.jsx";
 import {
   loginUser,
@@ -13,10 +13,21 @@ export const UserProvider = ({ children }) => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
-  // -------------------------
-  // LOGIN
-  // -------------------------
-  const login = async (email, password) => {
+  const refreshUser = useCallback(async () => {
+    const res = await getPersonalInfoApi();
+    if (!res.ok) return;
+
+    const user = res.data.userInfo;
+
+    setUserInfo({
+      ...user,
+      profileImgUrl: user.profileImgUrl
+        ? `${user.profileImgUrl}?t=${Date.now()}`
+        : null,
+    });
+  }, []);
+
+  const login = useCallback(async (email, password) => {
     setLoading(true);
     setError(null);
 
@@ -28,21 +39,16 @@ export const UserProvider = ({ children }) => {
       return res;
     }
 
-    // store token + user
     localStorage.setItem("user_token", res.data.token);
     localStorage.setItem("user", JSON.stringify(res.data.user));
 
-    // load full profile
     await refreshUser();
 
     setLoading(false);
     return res;
-  };
+  }, [refreshUser]);
 
-  // -------------------------
-  // REGISTER
-  // -------------------------
-  const register = async (payload) => {
+  const register = useCallback(async (payload) => {
     setLoading(true);
     setError(null);
 
@@ -56,12 +62,9 @@ export const UserProvider = ({ children }) => {
 
     setLoading(false);
     return res;
-  };
+  }, []);
 
-  // -------------------------
-  // GET PERSONAL INFO
-  // -------------------------
-  const getPersonalInfo = async () => {
+  const getPersonalInfo = useCallback(async () => {
     setLoading(true);
     setError(null);
 
@@ -76,12 +79,9 @@ export const UserProvider = ({ children }) => {
     setUserInfo(res.data.userInfo);
     setLoading(false);
     return res;
-  };
+  }, []);
 
-  // -------------------------
-  // UPDATE SETTINGS (password / image)
-  // -------------------------
-  const updateSettings = async (payload) => {
+  const updateSettings = useCallback(async (payload) => {
     setLoading(true);
     setError(null);
 
@@ -94,17 +94,11 @@ export const UserProvider = ({ children }) => {
       return res;
     }
 
-    // 🔁 HARD REFRESH USER STATE
-    // await refreshUser();
-
     setLoading(false);
     return res;
-  };
+  }, []);
 
-  // -------------------------
-  // UPDATE PROFILE IMAGE
-  // -------------------------
-  const updateProfileImage = async (imageFile) => {
+  const updateProfileImage = useCallback(async (imageFile) => {
     setLoading(true);
     setError(null);
 
@@ -115,7 +109,6 @@ export const UserProvider = ({ children }) => {
         throw new Error(res?.error || "Failed to upload image");
       }
 
-      // 🔁 refresh should NOT break upload success
       refreshUser().catch(() => {
         console.warn("User refresh failed after image upload");
       });
@@ -127,53 +120,40 @@ export const UserProvider = ({ children }) => {
       setLoading(false);
       return { success: false, error: err.message };
     }
-  };
+  }, [refreshUser]);
 
-  // -------------------------
-  // REFRESH USER (SAFE)
-  // -------------------------
-  const refreshUser = async () => {
-    const res = await getPersonalInfoApi();
-    if (!res.ok) return;
-
-    const user = res.data.userInfo;
-
-    setUserInfo({
-      ...user,
-      profileImgUrl: user.profileImgUrl
-        ? `${user.profileImgUrl}?t=${Date.now()}`
-        : null,
-    });
-  };
-
-  // -------------------------
-  // LOGOUT
-  // -------------------------
-  const clearUser = () => {
+  const clearUser = useCallback(() => {
     localStorage.removeItem("user_token");
     localStorage.removeItem("user");
     setUserInfo(null);
-  };
+  }, []);
+
+  const value = useMemo(() => ({
+    userInfo,
+    loading,
+    error,
+    login,
+    register,
+    clearUser,
+    getPersonalInfo,
+    refreshUser,
+    updateSettings,
+    updateProfileImage,
+  }), [
+    userInfo,
+    loading,
+    error,
+    login,
+    register,
+    clearUser,
+    getPersonalInfo,
+    refreshUser,
+    updateSettings,
+    updateProfileImage,
+  ]);
 
   return (
-    <UserContext.Provider
-      value={{
-        userInfo,
-        loading,
-        error,
-
-        // auth
-        login,
-        register,
-        clearUser,
-
-        // profile
-        getPersonalInfo,
-        refreshUser,
-        updateSettings,
-        updateProfileImage,
-      }}
-    >
+    <UserContext.Provider value={value}>
       {children}
     </UserContext.Provider>
   );

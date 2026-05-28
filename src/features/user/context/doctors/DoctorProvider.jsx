@@ -1,11 +1,11 @@
-import { useState } from "react";
+import { useState, useCallback, useMemo } from "react";
 import { DoctorContext } from "./DoctorContext.jsx";
 import {
   getAllApprovedDoctorsOfUserApi,
   getAllDoctorsOfUserApi,
   createDoctorApi,
   updateDoctorInfoApi,
-  getDoctorsByClinicApi 
+  getDoctorsByClinicApi
 } from "../../api/doctorApi.js";
 
 export const DoctorProvider = ({ children }) => {
@@ -16,26 +16,25 @@ export const DoctorProvider = ({ children }) => {
   const [error, setError] = useState(null);
 
   const [clinicDoctors, setClinicDoctors] = useState([]);
-const [loadingClinicDoctors, setLoadingClinicDoctors] =
-  useState(false);
+  const [loadingClinicDoctors, setLoadingClinicDoctors] = useState(false);
 
-  const getDoctorsByClinic = async (clinicId) => {
-  setLoadingClinicDoctors(true);
-  setError(null);
+  const getDoctorsByClinic = useCallback(async (clinicId) => {
+    setLoadingClinicDoctors(true);
+    setError(null);
 
-  const res = await getDoctorsByClinicApi(clinicId);
+    const res = await getDoctorsByClinicApi(clinicId);
 
-  if (!res.ok) {
-    setError(res.message);
+    if (!res.ok) {
+      setError(res.message);
+      setLoadingClinicDoctors(false);
+      return;
+    }
+
+    setClinicDoctors(res.data.doctors || []);
     setLoadingClinicDoctors(false);
-    return;
-  }
+  }, []);
 
-  setClinicDoctors(res.data.doctors || []);
-  setLoadingClinicDoctors(false);
-};
-
-  const getAllApprovedDoctorsOfUser = async () => {
+  const getAllApprovedDoctorsOfUser = useCallback(async () => {
     setLoading(true);
     setError(null);
 
@@ -50,9 +49,9 @@ const [loadingClinicDoctors, setLoadingClinicDoctors] =
     setApprovedDoctors(res.data || []);
     setLoading(false);
     return res;
-  };
+  }, []);
 
-  const getAllDoctorsOfUser = async () => {
+  const getAllDoctorsOfUser = useCallback(async () => {
     setLoading(true);
     setError(null);
 
@@ -69,9 +68,9 @@ const [loadingClinicDoctors, setLoadingClinicDoctors] =
     setDoctors(res.data || []);
     setLoading(false);
     return res;
-  };
+  }, []);
 
-  const createDoctor = async (doctorData) => {
+  const createDoctor = useCallback(async (doctorData) => {
     setLoading(true);
     setError(null);
 
@@ -89,9 +88,9 @@ const [loadingClinicDoctors, setLoadingClinicDoctors] =
 
     setLoading(false);
     return res;
-  };
+  }, [getAllDoctorsOfUser]);
 
-  const updateDoctorInfo = async (doctorId, doctorData) => {
+  const updateDoctorInfo = useCallback(async (doctorId, doctorData) => {
     setLoading(true);
     setError(null);
 
@@ -109,24 +108,36 @@ const [loadingClinicDoctors, setLoadingClinicDoctors] =
 
     setLoading(false);
     return res;
-  };
+  }, [getAllDoctorsOfUser]);
+
+  const value = useMemo(() => ({
+    approvedDoctors,
+    clinicDoctors,
+    loadingClinicDoctors,
+    doctors,
+    loading,
+    error,
+    getAllApprovedDoctorsOfUser,
+    getAllDoctorsOfUser,
+    createDoctor,
+    updateDoctorInfo,
+    getDoctorsByClinic,
+  }), [
+    approvedDoctors,
+    clinicDoctors,
+    loadingClinicDoctors,
+    doctors,
+    loading,
+    error,
+    getAllApprovedDoctorsOfUser,
+    getAllDoctorsOfUser,
+    createDoctor,
+    updateDoctorInfo,
+    getDoctorsByClinic,
+  ]);
 
   return (
-    <DoctorContext.Provider
-      value={{
-        approvedDoctors,
-        clinicDoctors,
-loadingClinicDoctors,
-        doctors,
-        loading,
-        error,
-        getAllApprovedDoctorsOfUser,
-        getAllDoctorsOfUser,
-        createDoctor,
-        updateDoctorInfo,
-        getDoctorsByClinic
-      }}
-    >
+    <DoctorContext.Provider value={value}>
       {children}
     </DoctorContext.Provider>
   );

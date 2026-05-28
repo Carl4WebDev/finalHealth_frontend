@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useCallback, useMemo } from "react";
 import { DoctorSessionContext } from "./DoctorSessionContext.jsx";
 import {
   getDoctorScheduleInClinicApi,
@@ -13,11 +13,10 @@ export const DoctorSessionProvider = ({ children }) => {
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
-  const [createDoctorSessionLoading, setCreateDoctorSessionLoading] =
-    useState(false);
+  const [createDoctorSessionLoading, setCreateDoctorSessionLoading] = useState(false);
   const [deleteSessionLoading, setDeleteSessionLoading] = useState(false);
 
-  const getDoctorScheduleInClinic = async (doctorId, clinicId) => {
+  const getDoctorScheduleInClinic = useCallback(async (doctorId, clinicId) => {
     setLoading(true);
     setError(null);
 
@@ -31,9 +30,9 @@ export const DoctorSessionProvider = ({ children }) => {
 
     setDoctorSessions(res.data.sessions || []);
     setLoading(false);
-  };
+  }, []);
 
-  const getAllDoctorSessions = async (doctorId) => {
+  const getAllDoctorSessions = useCallback(async (doctorId) => {
     setLoading(true);
     setError(null);
 
@@ -47,9 +46,9 @@ export const DoctorSessionProvider = ({ children }) => {
 
     setAllDoctorSessions(res.data.sessions || []);
     setLoading(false);
-  };
+  }, []);
 
-  const createDoctorSession = async (doctorId, clinicId) => {
+  const createDoctorSession = useCallback(async (doctorId, clinicId) => {
     setCreateDoctorSessionLoading(true);
     setError(null);
 
@@ -62,9 +61,9 @@ export const DoctorSessionProvider = ({ children }) => {
     }
 
     setCreateDoctorSessionLoading(false);
-  };
+  }, []);
 
-  const deleteSession = async (sessionId) => {
+  const deleteSession = useCallback(async (sessionId) => {
     setDeleteSessionLoading(true);
     setError(null);
 
@@ -77,22 +76,32 @@ export const DoctorSessionProvider = ({ children }) => {
     }
 
     setDeleteSessionLoading(false);
-  };
+  }, []);
+
+  const value = useMemo(() => ({
+    doctorSessions,
+    allDoctorSessions,
+    loading,
+    createDoctorSessionLoading,
+    error,
+    getDoctorScheduleInClinic,
+    getAllDoctorSessions,
+    createDoctorSession,
+    deleteSession,
+  }), [
+    doctorSessions,
+    allDoctorSessions,
+    loading,
+    createDoctorSessionLoading,
+    error,
+    getDoctorScheduleInClinic,
+    getAllDoctorSessions,
+    createDoctorSession,
+    deleteSession,
+  ]);
 
   return (
-    <DoctorSessionContext.Provider
-      value={{
-        doctorSessions,
-        allDoctorSessions,
-        loading,
-        createDoctorSessionLoading,
-        error,
-        getDoctorScheduleInClinic,
-        getAllDoctorSessions,
-        createDoctorSession,
-        deleteSession,
-      }}
-    >
+    <DoctorSessionContext.Provider value={value}>
       {children}
     </DoctorSessionContext.Provider>
   );
