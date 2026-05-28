@@ -359,6 +359,175 @@ useEffect(() => {
     const isExpired = subscription?.endDate < today;
 
     const planType = plan?.planType;
+
+    // Free plan users: show subscription offers + history if repeat subscriber
+    if (planType === "free") {
+      const hasHistory = subscriptionHistory?.length > 0 || paymentHistory?.length > 0;
+
+      // Show Stripe payment if a plan was selected
+      if (currentStep === 3 && selectedPlan) {
+        return (
+          <Layout>
+            <div className="min-h-screen bg-gradient-to-b from-blue-50 to-white dark:from-gray-900 dark:to-gray-800 flex items-center justify-center p-4">
+              <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-8 max-w-2xl mx-auto border-2 border-blue-100 dark:border-gray-700">
+                <div className="text-center mb-8">
+                  <div className="inline-flex items-center gap-2 px-4 py-2 bg-blue-100 dark:bg-blue-900/30 rounded-full mb-4">
+                    <i className="fas fa-credit-card text-blue-600 dark:text-blue-400"></i>
+                    <span className="text-sm font-semibold text-blue-700 dark:text-blue-300">Secure Payment</span>
+                  </div>
+                  <h1 className="text-3xl font-bold text-blue-600 dark:text-blue-400 mb-2">Complete Your Subscription</h1>
+                  <p className="text-blue-500 dark:text-blue-400">You're subscribing to: <strong>{selectedPlan.planName}</strong></p>
+                </div>
+                <StripeCardPayment planId={selectedPlan.planId} onSuccess={handlePaymentSuccess} />
+                <button onClick={() => { setSelectedPlan(null); setCurrentStep(1); }} className="mt-4 w-full text-blue-600 hover:text-blue-800 py-2 font-semibold">
+                  ← Back to plans
+                </button>
+              </div>
+            </div>
+            {showModal && <Modal {...modalContent} onClose={resetToStart} showReceiptView={showReceiptView} />}
+          </Layout>
+        );
+      }
+
+      return (
+        <Layout>
+          <div className="min-h-screen bg-gradient-to-b from-blue-50 to-white dark:from-gray-900 dark:to-gray-800 p-4">
+            <div className="max-w-6xl mx-auto">
+              <div className="text-center mb-8 pt-6">
+                <h1 className="text-3xl md:text-4xl font-bold text-blue-600 dark:text-blue-400 mb-3">
+                  Upgrade Your Plan
+                </h1>
+                <p className="text-gray-600 dark:text-gray-400">
+                  You're on the Free plan. Choose a plan to unlock more features.
+                </p>
+              </div>
+
+              {/* Plan Cards */}
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-10">
+                {plans.filter((p) => p.planType !== "free").map((p) => {
+                  const isPopular = p.planType === "monthly";
+                  return (
+                    <div key={p.planId} className={`group ${isPopular ? "relative" : ""}`}>
+                      {isPopular && (
+                        <div className="absolute -top-4 left-1/2 transform -translate-x-1/2 z-10">
+                          <div className="px-6 py-2 bg-gradient-to-r from-blue-500 to-blue-600 text-white text-sm font-semibold rounded-full shadow-lg">
+                            <i className="fas fa-crown mr-2"></i>Most Popular
+                          </div>
+                        </div>
+                      )}
+                      <div className={`h-full rounded-2xl border-2 p-8 transition-all duration-300 ${
+                        isPopular
+                          ? "bg-gradient-to-b from-blue-50 to-white dark:from-gray-800 dark:to-gray-900 border-blue-300 dark:border-blue-600 shadow-xl hover:scale-[1.02]"
+                          : "bg-white dark:bg-gray-800 border-blue-100 dark:border-gray-700 shadow-lg hover:shadow-xl hover:border-blue-200"
+                      }`}>
+                        <div className="text-center mb-8">
+                          <div className="inline-flex items-center gap-2 px-4 py-2 bg-blue-50 dark:bg-blue-900/30 rounded-full mb-4">
+                            <i className={`fas ${p.planType === "monthly" ? "fa-bolt" : "fa-award"} text-blue-500`}></i>
+                            <span className="text-sm font-semibold text-blue-700 dark:text-blue-300">
+                              {p.planType === "monthly" ? "Professional" : "Enterprise"}
+                            </span>
+                          </div>
+                          <h3 className="text-2xl font-bold text-blue-600 dark:text-blue-400 mb-2">
+                            {p.planType === "monthly" ? "Monthly Plan" : "Annual Plan"}
+                          </h3>
+                          <div className="mb-4">
+                            <span className="text-4xl font-bold text-blue-600 dark:text-blue-400">₱{p.price}</span>
+                            <span className="text-blue-500">{p.planType === "yearly" ? "/year" : "/month"}</span>
+                          </div>
+                          {p.planType === "yearly" && (
+                            <div className="inline-flex items-center gap-1 px-3 py-1 bg-green-100 dark:bg-green-900/30 rounded-full mb-2">
+                              <i className="fas fa-gift text-green-600"></i>
+                              <span className="text-sm font-semibold text-green-700">Save 17%</span>
+                            </div>
+                          )}
+                        </div>
+                        <ul className="space-y-3 mb-8">
+                          <li className="flex items-center gap-3">
+                            <i className="fas fa-check-circle text-blue-500"></i>
+                            <span className="text-blue-700 dark:text-blue-300">{p.maxNumberUsers} user access</span>
+                          </li>
+                          <li className="flex items-center gap-3">
+                            <i className="fas fa-check-circle text-blue-500"></i>
+                            <span className="text-blue-700 dark:text-blue-300">Up to {p.maxNumberPatient} patients</span>
+                          </li>
+                          <li className="flex items-center gap-3">
+                            <i className="fas fa-check-circle text-blue-500"></i>
+                            <span className="text-blue-700 dark:text-blue-300 font-medium">Full feature access</span>
+                          </li>
+                          <li className="flex items-center gap-3">
+                            <i className="fas fa-check-circle text-blue-500"></i>
+                            <span className="text-blue-700 dark:text-blue-300 font-medium">Priority support</span>
+                          </li>
+                        </ul>
+                        <button
+                          onClick={() => handleSelectPlan(p)}
+                          className="w-full py-3 font-semibold rounded-lg bg-gradient-to-r from-blue-500 to-blue-600 text-white hover:from-blue-600 hover:to-blue-700 shadow-md transition-all"
+                        >
+                          Subscribe Now
+                        </button>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+
+              {/* History for repeat subscribers */}
+              {hasHistory && (
+                <div className="grid md:grid-cols-2 gap-6 max-w-4xl mx-auto">
+                  {/* Payment History */}
+                  {paymentHistory?.length > 0 && (
+                    <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-5 border border-gray-100 dark:border-gray-700">
+                      <h3 className="font-semibold text-gray-700 dark:text-gray-200 mb-4">Payment History</h3>
+                      <div className="space-y-3">
+                        {paymentHistory.map((p) => (
+                          <div key={p.paymentId} className="flex justify-between items-center border-b pb-2 text-sm">
+                            <div>
+                              <p className="font-bold text-gray-800 dark:text-gray-100">{p.planName}</p>
+                              <p className="font-semibold text-gray-800 dark:text-gray-100">₱{Number(p.amount).toLocaleString()}</p>
+                              <p className="text-gray-500 text-xs">{p.paymentMethod}</p>
+                            </div>
+                            <div className="text-right">
+                              <p className="text-gray-600 text-xs">
+                                {p.paymentDate ? new Date(p.paymentDate).toLocaleDateString("en-PH", { year: "numeric", month: "short", day: "numeric" }) : "-"}
+                              </p>
+                              <span className="text-green-600 text-xs font-semibold">{p.status}</span>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Subscription History */}
+                  {subscriptionHistory?.length > 0 && (
+                    <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-5 border border-gray-100 dark:border-gray-700">
+                      <h3 className="font-semibold text-gray-700 dark:text-gray-200 mb-4">Subscription History</h3>
+                      <div className="space-y-3">
+                        {subscriptionHistory.map((s) => (
+                          <div key={s.subscriptionId} className="flex justify-between items-center border-b pb-2 text-sm">
+                            <div>
+                              <p className="font-medium text-gray-800 dark:text-gray-100">{s.planName || "Plan"}</p>
+                              <p className="text-xs text-gray-500">
+                                {s.startDate ? new Date(s.startDate).toLocaleDateString("en-PH", { year: "numeric", month: "short", day: "numeric" }) : "-"} → {s.endDate ? new Date(s.endDate).toLocaleDateString("en-PH", { year: "numeric", month: "short", day: "numeric" }) : "-"}
+                              </p>
+                            </div>
+                            <span className={`text-xs px-2 py-1 rounded ${s.status === "active" ? "bg-green-100 text-green-700" : "bg-gray-100 text-gray-600"}`}>
+                              {s.status}
+                            </span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+          </div>
+          {showModal && <Modal {...modalContent} onClose={resetToStart} showReceiptView={showReceiptView} />}
+        </Layout>
+      );
+    }
+
     const planBadgeClass =
       planType === "free"
         ? "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300"
@@ -450,6 +619,150 @@ const patientsProgress =
 const monthsProgress =
   monthsTotal > 0 ? Math.min((monthsUsed / monthsTotal) * 100, 100) : 0;
 
+    // FREE PLAN: Show upgrade offers + history for repeat subscribers
+    if (planType === "free") {
+      const hasHistory = (subscriptionHistory?.length > 0) || (paymentHistory?.length > 0);
+
+      return (
+        <Layout>
+          <div className="min-h-screen bg-gradient-to-b from-blue-50 to-white dark:from-gray-900 dark:to-gray-800 p-4">
+            <div className="max-w-6xl mx-auto">
+              <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-6 md:p-8">
+                <h1 className="text-3xl md:text-4xl font-bold text-blue-600 dark:text-blue-400 text-center mb-3">
+                  Upgrade Your Plan
+                </h1>
+                <p className="text-gray-600 dark:text-gray-400 text-center mb-8">
+                  You're currently on the Free plan. Unlock more features by subscribing!
+                </p>
+
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                  {plans.map((p) => {
+                    const isPopular = p.planType === "monthly";
+
+                    return (
+                      <div key={p.planId} className={`${isPopular ? "relative" : ""}`}>
+                        {isPopular && (
+                          <div className="absolute -top-4 left-1/2 transform -translate-x-1/2 z-10">
+                            <div className="px-6 py-2 bg-gradient-to-r from-blue-500 to-blue-600 text-white text-sm font-semibold rounded-full shadow-lg">
+                              <i className="fas fa-crown mr-2"></i>
+                              Most Popular
+                            </div>
+                          </div>
+                        )}
+
+                        <div className={`h-full rounded-2xl border-2 p-8 transition-all duration-300 ${isPopular ? "bg-gradient-to-b from-blue-50 to-white dark:from-gray-800 dark:to-gray-900 border-blue-300 dark:border-blue-600 shadow-xl transform hover:scale-[1.02] relative overflow-hidden" : "bg-white dark:bg-gray-800 border-blue-100 dark:border-gray-700 shadow-lg hover:shadow-xl hover:border-blue-200"}`}>
+                          <div className="text-center mb-8 relative z-10">
+                            <div className="inline-flex items-center gap-2 px-4 py-2 bg-blue-50 dark:bg-blue-900/30 rounded-full mb-4">
+                              <i className={`fas ${p.planType === "free" ? "fa-gem" : p.planType === "monthly" ? "fa-bolt" : "fa-award"} text-blue-500`}></i>
+                              <span className="text-sm font-semibold text-blue-700 dark:text-blue-300">
+                                {p.planType === "free" ? "Starter" : p.planType === "monthly" ? "Professional" : "Enterprise"}
+                              </span>
+                            </div>
+                            <h3 className="text-2xl font-bold text-blue-600 dark:text-blue-400 mb-2">
+                              {p.planType === "free" ? "Free Trial" : p.planType === "monthly" ? "Monthly Plan" : "Annual Plan"}
+                            </h3>
+                            <div className="mb-4">
+                              <span className="text-4xl font-bold text-blue-600 dark:text-blue-400">₱{p.price}</span>
+                              <span className="text-blue-500 dark:text-blue-400">
+                                {p.planType === "yearly" ? "/year" : p.planType === "monthly" ? "/month" : "/forever"}
+                              </span>
+                            </div>
+                            {p.planType === "yearly" && (
+                              <div className="inline-flex items-center gap-1 px-3 py-1 bg-green-100 dark:bg-green-900/30 rounded-full mb-2">
+                                <i className="fas fa-gift text-green-600"></i>
+                                <span className="text-sm font-semibold text-green-700">Save 17%</span>
+                              </div>
+                            )}
+                          </div>
+
+                          <ul className="space-y-4 mb-8 relative z-10">
+                            <li className="flex items-center gap-3">
+                              <i className="fas fa-check-circle text-blue-500"></i>
+                              <span className="text-blue-700 dark:text-blue-300">{p.maxNumberUsers} user access</span>
+                            </li>
+                            <li className="flex items-center gap-3">
+                              <i className="fas fa-check-circle text-blue-500"></i>
+                              <span className="text-blue-700 dark:text-blue-300">Up to {p.maxNumberPatient} patients</span>
+                            </li>
+                            {(p.planType === "monthly" || p.planType === "yearly") && (
+                              <li className="flex items-center gap-3">
+                                <i className="fas fa-check-circle text-blue-500"></i>
+                                <span className="text-blue-700 dark:text-blue-300 font-medium">Full feature access</span>
+                              </li>
+                            )}
+                            {p.planType === "yearly" && (
+                              <li className="flex items-center gap-3">
+                                <i className="fas fa-check-circle text-blue-500"></i>
+                                <span className="text-blue-700 dark:text-blue-300 font-medium">Dedicated account manager</span>
+                              </li>
+                            )}
+                          </ul>
+
+                          <button
+                            onClick={() => handleSelectPlan(p)}
+                            disabled={p.planType === "free"}
+                            className={`w-full py-3 font-semibold rounded-lg transition-all duration-300 relative z-10 ${p.planType === "free" ? "bg-gradient-to-r from-blue-100 to-blue-200 text-blue-700 cursor-not-allowed" : "bg-gradient-to-r from-blue-500 to-blue-600 text-white hover:from-blue-600 hover:to-blue-700 shadow-md"}`}
+                          >
+                            {p.planType === "free" ? "Current Plan" : "Subscribe Now"}
+                          </button>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* History for repeat subscribers */}
+              {hasHistory && (
+                <div className="mt-8 grid lg:grid-cols-2 gap-6">
+                  {paymentHistory?.length > 0 && (
+                    <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-5 border border-gray-100 dark:border-gray-700">
+                      <h3 className="font-semibold text-gray-700 dark:text-gray-200 mb-4">Payment History</h3>
+                      <div className="space-y-3">
+                        {paymentHistory.map((p) => (
+                          <div key={p.paymentId} className="flex justify-between items-center border-b pb-2 text-sm">
+                            <div>
+                              <p className="font-bold text-gray-800 dark:text-gray-100">{p.planName}</p>
+                              <p className="font-semibold text-gray-800 dark:text-gray-100">₱{Number(p.amount).toLocaleString()}</p>
+                              <p className="text-gray-500 text-xs">{p.paymentMethod}</p>
+                            </div>
+                            <div className="text-right">
+                              <p className="text-gray-600 text-xs">{formatDate(p.paymentDate)}</p>
+                              <span className="text-green-600 text-xs font-semibold">{p.status}</span>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {subscriptionHistory?.length > 0 && (
+                    <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-5 border border-gray-100 dark:border-gray-700">
+                      <h3 className="font-semibold text-gray-700 dark:text-gray-200 mb-4">Subscription History</h3>
+                      <div className="space-y-3">
+                        {subscriptionHistory.map((s) => (
+                          <div key={s.subscriptionId} className="flex justify-between items-center border-b pb-2 text-sm">
+                            <div>
+                              <p className="font-medium text-gray-800 dark:text-gray-100">{s.planName || "Plan"}</p>
+                              <p className="text-xs text-gray-500">{formatDate(s.startDate)} → {formatDate(s.endDate)}</p>
+                            </div>
+                            <span className={`text-xs px-2 py-1 rounded ${s.status === "active" ? "bg-green-100 text-green-700" : "bg-gray-100 text-gray-600"}`}>
+                              {s.status}
+                            </span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+          </div>
+        </Layout>
+      );
+    }
+
+    // PAID PLAN: Show existing subscription status view
     return (
       <Layout>
         <div className="min-h-screen p-4">
