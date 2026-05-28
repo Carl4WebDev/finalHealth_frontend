@@ -144,7 +144,6 @@ export const ClinicProvider = ({ children }) => {
     }
 
     setClinicInfo(res.data.clinic || []);
-    console.log(res.data.clinic);
     setLoadingClinicsInfo(false);
   }, []);
 

@@ -57,9 +57,7 @@ export const DoctorProvider = ({ children }) => {
 
     const res = await getAllDoctorsOfUserApi();
 
-    console.log(!res.ok);
     if (!res.ok) {
-      console.log("inside the error");
       setError(res.message);
       setLoading(false);
       return res;
@@ -76,9 +74,7 @@ export const DoctorProvider = ({ children }) => {
 
     const res = await createDoctorApi(doctorData);
 
-    console.log(!res.ok);
     if (!res.ok) {
-      console.log("inside the error");
       setError(res.message);
       setLoading(false);
       return res;
@@ -96,9 +92,7 @@ export const DoctorProvider = ({ children }) => {
 
     const res = await updateDoctorInfoApi(doctorId, doctorData);
 
-    console.log(!res.ok);
     if (!res.ok) {
-      console.log("inside the error");
       setError(res.message);
       setLoading(false);
       return res;

@@ -46,9 +46,7 @@ export const AppointmentProvider = ({ children }) => {
       appointmentType
     );
 
-    console.log(!res.ok);
     if (!res.ok) {
-      console.log("inside the error");
       setError(res.message);
       setLoading(false);
       return;

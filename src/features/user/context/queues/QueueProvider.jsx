@@ -56,9 +56,7 @@ export const QueueProvider = ({ children }) => {
 
     const res = await updateQueueStatusApi(queueEntryId, status);
 
-    console.log(!res.ok);
     if (!res.ok) {
-      console.log("inside the error");
       setError(res.message);
       setLoading(false);
       return;
@@ -75,9 +73,7 @@ export const QueueProvider = ({ children }) => {
 
     const res = await addQueueApi(queueData);
 
-    console.log(!res.ok);
     if (!res.ok) {
-      console.log("inside the error");
       setAddQueueError(res.message);
       setAddQueueLoading(false);
       return;

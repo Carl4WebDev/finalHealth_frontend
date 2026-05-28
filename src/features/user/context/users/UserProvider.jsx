@@ -75,7 +75,6 @@ export const UserProvider = ({ children }) => {
       setLoading(false);
       return res;
     }
-    console.log(res.data.userInfo);
     setUserInfo(res.data.userInfo);
     setLoading(false);
     return res;
@@ -85,7 +84,6 @@ export const UserProvider = ({ children }) => {
     setLoading(true);
     setError(null);
 
-    console.log(payload);
     const res = await updateUserSettingsApi(payload);
 
     if (!res?.success) {
