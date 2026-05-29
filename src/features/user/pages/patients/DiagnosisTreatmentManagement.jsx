@@ -9,6 +9,7 @@ import { useFeeMaster } from "../../context/fee-master/useFeeMaster";
 import { usePrescriptionMaster } from "../../context/prescriptions-master/usePrescriptionMaster";
 import { useLabResultMaster } from "../../context/lab-result-master/useLabResultMaster";
 import { useCertificateMaster } from "../../context/certificate-master/useCertificateMaster";
+import { useCategorizedOptions } from "../../context/useCategorizedOptions";
 import {
   AddTextModal,
   AddFeeModal,
@@ -16,16 +17,319 @@ import {
   EditFeeModal,
   ModalShell,
   ModalActions,
-  DIAGNOSIS_STANDARD_OPTIONS,
-  TREATMENT_STANDARD_OPTIONS,
-  PRESCRIPTION_STANDARD_OPTIONS,
-  LAB_RESULT_STANDARD_OPTIONS,
-  CERTIFICATE_STANDARD_OPTIONS,
-  FEE_STANDARD_OPTIONS,
 } from "./components/shared/AddItemModal";
+
+/* ================= CATEGORIZED OPTIONS MANAGEMENT ================= */
+
+const OPTION_SETS = [
+  { key: "diagnosis", label: "Diagnosis", color: "blue" },
+  { key: "treatment", label: "Treatment", color: "green" },
+  { key: "prescription", label: "Prescription", color: "purple" },
+  { key: "labResult", label: "Lab Result", color: "orange" },
+  { key: "certificate", label: "Certificate", color: "teal" },
+  { key: "fee", label: "Fee", color: "pink" },
+];
+
+function CategorizedOptionsManager({ categorizedOptions }) {
+  const {
+    getOptions,
+    addCategory,
+    renameCategory,
+    deleteCategory,
+    addOption,
+    updateOption,
+    deleteOption,
+    resetToDefaults,
+  } = categorizedOptions;
+
+  const [activeTab, setActiveTab] = useState("diagnosis");
+  const [expandedCategory, setExpandedCategory] = useState(null);
+
+  /* modal state */
+  const [showCategoryModal, setShowCategoryModal] = useState(false);
+  const [categoryModalMode, setCategoryModalMode] = useState("add"); // add | edit
+  const [categoryInput, setCategoryInput] = useState("");
+  const [editingCategory, setEditingCategory] = useState(null);
+
+  const [showOptionModal, setShowOptionModal] = useState(false);
+  const [optionModalMode, setOptionModalMode] = useState("add"); // add | edit
+  const [optionInput, setOptionInput] = useState("");
+  const [editingOption, setEditingOption] = useState(null);
+  const [optionTargetCategory, setOptionTargetCategory] = useState(null);
+
+  const options = getOptions(activeTab);
+
+  /* ---- handlers ---- */
+
+  const openAddCategory = () => {
+    setCategoryModalMode("add");
+    setCategoryInput("");
+    setShowCategoryModal(true);
+  };
+
+  const openEditCategory = (cat) => {
+    setCategoryModalMode("edit");
+    setEditingCategory(cat.category);
+    setCategoryInput(cat.category);
+    setShowCategoryModal(true);
+  };
+
+  const saveCategory = () => {
+    const name = categoryInput.trim();
+    if (!name) return;
+    if (categoryModalMode === "add") {
+      addCategory(activeTab, name);
+    } else {
+      renameCategory(activeTab, editingCategory, name);
+    }
+    setShowCategoryModal(false);
+  };
+
+  const handleDeleteCategory = (cat) => {
+    if (
+      !window.confirm(
+        `Delete category "${cat.category}" and all its options?`
+      )
+    )
+      return;
+    deleteCategory(activeTab, cat.category);
+    if (expandedCategory === cat.category) setExpandedCategory(null);
+  };
+
+  const openAddOption = (categoryName) => {
+    setOptionModalMode("add");
+    setOptionTargetCategory(categoryName);
+    setOptionInput("");
+    setShowOptionModal(true);
+  };
+
+  const openEditOption = (categoryName, opt) => {
+    setOptionModalMode("edit");
+    setOptionTargetCategory(categoryName);
+    setEditingOption(opt);
+    setOptionInput(opt);
+    setShowOptionModal(true);
+  };
+
+  const saveOption = () => {
+    const name = optionInput.trim();
+    if (!name) return;
+    if (optionModalMode === "add") {
+      addOption(activeTab, optionTargetCategory, name);
+    } else {
+      updateOption(activeTab, optionTargetCategory, editingOption, name);
+    }
+    setShowOptionModal(false);
+  };
+
+  const handleDeleteOption = (categoryName, opt) => {
+    if (!window.confirm(`Delete option "${opt}"?`)) return;
+    deleteOption(activeTab, categoryName, opt);
+  };
+
+  const tabDef = OPTION_SETS.find((s) => s.key === activeTab);
+
+  return (
+    <div className="bg-white rounded-2xl shadow border border-gray-200 p-5 space-y-4">
+      <div className="flex items-center justify-between flex-wrap gap-3">
+        <div>
+          <h3 className="text-lg font-semibold text-gray-800">
+            Categorized Options
+          </h3>
+          <p className="text-sm text-gray-500">
+            Manage the dropdown categories and options shown in the add-item
+            modals.
+          </p>
+        </div>
+        <button
+          onClick={resetToDefaults}
+          className="text-sm text-gray-500 hover:text-gray-700 underline"
+        >
+          Reset to Defaults
+        </button>
+      </div>
+
+      {/* Tabs */}
+      <div className="flex flex-wrap gap-2">
+        {OPTION_SETS.map((set) => (
+          <button
+            key={set.key}
+            onClick={() => {
+              setActiveTab(set.key);
+              setExpandedCategory(null);
+            }}
+            className={`px-3 py-1.5 rounded-lg text-sm font-medium transition ${
+              activeTab === set.key
+                ? "bg-blue-600 text-white"
+                : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+            }`}
+          >
+            {set.label}
+          </button>
+        ))}
+      </div>
+
+      {/* Add category button */}
+      <div className="flex justify-end">
+        <button
+          onClick={openAddCategory}
+          className="bg-blue-600 hover:bg-blue-700 text-white text-sm px-3 py-1.5 rounded-lg"
+        >
+          + Add Category
+        </button>
+      </div>
+
+      {/* Categories accordion */}
+      {options.length === 0 ? (
+        <p className="text-sm text-gray-400 text-center py-4">
+          No categories yet. Click "Add Category" to create one.
+        </p>
+      ) : (
+        <div className="space-y-2">
+          {options.map((cat) => (
+            <div
+              key={cat.category}
+              className="border rounded-xl overflow-hidden"
+            >
+              {/* Category header */}
+              <div className="flex items-center justify-between bg-gray-50 px-4 py-2.5">
+                <button
+                  onClick={() =>
+                    setExpandedCategory(
+                      expandedCategory === cat.category
+                        ? null
+                        : cat.category
+                    )
+                  }
+                  className="flex items-center gap-2 text-left flex-1"
+                >
+                  <span className="text-gray-400 text-xs">
+                    {expandedCategory === cat.category ? "▼" : "▶"}
+                  </span>
+                  <span className="font-medium text-slate-700 text-sm">
+                    {cat.category}
+                  </span>
+                  <span className="text-xs text-gray-400">
+                    ({cat.options.length})
+                  </span>
+                </button>
+                <div className="flex gap-1.5">
+                  <button
+                    onClick={() => openEditCategory(cat)}
+                    className="text-xs text-yellow-600 hover:text-yellow-700 px-2 py-1 rounded hover:bg-yellow-50"
+                  >
+                    Edit
+                  </button>
+                  <button
+                    onClick={() => handleDeleteCategory(cat)}
+                    className="text-xs text-red-600 hover:text-red-700 px-2 py-1 rounded hover:bg-red-50"
+                  >
+                    Delete
+                  </button>
+                </div>
+              </div>
+
+              {/* Options list */}
+              {expandedCategory === cat.category && (
+                <div className="px-4 py-3 space-y-2">
+                  {cat.options.length === 0 ? (
+                    <p className="text-xs text-gray-400">
+                      No options in this category.
+                    </p>
+                  ) : (
+                    <div className="flex flex-wrap gap-2">
+                      {cat.options.map((opt) => (
+                        <div
+                          key={opt}
+                          className="flex items-center gap-1 bg-gray-100 rounded-lg px-2.5 py-1 text-sm"
+                        >
+                          <span className="text-slate-700">{opt}</span>
+                          <button
+                            onClick={() => openEditOption(cat.category, opt)}
+                            className="text-yellow-500 hover:text-yellow-600 ml-1 text-xs"
+                            title="Edit"
+                          >
+                            ✎
+                          </button>
+                          <button
+                            onClick={() =>
+                              handleDeleteOption(cat.category, opt)
+                            }
+                            className="text-red-400 hover:text-red-500 text-xs"
+                            title="Delete"
+                          >
+                            ×
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                  <button
+                    onClick={() => openAddOption(cat.category)}
+                    className="text-xs text-blue-600 hover:text-blue-700 mt-1"
+                  >
+                    + Add Option
+                  </button>
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* Category modal */}
+      {showCategoryModal && (
+        <ModalShell
+          title={categoryModalMode === "add" ? "Add Category" : "Edit Category"}
+          onClose={() => setShowCategoryModal(false)}
+        >
+          <input
+            value={categoryInput}
+            onChange={(e) => setCategoryInput(e.target.value)}
+            placeholder="Category name"
+            className="w-full border rounded-lg px-3 py-2"
+            autoFocus
+          />
+          <ModalActions
+            onClose={() => setShowCategoryModal(false)}
+            onSave={saveCategory}
+            saveLabel="Save"
+          />
+        </ModalShell>
+      )}
+
+      {/* Option modal */}
+      {showOptionModal && (
+        <ModalShell
+          title={optionModalMode === "add" ? "Add Option" : "Edit Option"}
+          onClose={() => setShowOptionModal(false)}
+        >
+          <p className="text-xs text-gray-500">
+            Category: <strong>{optionTargetCategory}</strong>
+          </p>
+          <input
+            value={optionInput}
+            onChange={(e) => setOptionInput(e.target.value)}
+            placeholder="Option name"
+            className="w-full border rounded-lg px-3 py-2"
+            autoFocus
+          />
+          <ModalActions
+            onClose={() => setShowOptionModal(false)}
+            onSave={saveOption}
+            saveLabel="Save"
+          />
+        </ModalShell>
+      )}
+    </div>
+  );
+}
+
+/* ================= MAIN PAGE ================= */
 
 export default function DiagnosisTreatmentManagement() {
   const navigate = useNavigate();
+  const categorizedOptions = useCategorizedOptions();
 
   const {
     diagnoses,
@@ -155,6 +459,9 @@ export default function DiagnosisTreatmentManagement() {
         <h2 className="text-2xl font-semibold text-slate-800">
           Diagnosis and Treatment Management
         </h2>
+
+        {/* ---- Categorized Options Management ---- */}
+        <CategorizedOptionsManager categorizedOptions={categorizedOptions} />
 
         <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
           {/* Diagnosis Management */}
@@ -628,7 +935,7 @@ export default function DiagnosisTreatmentManagement() {
   loading={diagnosisActionLoading}
   onClose={() => setIsAddDiagnosisOpen(false)}
   onSubmit={createDiagnosis}
-  categorizedOptions={DIAGNOSIS_STANDARD_OPTIONS}
+  categorizedOptions={categorizedOptions.getOptions("diagnosis")}
 />
 
 <EditTextModal
@@ -645,7 +952,7 @@ export default function DiagnosisTreatmentManagement() {
   onSubmit={(value) =>
     updateDiagnosis(selectedDiagnosis.diagnosis_id, value)
   }
-  categorizedOptions={DIAGNOSIS_STANDARD_OPTIONS}
+  categorizedOptions={categorizedOptions.getOptions("diagnosis")}
 />
 
 <AddTextModal
@@ -655,7 +962,7 @@ export default function DiagnosisTreatmentManagement() {
   loading={treatmentActionLoading}
   onClose={() => setIsAddTreatmentOpen(false)}
   onSubmit={createTreatment}
-  categorizedOptions={TREATMENT_STANDARD_OPTIONS}
+  categorizedOptions={categorizedOptions.getOptions("treatment")}
 />
 
 <EditTextModal
@@ -672,7 +979,7 @@ export default function DiagnosisTreatmentManagement() {
   onSubmit={(value) =>
     updateTreatment(selectedTreatment.treatment_id, value)
   }
-  categorizedOptions={TREATMENT_STANDARD_OPTIONS}
+  categorizedOptions={categorizedOptions.getOptions("treatment")}
 />
 
 <AddFeeModal
@@ -680,7 +987,7 @@ export default function DiagnosisTreatmentManagement() {
   loading={feeActionLoading}
   onClose={() => setIsAddFeeOpen(false)}
   onSubmit={createFee}
-  categorizedOptions={FEE_STANDARD_OPTIONS}
+  categorizedOptions={categorizedOptions.getOptions("fee")}
 />
 
 <EditFeeModal
@@ -692,7 +999,7 @@ export default function DiagnosisTreatmentManagement() {
     setSelectedFee(null);
   }}
   onSubmit={(data) => updateFee(selectedFee.fee_id, data)}
-  categorizedOptions={FEE_STANDARD_OPTIONS}
+  categorizedOptions={categorizedOptions.getOptions("fee")}
 />
 <AddTextModal
   isOpen={isAddPrescriptionOpen}
@@ -701,7 +1008,7 @@ export default function DiagnosisTreatmentManagement() {
   loading={prescriptionActionLoading}
   onClose={() => setIsAddPrescriptionOpen(false)}
   onSubmit={createPrescriptionMaster}
-  categorizedOptions={PRESCRIPTION_STANDARD_OPTIONS}
+  categorizedOptions={categorizedOptions.getOptions("prescription")}
 />
 <EditTextModal
   isOpen={isEditPrescriptionOpen}
@@ -717,7 +1024,7 @@ export default function DiagnosisTreatmentManagement() {
   onSubmit={(value) =>
     updatePrescriptionMaster(selectedPrescription.prescription_id, value)
   }
-  categorizedOptions={PRESCRIPTION_STANDARD_OPTIONS}
+  categorizedOptions={categorizedOptions.getOptions("prescription")}
 />
 
 <AddTextModal
@@ -727,7 +1034,7 @@ export default function DiagnosisTreatmentManagement() {
   loading={labResultActionLoading}
   onClose={() => setIsAddLabResultOpen(false)}
   onSubmit={createLabResultMaster}
-  categorizedOptions={LAB_RESULT_STANDARD_OPTIONS}
+  categorizedOptions={categorizedOptions.getOptions("labResult")}
 />
 <EditTextModal
   isOpen={isEditLabResultOpen}
@@ -743,7 +1050,7 @@ export default function DiagnosisTreatmentManagement() {
   onSubmit={(value) =>
     updateLabResultMaster(selectedLabResult.lab_result_id, value)
   }
-  categorizedOptions={LAB_RESULT_STANDARD_OPTIONS}
+  categorizedOptions={categorizedOptions.getOptions("labResult")}
 />
 
 <AddTextModal
@@ -753,7 +1060,7 @@ export default function DiagnosisTreatmentManagement() {
   loading={certificateActionLoading}
   onClose={() => setIsAddCertificateOpen(false)}
   onSubmit={createCertificateMaster}
-  categorizedOptions={CERTIFICATE_STANDARD_OPTIONS}
+  categorizedOptions={categorizedOptions.getOptions("certificate")}
 />
 
 <EditTextModal
@@ -770,7 +1077,7 @@ export default function DiagnosisTreatmentManagement() {
   onSubmit={(value) =>
     updateCertificateMaster(selectedCertificate.certificate_id, value)
   }
-  categorizedOptions={CERTIFICATE_STANDARD_OPTIONS}
+  categorizedOptions={categorizedOptions.getOptions("certificate")}
 />
 
 
@@ -778,6 +1085,5 @@ export default function DiagnosisTreatmentManagement() {
     </Layout>
 
   );
-  
-}
 
+}
