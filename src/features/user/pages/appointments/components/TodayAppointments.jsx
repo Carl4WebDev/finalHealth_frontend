@@ -52,6 +52,26 @@ const [showFollowupModal, setShowFollowupModal] = useState(false);
     setVisibleAppointments(data);
   }, [data]);
 
+  // Listen for off-schedule appointments created from AddAppointmentModal
+  useEffect(() => {
+    const handler = (e) => {
+      const appt = e.detail;
+      setQueuedAppointmentForVitals(appt);
+
+      const type = appt?.appointment_type?.toLowerCase()?.trim();
+      if (type === "pre-employment" || type === "pre employment") {
+        setShowPreEmploymentModal(true);
+      } else if (type === "follow-up") {
+        setShowFollowupModal(true);
+      } else {
+        setShowConsultationModal(true);
+      }
+    };
+
+    window.addEventListener("offScheduleAppointmentCreated", handler);
+    return () => window.removeEventListener("offScheduleAppointmentCreated", handler);
+  }, []);
+
   const refreshAppointments = () => {
     const doctorId = localStorage.getItem("selectedDoctorId");
     const clinicId = localStorage.getItem("selectedClinicId");

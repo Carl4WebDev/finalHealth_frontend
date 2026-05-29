@@ -4,6 +4,7 @@ import RegisterPatientModal from "./RegisterPatientModal";
 import { usePatients } from "../../../context/patients/usePatients";
 import { useDoctorSessions } from "../../../context/doctor-sessions/useDoctorSessions";
 import { useAppointments } from "../../../context/appointments/useAppointments";
+import { apiRequest } from "../../../../../api/httpClient/httpClient";
 
 export default function AddAppointmentModal({
   isOpen,
@@ -35,6 +36,7 @@ export default function AddAppointmentModal({
 
   const [saving, setSaving] = useState(false);
   const [saveError, setSaveError] = useState(null);
+  const [offScheduleDate, setOffScheduleDate] = useState("");
 
   useEffect(() => {
     if (!isOpen) return;
@@ -102,6 +104,56 @@ export default function AddAppointmentModal({
     await createAppointment(payload);
     setSaving(false);
     onClose(); // close modal on success
+  };
+
+  const handleSaveAndFill = async () => {
+    if (!selectedPatientId || !offScheduleDate) return;
+
+    setSaving(true);
+    setSaveError(null);
+
+    const selectedPatient = patients.find(
+      (p) => p.patient_id === selectedPatientId
+    );
+
+    const payload = {
+      patientId: selectedPatientId,
+      doctorId: doctor.doctor_id,
+      clinicId: clinic.clinic_id,
+      appointmentDate: offScheduleDate,
+      appointmentType,
+      priorityId: selectedPatient?.priority_id ?? null,
+    };
+
+    const res = await apiRequest("/api/appointment-routes", {
+      method: "POST",
+      body: JSON.stringify(payload),
+    });
+
+    if (res.ok) {
+      const created = res.data.appointment;
+      const detail = {
+        appointment_id: created.appointmentId,
+        patient_id: created.patientId,
+        doctor_id: created.doctorId,
+        clinic_id: created.clinicId,
+        appointment_date: created.appointmentDate,
+        appointment_type: created.appointmentType,
+        priority_id: created.priorityId,
+        status: created.status,
+        patient_f_name: selectedPatient?.full_name?.split(" ")[0] || "",
+        patient_m_name: selectedPatient?.full_name?.split(" ")[1] || "",
+        patient_l_name: selectedPatient?.full_name?.split(" ").slice(2).join(" ") || "",
+      };
+      window.dispatchEvent(
+        new CustomEvent("offScheduleAppointmentCreated", { detail })
+      );
+      onClose();
+    } else {
+      setSaveError(res.message || "Failed to create appointment.");
+    }
+
+    setSaving(false);
   };
 
   if (!isOpen) return null;
@@ -242,10 +294,24 @@ export default function AddAppointmentModal({
           />
 
           <datalist id="appointment-types">
-            <option value="general" label="Consultation"/>
-            <option value="pre-employment" />
+            <option value="Consultation" label="Consultation"/>
+            <option value="Pre-employment" />
             <option value="Follow-up" />
           </datalist>
+        </div>
+
+        {/* Off-Schedule Date */}
+        <div className="mb-4 rounded-lg border border-dashed border-gray-300 p-3">
+          <label className="block font-medium mb-1 text-sm text-gray-700">
+            No schedule? Pick a date manually
+          </label>
+          <input
+            type="date"
+            value={offScheduleDate}
+            onChange={(e) => setOffScheduleDate(e.target.value)}
+            min={new Date().toISOString().split("T")[0]}
+            className="w-full border rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+          />
         </div>
 
 
@@ -274,6 +340,13 @@ export default function AddAppointmentModal({
             className="px-4 py-2 rounded bg-blue-600 text-white disabled:bg-blue-300"
           >
             {saving ? "Saving..." : "Save Appointment"}
+          </button>
+          <button
+            disabled={!selectedPatientId || !offScheduleDate || saving}
+            onClick={handleSaveAndFill}
+            className="px-4 py-2 rounded bg-green-600 text-white disabled:bg-green-300"
+          >
+            {saving ? "Saving..." : "Save & Fill Record"}
           </button>
         </div>
       </div>
