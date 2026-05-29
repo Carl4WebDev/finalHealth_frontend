@@ -127,32 +127,77 @@ const [showFollowupModal, setShowFollowupModal] = useState(false);
     setQueuedAppointmentForVitals(null);
   };
 
+  // Modals must render even when there are no today appointments,
+  // so off-schedule appointments can still open them.
+  const modals = (
+    <>
+      <ConsultationMedicalRecordModal
+        isOpen={showConsultationModal}
+        appointment={queuedAppointmentForVitals}
+        onClose={() => {
+          setShowConsultationModal(false);
+          setQueuedAppointmentForVitals(null);
+          refreshAppointments();
+        }}
+      />
+
+      <PreEmploymentMedicalRecordModal
+        isOpen={showPreEmploymentModal}
+        appointment={queuedAppointmentForVitals}
+        onClose={() => {
+          setShowPreEmploymentModal(false);
+          setQueuedAppointmentForVitals(null);
+          refreshAppointments();
+        }}
+      />
+
+      <FollowupMedicalRecordModal
+        isOpen={showFollowupModal}
+        appointment={queuedAppointmentForVitals}
+        onClose={() => {
+          setShowFollowupModal(false);
+          setQueuedAppointmentForVitals(null);
+          refreshAppointments();
+        }}
+      />
+    </>
+  );
+
   if (loading) {
     return (
-      <div className="mb-6 rounded-lg bg-white p-4 shadow">
-        <p className="text-sm text-gray-500">Loading today’s appointments…</p>
-      </div>
+      <>
+        {modals}
+        <div className="mb-6 rounded-lg bg-white p-4 shadow">
+          <p className="text-sm text-gray-500">Loading today’s appointments…</p>
+        </div>
+      </>
     );
   }
 
   if (error) {
     return (
-      <div className="mb-6 rounded-lg bg-white p-4 shadow">
-        <p className="text-sm text-red-500">{error}</p>
-      </div>
+      <>
+        {modals}
+        <div className="mb-6 rounded-lg bg-white p-4 shadow">
+          <p className="text-sm text-red-500">{error}</p>
+        </div>
+      </>
     );
   }
 
   if (data.length === 0) {
     return (
-      <div className="mb-6 rounded-lg bg-white p-4 shadow">
-        <h3 className="mb-3 font-semibold text-blue-700">
-          Today’s Appointments
-        </h3>
-        <p className="text-sm text-gray-500">
-          No appointments scheduled for today.
-        </p>
-      </div>
+      <>
+        {modals}
+        <div className="mb-6 rounded-lg bg-white p-4 shadow">
+          <h3 className="mb-3 font-semibold text-blue-700">
+            Today’s Appointments
+          </h3>
+          <p className="text-sm text-gray-500">
+            No appointments scheduled for today.
+          </p>
+        </div>
+      </>
     );
   }
 
@@ -181,6 +226,8 @@ const [showFollowupModal, setShowFollowupModal] = useState(false);
 
   return (
     <div className="mb-6 rounded-lg bg-white p-4 shadow">
+      {modals}
+
       <ViewPatientModal
         isOpen={showView}
         appointment={selectedAppointment}
@@ -231,33 +278,6 @@ const [showFollowupModal, setShowFollowupModal] = useState(false);
       return;
     }
 
-    setQueuedAppointmentForVitals(null);
-  }}
-/>
-
-<ConsultationMedicalRecordModal
-  isOpen={showConsultationModal}
-  appointment={queuedAppointmentForVitals}
-  onClose={() => {
-    setShowConsultationModal(false);
-    setQueuedAppointmentForVitals(null);
-  }}
-/>
-
-<PreEmploymentMedicalRecordModal
-  isOpen={showPreEmploymentModal}
-  appointment={queuedAppointmentForVitals}
-  onClose={() => {
-    setShowPreEmploymentModal(false);
-    setQueuedAppointmentForVitals(null);
-  }}
-/>
-
-<FollowupMedicalRecordModal
-  isOpen={showFollowupModal}
-  appointment={queuedAppointmentForVitals}
-  onClose={() => {
-    setShowFollowupModal(false);
     setQueuedAppointmentForVitals(null);
   }}
 />
